@@ -53,7 +53,7 @@ function reportRow(): Graph {
 }
 
 function releaseImpact(): Graph {
-  const d = new Drawing();
+  const d = new Drawing('할 일 앱의 완료 처리 변경이 요청된 모듈에 미치는 영향을 조사하고 QA 근거와 출시 판단을 정리합니다.');
   d.node('input','input.user_request','조사 후보 모듈',0,1,{question});
   d.node('spawn','agent.create_dynamic','모듈별 조사 담당 생성',1,1,{
     role:'할 일 앱 QA 조사 담당',

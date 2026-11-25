@@ -20,7 +20,7 @@ const handbook=Object.values(rules).join('\n');
 const sourceInstruction='질문에 필요한 사실만 자료에서 확인하세요. 자료에 없는 사실은 확인이 필요하다고 말하세요.';
 
 function single(kind:'intro'|'beginner'|'release'):Graph {
-  const d=new Drawing();
+  const d=new Drawing('도서관 규정에 따라 회원증 발급, 대출 한도, 운영시간, 분실물 등 이용 문의에 답합니다.');
   const intro=kind==='intro';
   d.node('input','input.user_request','질문 입력',0,0,{question:intro?membershipQuestion:'책을 몇 권까지 빌릴 수 있나요?'});
   d.node('agent','ai.single_task','도서관 안내 Agent',1,0,{
@@ -67,7 +67,7 @@ function releaseCandidate():Graph {
 }
 
 function intermediate():Graph {
-  const d=new Drawing();
+  const d=new Drawing('도서관 대출과 분실물 등 이용 규정을 찾아 안내하고 본인의 도서 예약 목록을 조회합니다.');
   d.node('input','input.user_request','도서관 질문',0,1);
   d.node('intent','ai.classify','규정과 개인 예약 구분',1,1,{categories:['규정','예약'],instruction:'본인 예약 목록을 조회하는 요청은 예약입니다. 일반 도서관 문의는 규정입니다.'});
   d.step('input','intent');
@@ -94,7 +94,7 @@ function intermediate():Graph {
 const libraryVisitQuestion='토요일에 중앙도서관에 가려는데, 몇 시에 열고 예약한 책을 받으려면 무엇을 가져가야 하나요? 내 예약도 확인해 주세요.';
 
 function libraryVisit():Graph {
-  const d=new Drawing();
+  const d=new Drawing('도서관 방문일의 운영시간, 예약 도서 수령 준비물과 본인의 도서 예약 내역을 안내합니다.');
   d.node('input','input.user_request','방문 질문',0,0,{question:libraryVisitQuestion});
   d.node('search-hours','knowledge.search','토요일 운영시간 검색',1,0,{topK:1});
   d.node('lookup','tool.invoke','내 예약 조회',2,0,{tool:'mcp.library.reservations.list',args:{}});
@@ -118,8 +118,8 @@ function libraryVisit():Graph {
   return d.graph;
 }
 
-function teamRoot(inner:Graph, title:string, goal:string) {
-  const d=new Drawing();d.node('input','input.user_request','질문 입력',0,0);
+function teamRoot(inner:Graph, title:string, goal:string, purpose:string) {
+  const d=new Drawing(purpose);d.node('input','input.user_request','질문 입력',0,0);
   d.node('team','agent.team',title,1,0,{goal,responsible:'도서관 안내 담당'},inner);
   d.node('output','output.answer','팀의 최종 답변',2,0);d.step('input','team');d.step('team','output');return d.graph;
 }
@@ -139,7 +139,7 @@ function parallel():Graph {
   d.step('hours','join');d.step('membership','join');
   d.node('summary','ai.single_task','대표 Agent',5,1,{goal:'운영시간과 회원증 준비물을 한 번에 안내합니다.',instruction:'두 담당자의 결과 안에서만 요약하고 원문 인용을 보존하세요. 실패하거나 자료가 없으면 그 항목만 확인이 필요하다고 말하세요.'});
   d.step('join','summary');d.node('answer','output.answer','방문 안내',6,1);d.step('summary','answer');
-  return teamRoot(d.graph,'도서관 방문 안내 팀','두 담당자에게 병렬로 위임하고 확인된 정보와 미확인 항목을 함께 전달합니다.');
+  return teamRoot(d.graph,'도서관 방문 안내 팀','두 담당자에게 병렬로 위임하고 확인된 정보와 미확인 항목을 함께 전달합니다.', '도서관 방문을 준비하는 이용자에게 운영시간과 회원증 발급 준비물을 안내합니다.');
 }
 function peerReview():Graph {
   const d=new Drawing();d.node('input','input.user_request','검토할 안내 초안',0,2);
@@ -174,7 +174,7 @@ function peerReview():Graph {
   d.node('report','control.join','안내문에 검토 기록 첨부',9,1.5,{merge:'sections'});
   d.step('revise','report');d.data('reviews','report');
   d.node('output','output.answer','검토한 안내문',10,1.5);d.step('report','output');
-  return teamRoot(d.graph,'도서관 안내문 검토 팀','두 역할이 서로의 초안을 한 차례 원문 대조한 뒤 수정합니다.');
+  return teamRoot(d.graph,'도서관 안내문 검토 팀','두 역할이 서로의 초안을 한 차례 원문 대조한 뒤 수정합니다.', '도서관 방문 안내문의 운영시간과 회원증 준비물을 원문과 대조하고 안내문을 수정합니다.');
 }
 function dynamic():Graph {
   const investigation=new Drawing();
@@ -188,7 +188,8 @@ function dynamic():Graph {
   investigation.node('report','output.answer','조사 근거와 상태 반환',3,0);
   for(const route of ['verified','insufficient','conflicting'])investigation.order('evidence','report',route);
   investigation.data('evidence','report');
-  const d=new Drawing();d.node('input','input.user_request','조사할 지점 목록',0,0,{question:'중앙도서관, 호수도서관, 숲도서관, 강변도서관'});
+  const d=new Drawing('입력된 도서관 지점 목록을 조사해 지점별로 확인된 안내와 근거를 정리합니다.');
+  d.node('input','input.user_request','조사할 지점 목록',0,0,{question:'중앙도서관, 호수도서관, 숲도서관, 강변도서관'});
   d.node('spawn','agent.create_dynamic','지점별 조사 담당 생성',1,0,{role:'도서관 지점 조사 담당',
     instruction:'배정된 지점의 운영 정보를 자료에서 확인하고 원문과 확인 상태를 반환합니다.',
     maxCreatedAgents:4,maxInFlightAgents:2,maxDepth:1,separator:',',failurePolicy:'collect',resultRequirement:'evidence'},investigation.graph);

@@ -4,8 +4,10 @@ import { validateGraph } from '../src/domain/graph';
 import { swImpactTemplate } from '../src/domain/sw-impact-template';
 import type { Graph } from '../src/domain/types';
 import { executeGraph, type EngineServices } from '../src/engine';
+import {scopeModel} from './scope-fixture';
 
 const services: EngineServices = {
+  scopeModel,
   tool: async () => { throw new Error('출시 판단 실습에서 외부 도구를 호출했습니다.'); },
   model: async request => {
     assert.match(request.instruction, /"references"/);

@@ -4,15 +4,21 @@ export class StudioApiError extends Error {
   constructor(readonly status: number, message: string) { super(message); }
 }
 
-export async function api<T=any>(action:string,data:any={},signal?:AbortSignal):Promise<T>{
+export async function studioResponse(action:string,data:unknown={},signal?:AbortSignal):Promise<Response>{
   const res=await fetch('/api/studio',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({action,data}),cache:'no-store',signal});
-  const payload=await res.json();
   if (!res.ok) {
     if (res.status === 401 && typeof window !== 'undefined' && window.location.pathname !== '/login') {
       window.location.replace(loginAddress(window.location.pathname + window.location.search + window.location.hash));
     }
-    throw new StudioApiError(res.status,payload.error||'요청을 처리하지 못했습니다.');
+    const payload=await res.json().catch(() => null);
+    throw new StudioApiError(res.status,payload?.error||'요청을 처리하지 못했습니다.');
   }
+  return res;
+}
+
+export async function api<T=any>(action:string,data:any={},signal?:AbortSignal):Promise<T>{
+  const res=await studioResponse(action,data,signal);
+  const payload=await res.json();
   return payload.data;
 }
 export const message=(err:unknown)=>err instanceof Error?err.message:'잠시 후 다시 시도하세요.';

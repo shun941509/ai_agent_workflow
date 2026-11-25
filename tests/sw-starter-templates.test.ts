@@ -4,6 +4,7 @@ import { validateGraph } from '../src/domain/graph';
 import { swStarterTemplates } from '../src/domain/sw-starter-templates';
 import type { Graph } from '../src/domain/types';
 import { executeGraph, type EngineServices } from '../src/engine';
+import {scopeModel} from './scope-fixture';
 
 function copyLesson(id: string) {
   const lesson = swStarterTemplates.find(item => item.id === id);
@@ -14,6 +15,7 @@ function copyLesson(id: string) {
 async function run(graph: Graph, input: string, model: EngineServices['model']) {
   assert.deepEqual(validateGraph(graph), []);
   const result = await executeGraph(graph, { input, runId: crypto.randomUUID() }, {
+    scopeModel,
     model,
     tool: async name => { throw new Error('Unexpected tool call: ' + name); },
   });

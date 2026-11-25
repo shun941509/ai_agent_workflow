@@ -3,6 +3,7 @@ import { test } from 'node:test';
 import { createBlock, templates, type Graph } from '../src/domain';
 import { executeGraph, type EngineServices } from '../src/engine';
 import { dynamicLessonChecks } from '../src/domain/dynamic-lesson-policy';
+import {scopeModel} from './scope-fixture';
 
 const lesson = templates.find(template => template.id === 'dynamic')!;
 const tool: EngineServices['tool'] = async () => { throw Error('예상하지 않은 도구 호출'); };
@@ -19,7 +20,7 @@ test('강변을 먼저 고르면 중단 기록이 첫 차수의 근거 부족, �
   const graph = structuredClone(lesson.graph);
   const spawn = graph.nodes.find(node => node.id === 'spawn')!;
   Object.assign(spawn.config, {maxCreatedAgents:2, maxInFlightAgents:1, failurePolicy:'stop'});
-  const service: EngineServices = {tool, model:async () => { throw Error('자료가 없는 지점은 모델 호출이 필요하지 않습니다.'); }};
+  const service: EngineServices = {scopeModel, tool, model:async () => { throw Error('자료가 없는 지점은 모델 호출이 필요하지 않습니다.'); }};
   const request = {runId:'ordered-stop', input:lesson.question};
   const first = await executeGraph(graph, request, service);
   assert.equal(first.status, 'waiting');
@@ -36,6 +37,7 @@ test('강변을 먼저 고르면 중단 기록이 첫 차수의 근거 부족, �
 
 test('조사 실패, 원문 부족, 확인된 결과는 개별 지점의 상태로 남는다', async () => {
   const service: EngineServices = {
+    scopeModel,
     tool,
     model: async request => {
       if (!request.instruction.includes('"references"')) return { text: request.input };
@@ -59,14 +61,14 @@ test('조사 실패, 원문 부족, 확인된 결과는 개별 지점의 상태�
 test('결과 수집 정책도 실행 전체의 예산 소진과 사용자 중지를 따라야 한다', async () => {
   const input = lesson.question;
   const model: EngineServices['model'] = async () => ({text: '{"status":"insufficient","references":[]}'});
-  const budget = await executeGraph(lesson.graph, {runId: 'branch-budget', input}, {tool, model, limits: {agents: 1}});
+  const budget = await executeGraph(lesson.graph, {runId: 'branch-budget', input}, {scopeModel, tool, model, limits: {agents: 1}});
   assert.equal(budget.status, 'failed');
   assert.match(budget.error!, /한도/);
   assert.equal(budget.events.some(event => event.nodeId === 'summary'), false);
 
   let stopped = false;
   const stoppedRun = await executeGraph(lesson.graph, {runId: 'branch-stop', input}, {
-    tool, isStopped: () => stopped, model: async request => { stopped = true; return model(request); },
+    scopeModel, tool, isStopped: () => stopped, model: async request => { stopped = true; return model(request); },
   });
   assert.equal(stoppedRun.status, 'stopped');
   assert.equal(stoppedRun.events.some(event => event.nodeId === 'summary'), false);
@@ -89,7 +91,7 @@ test('결과 수집 중 두 하위 담당자의 추가 질문을 같은 실행�
     child.edges.push({id: from+'-data', from, to, kind:'data', out:'value', input:'input'});
   }
   spawn.graph = child;
-  const service: EngineServices = {tool, model: async request => ({text: request.input})};
+  const service: EngineServices = {scopeModel, tool, model: async request => ({text: request.input})};
   const request = {runId: 'branch-wait', input:'중앙도서관, 호수도서관'};
   let run = await executeGraph(graph, request, service);
   for (const value of ['첫째 회신', '둘째 회신']) {

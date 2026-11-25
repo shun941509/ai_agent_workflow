@@ -12,6 +12,7 @@ import { db } from '../src/server/db';
 import { createProject, saveProject } from '../src/server/projects';
 import { runGet, startRun, workOne } from '../src/server/runs';
 import { checkOptionalReview, checkOptionalRiver, eventData } from './optional-team-exercises';
+import {inScopeReply} from './scope-fixture';
 
 const directory = mkdtempSync(join(tmpdir(), 'studio-optional-team-'));
 process.env.STUDIO_DATA_DIR = directory;
@@ -25,7 +26,7 @@ function interceptModel(t: TestContext, reply: (prompt: Prompt) => string) {
     assert.equal(String(url), 'https://api.openai.com/v1/responses');
     const body = JSON.parse(String(init.body));
     const {request, context} = JSON.parse(body.input.at(-1).content);
-    const text = reply({instruction:body.instructions, input:request, context});
+    const text = body.instructions.includes('업무 범위 판정') ? inScopeReply : reply({instruction:body.instructions, input:request, context});
     return Response.json({output:[{type:'message', content:[{type:'output_text', text}]}]});
   });
 }

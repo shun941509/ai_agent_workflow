@@ -53,7 +53,7 @@ export const workDocuments: WorkDocument[] = [
 ];
 
 export function workDocumentGraph(doc: WorkDocument, instruction = doc.prompt): Graph {
-  const drawing = new Drawing();
+  const drawing = new Drawing(doc.prompt);
   drawing.node('input', 'input.user_request', doc.inputLabel, 0, 0, {question:doc.sample});
   drawing.node('report', 'ai.single_task', doc.title + ' 작성', 1, 0, {
     goal: doc.title + ' 문서를 작성합니다.', instruction,

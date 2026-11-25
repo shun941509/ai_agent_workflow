@@ -2,6 +2,7 @@ import { DatabaseSync, type SQLInputValue } from 'node:sqlite';
 import { mkdirSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { randomBytes, createHash } from 'node:crypto';
+import { migrateDraftAgentScopes } from './migrate-agent-scopes';
 
 let connection: DatabaseSync | undefined;
 export const key = () => randomBytes(18).toString('base64url');
@@ -136,6 +137,10 @@ export function db() {
     if (!sql.prepare("SELECT 1 FROM pragma_table_info('installed_lesson_materials') WHERE name='asset'").get()) {
       // Earlier receipts have no asset identity. Keep them to respect deletions and edits.
       sql.exec('ALTER TABLE installed_lesson_materials ADD COLUMN asset TEXT REFERENCES assets(id) ON DELETE SET NULL');
+    }
+    if (sql.prepare('PRAGMA user_version').get()?.user_version === 1) {
+      migrateDraftAgentScopes(sql);
+      sql.exec('PRAGMA user_version=2');
     }
     sql.exec('COMMIT');
   } catch (error) {

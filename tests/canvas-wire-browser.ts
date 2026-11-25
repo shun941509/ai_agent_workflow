@@ -168,6 +168,14 @@ async function checkClassifierPathSelection(ctx:BrowserContext, page:Page, mobil
   await checkCrowdedOutputs(page,'classifier',routes.map(route=>new RegExp(route.word)),mobile);
   const canvas = page.locator('.ws-canvas');
   const rows = canvas.locator('button.ws-route-callout');
+  async function tapLastRoute() {
+    // Fit to the available canvas and tap the part of the row to the right of the zoom controls.
+    await page.getByRole('button',{name:'전체 보기',exact:true}).tap();
+    const row = rows.last();
+    const box = await row.boundingBox();
+    assert.ok(box);
+    await row.tap({position:{x:box.width - 8,y:box.height / 2}});
+  }
   const overview = await canvas.locator('.ws-zoom-percent').innerText();
   const labels = await rows.locator('.ws-route-callout-label').allTextContents();
   assert.equal(new Set(labels).size,routes.length,'가운데만 다른 범주도 서로 다른 이름으로 표시해야 합니다.');
@@ -185,7 +193,8 @@ async function checkClassifierPathSelection(ctx:BrowserContext, page:Page, mobil
       await page.keyboard.press('Shift+Tab');
       await expect(row).toBeFocused();
       await page.keyboard.press(index===1 ? 'Enter' : 'Space');
-    } else if (mobile) await row.tap();
+    } else if (mobile && index === routes.length - 1) await tapLastRoute();
+    else if (mobile) await row.tap();
     else await row.click();
     await expect(row).toHaveAttribute('aria-pressed','true');
     const trace = canvas.locator('.ws-wire-trace');
@@ -263,7 +272,7 @@ async function checkClassifierPathSelection(ctx:BrowserContext, page:Page, mobil
   if (mobile) {
     await classifier.tap();
     await page.getByRole('button',{name:'속성 닫기',exact:true}).tap();
-    await rows.last().tap();
+    await tapLastRoute();
   } else {
     await classifier.click();
     await rows.last().click();

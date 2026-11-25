@@ -6,6 +6,8 @@ import {executeGraph,type EngineRequest,type EngineServices} from '../src/engine
 import {reviewProposal} from '../src/server/proposal';
 import {model} from '../src/server/model';
 import {externalDefinitions} from '../src/server/mcp';
+import {buildAgentZip} from '../src/server/agent-zip';
+import {strFromU8,unzipSync} from 'fflate';
 
 const block=(type:string,id:string,config:Block['config']={},graph?:Graph)=>createBlock(type,{id,config,graph});
 const start=block('input.user_request','start'), end=block('output.answer','end');
@@ -207,6 +209,9 @@ test('내장·고정판 하위 Agent는 담당 범위를 확인하고 내보낼 
       assert.deepEqual(childScopeInstructions(restored),['','하위 Agent의 담당 업무 — 도서관 대출 안내만 작성합니다.',
         '위임할 입력이 이 범위에 속하는지 먼저 확인하세요. 범위 밖이면 하위 작업을 중단하고, 섞여 있으면 업무에 해당하는 부분만 전달하세요.']);
       assert.deepEqual(childScopeInstructions(parent),[]);
+      const zip=unzipSync(buildAgentZip({title:'도서관',graph:parent,resources:[],files:[]}));
+      const text=Object.entries(zip).filter(([n])=>n.endsWith('.md')).map(([,v])=>strFromU8(v)).join('\n');
+      assert.match(text,/하위 Agent의 담당 업무 — 도서관 대출 안내만 작성합니다/);
     }
   }
 });

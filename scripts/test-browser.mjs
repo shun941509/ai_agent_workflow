@@ -100,6 +100,8 @@ try {
         'library-visit-browser',
         'editor-focus-proposal-browser',
         'editor-contracts-browser',
+        'agent-scope-browser',
+        'agent-export-browser',
         'editor-source-navigation-browser',
         'canvas-editing-browser',
         'canvas-keyboard-browser',

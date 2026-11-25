@@ -33,8 +33,8 @@ import RunPanel from './RunPanel';
 import {useSharedAgentAccess} from './use-shared-agent-access';
 import DynamicLessonSetup from './DynamicLessonSetup';
 import { dynamicLessonChecks } from '../domain/dynamic-lesson-policy';
-import HomeDesignProposal, { proposalPayload } from './HomeDesignProposal';
-import type { DesignProposal } from '../domain/design-proposal';
+import HomeDesignProposal, { proposalIntent } from './HomeDesignProposal';
+import { newAgentPurpose, type DesignChangeContext, type DesignProposal } from '../domain/design-proposal';
 import { workDocuments, type WorkDocument, type WorkPurpose } from '../domain/work-documents';
 import ResourceLibrary, { AssetTrash, type AssetItem, type TrashedAsset } from './ResourceLibrary';
 import {visitResource, type ResourceRoute, type ResourceView} from './resource-navigation';
@@ -70,7 +70,7 @@ import { rememberedPosition, rememberWorkspacePosition, trackWorkspacePosition, 
 
 type EditingSession = { project: FullProject; lastFocus?: string };
 type EditorEntryOptions = { initialAction?: 'import'; archivedRevision?: number; issue?: Issue; sharedAsset?: SharedAssetPin; fromGuide?: boolean; guideStep?: number };
-type ProposalTicket = {payload: string; key: string; newAgent?: true};
+type ProposalTicket = {payload: string; key: string; newAgent?: true; changeContext?: DesignChangeContext; followUpFor?: string};
 type ProposalSurface = 'home' | 'editor' | 'guide';
 type Bootstrap = {
   user: { id: string; login: string };
@@ -223,13 +223,13 @@ export default function Studio({accountId}: {accountId: string}) {
   const [lessonId, setLessonId] = useState('intro'),
     [filter, setFilter] = useState('전체'),
     [search, setSearch] = useState('');
-  const [prompt, setPrompt] = useState(''),
+  const [homeDesign, setHomeDesign] = useState<{owner:string; title:string; prompt:string; answer?:string}>(),
     [newTitle, setNewTitle] = useState(''),
     [importFile, setImportFile] = useState<File | null>(null),
     [missingImport,setMissingImport]=useState<{file:File;missing:string[]}>(),
     [templateTitle, setTemplateTitle] = useState('');
   const creating = useRef(false);
-  const [workDesign, setWorkDesign] = useState<{doc:WorkDocument; prompt:string}>();
+  const [workDesign, setWorkDesign] = useState<{doc:WorkDocument; prompt:string; answer?:string; material?:string}>();
   const proposalRequests = useRef<Partial<Record<ProposalSurface, ProposalTicket>>>({});
   const [assetLink, setAssetLink] = useState<{
       id: string;
@@ -272,18 +272,22 @@ export default function Studio({accountId}: {accountId: string}) {
     try { return JSON.parse(sessionStorage.getItem('studio.proposal.' + surface) || 'null') as ProposalTicket | null; }
     catch { return undefined; }
   }
-  async function requestProposal(surface: ProposalSurface, text: string, graph: Graph, signal?: AbortSignal, answer?: string) {
-    const payload = await proposalPayload(data?.user.id, surface === 'editor' ? selected?.id : null, text, graph, answer);
+  async function requestProposal(surface: ProposalSurface, text: string, graph: Graph, signal?: AbortSignal, clarificationAnswer?: string): Promise<DesignProposal> {
+    const {initial, payload} = await proposalIntent(data?.user.id, surface === 'editor' ? selected?.id : null, text, graph, clarificationAnswer);
     signal?.throwIfAborted();
     let ticket = proposalTicket(surface);
     const slot = 'studio.proposal.' + surface;
     if (!ticket || ticket.payload !== payload || (surface === 'home' && !ticket.newAgent)) {
-      ticket = {payload, key: crypto.randomUUID(), newAgent: surface === 'home' ? true : undefined};
+      ticket = {payload, key: crypto.randomUUID(), newAgent:surface === 'home' ? true : undefined,
+        changeContext:surface === 'editor' ? 'editor' : surface === 'guide' ? workDesign?.doc.id : undefined,
+        ...(clarificationAnswer && {followUpFor:initial})};
       try { sessionStorage.setItem(slot, JSON.stringify(ticket)); } catch { /* The request can still be retried in this view. */ }
     }
     proposalRequests.current[surface] = ticket;
     try {
-      const result = await api<DesignProposal>('propose', {prompt:text, graph, requestKey:ticket.key, newAgent:ticket.newAgent, clarificationAnswer:answer}, signal);
+      const result = await api<DesignProposal>('propose', {
+        prompt:text, graph, requestKey:ticket.key, newAgent:ticket.newAgent, changeContext:ticket.changeContext, clarificationAnswer,
+      }, signal);
       if (surface === 'editor' && proposalRequests.current[surface] === ticket) finishProposal(surface);
       return result;
     } catch (error) {
@@ -1063,7 +1067,7 @@ export default function Studio({accountId}: {accountId: string}) {
     }
     const doc = workDocuments.find(item => item.id === id);
     if (doc) {
-      setWorkDesign({doc, prompt:doc.prompt});
+      setWorkDesign(previous => previous?.doc.id === doc.id ? previous : {doc, prompt:doc.prompt});
       modal('work-ai');
     }
   }
@@ -1104,8 +1108,12 @@ export default function Studio({accountId}: {accountId: string}) {
     window.history.replaceState({...window.history.state, templateCreateTitle:title}, '', window.location.href);
   }
   const typedTitle = newTitle.trim();
+  const ownDesign = homeDesign?.owner === accountId ? homeDesign : undefined;
+  const currentDesign = ownDesign?.title === typedTitle ? ownDesign : undefined;
+  const prompt = currentDesign?.prompt ?? '';
   const guideDesign = dialog === 'work-ai' ? workDesign : undefined;
   const designSurface = guideDesign ? 'guide' : 'home';
+  const pendingProposal = (dialog === 'ai' || guideDesign) ? proposalTicket(designSurface) : undefined;
   const namedCreation = (title: string, fallback: string) => title ? '‘' + title + '’ 만들기' : fallback;
   if (!data)
     return (
@@ -1165,11 +1173,7 @@ export default function Studio({accountId}: {accountId: string}) {
           onSaveReference={(name, content) => saveReferenceDocument(selected.id, name, content)}
           initialFocus={selected.editorFocus}
           onFocusChange={focus => rememberFocus(currentSession, focus)}
-          onPropose={async (text, graph) => {
-            const result = await requestProposal('editor', text, graph);
-            if ('clarification' in result) throw new Error('바꾸고 싶은 동작을 구체적으로 입력해 주세요.');
-            return result.graph;
-          }}
+          onPropose={(text, graph, answer) => requestProposal('editor', text, graph, undefined, answer)}
           onShare={() => void versions('share')}
           onVersions={() => void versions('versions')}
           onHome={() => navigate('home')}
@@ -1242,8 +1246,8 @@ export default function Studio({accountId}: {accountId: string}) {
                     e.preventDefault(); setNewTitle(''); modal('ai');
                   }}>
                     <label htmlFor="home-agent-prompt">AI로 새 Agent 설계하기</label>
-                    <div><input id="home-agent-prompt" aria-label="만들고 싶은 Agent" value={prompt}
-                      onChange={e => setPrompt(e.target.value)} placeholder="어떤 일을 맡기고 싶으세요?" />
+                    <div><input id="home-agent-prompt" aria-label="만들고 싶은 Agent" value={ownDesign?.title === '' ? ownDesign.prompt : ''}
+                      onChange={e => setHomeDesign({owner:accountId, title:'', prompt:e.target.value})} placeholder="어떤 일을 맡기고 싶으세요?" />
                       <button className="icon-btn" aria-label="AI 설계 제안 열기"><ArrowRight size={18}/></button></div>
                   </form>
                   <section>
@@ -1496,19 +1500,33 @@ export default function Studio({accountId}: {accountId: string}) {
       {(dialog === 'ai' || guideDesign) && (
         <Modal title={guideDesign ? guideDesign.doc.title + ' 설계하기' : '한 문장으로 Agent 만들기'} onClose={close} dismissDisabled={busy}>
           <HomeDesignProposal key={guideDesign?.doc.id ?? 'home'} prompt={guideDesign?.prompt ?? prompt}
-            workDocument={guideDesign?.doc} onEdit={text => guideDesign ? setWorkDesign({...guideDesign, prompt:text}) : setPrompt(text)}
+            workDocument={guideDesign?.doc} onEdit={text => guideDesign ? setWorkDesign({...guideDesign, prompt:text, answer:undefined})
+              : setHomeDesign({owner:accountId, title:typedTitle, prompt:text})}
+            answer={guideDesign ? guideDesign.answer : currentDesign?.answer}
+            onAnswer={answer => guideDesign
+              ? setWorkDesign(current => current?.doc.id === guideDesign.doc.id ? {...current, answer} : current)
+              : setHomeDesign({owner:accountId, title:typedTitle, prompt, answer})}
+            material={guideDesign?.material ?? guideDesign?.doc.sample}
+            onMaterialEdit={guideDesign ? material => setWorkDesign({...guideDesign, material}) : undefined}
             onClose={close} creating={busy}
-            modelReady={data.modelReady} userId={data.user.id} pendingPayload={proposalTicket(designSurface)?.payload}
-            onBlank={() => void creationAction(() => create({title:typedTitle || prompt.trim().slice(0, 45) || '새 Agent'}))}
+            modelReady={data.modelReady} userId={data.user.id} pendingPayload={pendingProposal?.payload} pendingFollowUpFor={pendingProposal?.followUpFor}
+            onBlank={() => void creationAction(async () => {
+              await create({title:typedTitle || (currentDesign?.answer?.trim() || prompt.trim()).slice(0, 45) || '새 Agent'});
+              setHomeDesign(undefined);
+              finishProposal('home');
+            })}
             onTemplates={chooseCreationTemplate}
             createLabel={guideDesign ? '내 Agent로 만들기' : namedCreation(typedTitle, '캔버스에 적용')}
             onRequest={(text, graph, signal, answer) => requestProposal(designSurface, text, graph, signal, answer)}
             onCreate={(graph, issue) => void creationAction(async () => {
               if (guideDesign) {
                 await create({graph, title:guideDesign.doc.title, workDocument:guideDesign.doc.id}, {issue});
+                setWorkDesign(undefined);
               } else {
-                await create({graph, title:typedTitle || prompt.slice(0, 45)}, {issue});
-                setPrompt('');
+                const task = currentDesign?.answer?.trim() || prompt.trim();
+                const designed: Graph = {...graph, agentScope:{mode:'dedicated', purpose:newAgentPurpose(prompt, currentDesign?.answer, graph)}};
+                await create({graph:designed, title:typedTitle || task.slice(0, 45)}, {issue});
+                setHomeDesign(undefined);
               }
               finishProposal(designSurface);
             })} />

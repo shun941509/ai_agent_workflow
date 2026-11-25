@@ -103,6 +103,7 @@ async function verifyReleaseDownload(page: Page, panel: Locator) {
     if (action !== 'run.start') return route.fallback();
     assert.equal(data.caseId, caseId);
     const result = await executeGraph(graph, {input, runId}, {
+      scopeModel: async () => ({text:'{"status":"in_scope"}'}),
       model: async request => {
         assert.match(request.instruction, /업데이트 안내 작성 Skill/);
         const rows = [...request.context.matchAll(/(할 일 제목 수정|완료 항목 숨기기|마감일 알림) \| (완료|예정) \| ([가-힣 ]+\.)/g)];

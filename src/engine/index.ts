@@ -4,7 +4,7 @@ import { evaluate, readable } from './operations';
 import { RunAborted, Session, Stopped, Suspended, message, type Scope } from './session';
 import { flattened,integer,isPassage,object } from './values';
 import {literalRunQuestion} from '../domain/run-input';
-import {scopedChildInput} from './request-scope';
+import {checkRequestScope,scopedChildInput} from './request-scope';
 import type { EngineRequest, EngineResult, EngineServices, Step, Values } from './types';
 export type * from './types';
 export { retrieve } from './values';
@@ -248,8 +248,15 @@ export async function executeGraph(graph:Graph,request:EngineRequest,services:En
       }
       delete s.state.waits[id];await s.save();
     }
-    const scope:Scope={path:'root',input:literalRunQuestion(request.input)??request.input,permissions:services.allowedTools,depth:0,context:[],responsible:'대표 Agent'};
-    output=readable(await new Frame(graph,scope,s).run());
+    const decision=await checkRequestScope(graph,s);
+    if(decision?.status==='out_of_scope'){
+      output='이 Agent가 맡은 일은 다음과 같습니다.\n'+graph.agentScope!.purpose+'\n이 업무에 맞는 요청이나 자료를 보내 주세요.';
+    }else{
+      if(decision?.status==='mixed')s.effectiveInput=decision.input;
+      const scope:Scope={path:'root',input:literalRunQuestion(s.effectiveInput)??s.effectiveInput,permissions:services.allowedTools,depth:0,context:[],responsible:'대표 Agent'};
+      output=readable(await new Frame(graph,scope,s).run());
+      if(decision?.status==='mixed'&&s.state.outputFormat!=='json')output+='\n\n요청 중 이 Agent의 업무 범위 밖인 부분은 제외했습니다.';
+    }
     await s.stopCheck();
   }catch(reason){
     if(!(reason instanceof Suspended)){

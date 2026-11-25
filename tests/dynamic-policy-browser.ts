@@ -20,6 +20,12 @@ try {
       await setup.getByLabel('동시 실행 한도').selectOption('1');
       await setup.getByLabel('지점 조사 실패 시').selectOption('stop');
       await setup.getByRole('button',{name:'내 사본으로 시작',exact:true}).click();
+      // Exercise the selection and failure policy on this disposable copy, including on a model-free server.
+      await page.getByLabel('프로젝트 메뉴',{exact:true}).click();
+      await page.getByRole('button',{name:'Agent 업무 범위',exact:true}).click();
+      const scope=page.getByRole('dialog',{name:'Agent 업무 범위'});
+      await scope.getByLabel('응답 범위').selectOption('general');
+      await scope.getByRole('button',{name:'적용',exact:true}).click();
       await page.getByRole('button',{name:'시험 실행',exact:true}).click();
       const panel = page.getByRole('tabpanel',{name:'실행 결과'});
       await panel.getByRole('button',{name:'질문 실행',exact:true}).click();

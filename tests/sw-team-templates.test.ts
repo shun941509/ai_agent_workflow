@@ -4,6 +4,7 @@ import { setImmediate } from 'node:timers/promises';
 import { validateGraph } from '../src/domain/graph';
 import { swTeamTemplates } from '../src/domain/sw-team-templates';
 import { executeGraph, type EngineServices, type ModelInput } from '../src/engine';
+import {scopeModel} from './scope-fixture';
 
 const originalReport = '할 일이 사라졌어요';
 const restored = '우유 사기를 완료로 표시했어요. 완료 항목 숨기기를 끄니 다시 보여요.';
@@ -11,6 +12,7 @@ const missing = '우유 사기를 완료로 표시했어요. 완료 항목 숨�
 
 function adapters(reply: (request: ModelInput) => string | Promise<string>): EngineServices {
   return {
+    scopeModel,
     model: async request => ({text: await reply(request)}),
     tool: async name => { throw new Error('이 실습에서 호출할 수 없는 도구 ' + name); },
   };
@@ -39,7 +41,7 @@ test('같은 오류 제보가 회신을 기다리고 숨기기 해제 결과에 
     const waiting = await executeGraph(lesson.graph, request, services);
     assert.equal(waiting.status, 'waiting');
     assert.match(waiting.wait!.prompt, /완료 항목 숨기기/);
-    assert.equal(waiting.checkpoint.counts.modelCalls, 0);
+    assert.equal(waiting.checkpoint.counts.modelCalls, 1);
     const result = await executeGraph(lesson.graph, {
       ...request, checkpoint: waiting.checkpoint, reply: {waitId: waiting.wait!.id, value: observation},
     }, services);

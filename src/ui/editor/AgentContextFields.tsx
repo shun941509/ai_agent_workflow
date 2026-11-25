@@ -1,7 +1,6 @@
 import type {Block,Graph} from '../../domain/types';
-import {isDelegatedRole,linkedAgentSkills,skillChoicesFor,skillsForAgent,type AgentContext,type AgentSkill} from '../../domain/agent-context';
+import {isDelegatedRole,linkedAgentSkills,modelBlocks,skillChoicesFor,skillsForAgent,type AgentContext,type AgentSkill} from '../../domain/agent-context';
 
-const modelBlocks=new Set(['ai.single_task','agent.task','ai.classify','agent.coordinate','agent.select_candidate','quality.evidence','quality.evaluate','context.compress']);
 const label=(skill:AgentSkill)=>skill.title+' · '+skill.version+'판';
 
 export function AgentContextFields({node,graph,parent,onSelect}:{

@@ -3,6 +3,9 @@ import {existsSync, mkdirSync} from 'node:fs';
 import {join} from 'node:path';
 import {chromium, expect, type BrowserContext, type Locator, type Page} from '@playwright/test';
 import {createBlock, templates} from '../src/domain';
+import {workDocumentGraph, workDocuments} from '../src/domain/work-documents';
+import {StudioError} from '../src/server/errors';
+import {propose} from '../src/server/model';
 import {registerBrowserAccount} from './browser-account';
 
 const baseURL = process.env.STUDIO_TEST_URL;
@@ -321,7 +324,7 @@ async function exercise(mobile: boolean) {
     baseURL, viewport:mobile ? {width:390,height:844} : {width:1440,height:900}, isMobile:mobile, hasTouch:mobile,
   });
   try {
-    await registerBrowserAccount(context);
+    const user = await registerBrowserAccount(context);
     const page = await context.newPage();
     await shareFromProjectList(context, page, mobile);
     await verifySharingAudience(context, page, mobile);
@@ -339,6 +342,11 @@ async function exercise(mobile: boolean) {
       return saved;
     }
     const blankTitle = '금요일 야간 개관 알림';
+    const meetingRequest = '회의 메모에서 결정 사항을 뽑아 줘';
+    const meetingPurpose = '회의 메모를 입력받아 확정된 결정 사항을 추출합니다.';
+    const meetingGraph = workDocumentGraph(workDocuments.find(doc => doc.id === 'meeting-report')!, meetingRequest);
+    const proposals: Array<{prompt:string; clarificationAnswer?:string}> = [];
+    let lostAnswerKey: string | undefined;
     let attempts = 0;
     await page.route('**/api/studio', async route => {
       const {action,data} = route.request().postDataJSON();
@@ -350,7 +358,42 @@ async function exercise(mobile: boolean) {
         return;
       }
       if (action === 'propose') {
-        await route.fulfill({json:{data:{graph:intro.graph}}});
+        assert.equal(data.newAgent, true);
+        proposals.push({prompt:data.prompt, clarificationAnswer:data.clarificationAnswer});
+        if (!process.env.STUDIO_TEST_DATA_DIR) {
+          await route.fulfill({json:{data:{graph:meetingGraph}}});
+          return;
+        }
+        if (data.clarificationAnswer === meetingRequest && lostAnswerKey) {
+          assert.equal(data.requestKey, lostAnswerKey);
+          await route.continue();
+          return;
+        }
+        process.env.STUDIO_DATA_DIR = process.env.STUDIO_TEST_DATA_DIR;
+        process.env.OPENAI_MODEL = 'test-model';
+        process.env.OPENAI_API_KEY = 'offline-test-only';
+        const nativeFetch = globalThis.fetch;
+        try {
+          globalThis.fetch = async (_url, options) => {
+            const input = JSON.parse(JSON.parse(String(options?.body)).input);
+            const result = (input.clarificationAnswer ?? input.request) === meetingRequest
+              ? {...meetingGraph, purpose:meetingPurpose} : {clarification:true};
+            return Response.json({output:[{type:'message',content:[{type:'output_text',text:JSON.stringify(result)}]}]});
+          };
+          const result = await propose(user, data);
+          if (data.clarificationAnswer === meetingRequest) {
+            assert.ok('graph' in result);
+            lostAnswerKey = data.requestKey;
+            await route.abort('failed');
+          } else {
+            await route.fulfill({json:{data:result}});
+          }
+        } catch (error) {
+          if (!(error instanceof StudioError)) throw error;
+          await route.fulfill({status:error.status,json:{error:error.message}});
+        } finally {
+          globalThis.fetch = nativeFetch;
+        }
         return;
       }
       if (action === 'project.create' && data.title === blankTitle && ++attempts === 1) {
@@ -382,13 +425,61 @@ async function exercise(mobile: boolean) {
     await dialog.getByRole('button', {name:'‘' + importTitle + '’ 만들기', exact:true}).click();
     await created(importTitle);
 
-    const aiTitle = '야간 개관 안내자';
+    const aiTitle = '회의 결정 사항 정리';
+    const projectCount = (await api(context,'project.list')).length;
+    const question = dialog.getByRole('textbox', {name:'어떤 Agent를 만들고 싶으세요?',exact:true});
+    const preview = dialog.getByRole('heading', {name:'제안된 Workflow',exact:true});
     await namedChooser(aiTitle);
     await dialog.getByRole('button', {name:/한 문장으로 시작/}).click();
-    await dialog.getByLabel('맡길 일과 원하는 결과').fill('금요일 운영 시간을 알려주세요');
-    await dialog.getByRole('button',{name:'초안 제안받기'}).click();
+    await dialog.getByLabel('맡길 일과 원하는 결과').fill(meetingRequest);
+    await dialog.getByRole('button',{name:'초안 제안받기',exact:true}).click();
+    await expect(preview).toBeVisible();
+    await expect(question).toHaveCount(0);
+    const connections = dialog.locator('.proposal-preview details');
+    const flow = connections.getByRole('listitem').filter({hasText:'회의 메모 → 회의록·업무 보고 작성'});
+    await expect(connections.locator('summary')).toHaveText('연결 설정 5개');
+    await expect(flow).toBeHidden();
+    await connections.locator('summary').click();
+    await expect(flow).toContainText('진행·데이터');
+    await expect(connections.getByRole('listitem').filter({hasText:'회의록 작성 Skill → 회의록·업무 보고 작성'})).toContainText('참조');
+    assert.equal((await api(context,'project.list')).length,projectCount);
+    assert.deepEqual(proposals,[{prompt:meetingRequest,clarificationAnswer:undefined}]);
     await dialog.getByRole('button',{name:'‘' + aiTitle + '’ 만들기'}).click();
-    await created(aiTitle);
+    assert.deepEqual((await created(aiTitle)).graph.agentScope, {mode:'dedicated', purpose:meetingRequest});
+
+    if (process.env.STUDIO_TEST_DATA_DIR) {
+      await namedChooser('');
+      await dialog.getByRole('button', {name:/한 문장으로 시작/}).click();
+      const initialPrompt = mobile ? '프랑스의 수도는 어디인가요?' : '안녕하세요';
+      await dialog.getByLabel('맡길 일과 원하는 결과').fill(initialPrompt);
+      await dialog.getByRole('button',{name:'초안 제안받기',exact:true}).click();
+      await expect(question).toBeFocused();
+      await expect(preview).toHaveCount(0);
+      const submitAnswer = dialog.getByRole('button',{name:'답변으로 초안 제안받기',exact:true});
+      await expect(submitAnswer).toBeDisabled();
+      const factualQuestion = '그러면 이탈리아의 수도는 어디인가요?';
+      await question.fill(factualQuestion);
+      await submitAnswer.click();
+      await expect(dialog.getByRole('alert')).toBeVisible();
+      await expect(question).toHaveCount(1);
+      await expect(preview).toHaveCount(0);
+      await question.fill(meetingRequest);
+      await submitAnswer.click();
+      await expect(dialog.getByRole('alert')).toContainText('응답을 받지 못했습니다.');
+      await dialog.getByRole('button',{name:'닫기',exact:true}).click();
+      await page.getByRole('button',{name:'새 Agent',exact:true}).click();
+      await dialog.getByRole('button', {name:/한 문장으로 시작/}).click();
+      await expect(dialog.getByLabel('맡길 일과 원하는 결과')).toHaveValue(initialPrompt);
+      await expect(question).toHaveValue(meetingRequest);
+      await submitAnswer.click();
+      await expect(preview).toBeVisible();
+      await expect(dialog.locator('.proposal-preview')).toContainText('담당 업무 ' + meetingPurpose);
+      await expect(question).toHaveValue(meetingRequest);
+      assert.deepEqual(proposals.slice(1),[undefined,factualQuestion,meetingRequest,meetingRequest].map(clarificationAnswer => ({prompt:initialPrompt,clarificationAnswer})));
+      assert.equal((await api(context,'project.list')).length,projectCount + 1);
+      await dialog.getByRole('button',{name:'캔버스에 적용',exact:true}).click();
+      assert.deepEqual((await created(meetingRequest)).graph.agentScope, {mode:'dedicated', purpose:meetingPurpose});
+    }
 
     const lesson = templates.find(item => item.id === (mobile?'dynamic':'release'))!;
     const name = lesson.title + ' 사서 연습';

@@ -1,6 +1,7 @@
 import type { ModelInput, ModelOutput } from '../engine/types';
-import { catalog, type Graph } from '../domain';
-import { isDesignGreeting, type DesignProposal } from '../domain/design-proposal';
+import { agentPurposeLimit, catalog, type Graph } from '../domain';
+import { isDesignGreeting, type DesignChangeContext, type DesignProposal } from '../domain/design-proposal';
+import { workDocuments } from '../domain/work-documents';
 import { digest, key, one, set, tx } from './db';
 import { charge, day, type User } from './auth';
 import { modelGraph, reviewProposal } from './proposal';
@@ -147,11 +148,12 @@ export async function model(req: ModelInput): Promise<ModelOutput> {
   return { text };
 }
 async function generateDesign(
-  prompt: string, before: Graph, newAgent: boolean, clarificationAnswer?: string, signal?: AbortSignal
+  prompt: string, before: Graph, context?: 'newAgent' | DesignChangeContext, clarificationAnswer?: string, signal?: AbortSignal
 ): Promise<DesignProposal> {
-  if (newAgent && isDesignGreeting(prompt) && (!clarificationAnswer || isDesignGreeting(clarificationAnswer))) {
+  if (context && isDesignGreeting(prompt) && (!clarificationAnswer || isDesignGreeting(clarificationAnswer))) {
     return {clarification: true};
   }
+  const guide = workDocuments.find(doc => doc.id === context);
   const describePorts = (ports: (typeof catalog)[number]['inputs']) =>
     ports.map(({ id, kind, valueType, required }) => ({
       id,
@@ -178,11 +180,18 @@ async function generateDesign(
   }));
   const rules = [
     '당신은 Workflow Studio의 설계 제안 도우미입니다. 설명 없이 JSON 객체를 반환합니다.',
-    newAgent
+    context === 'newAgent'
       ? [
         'request와 보충 설명(clarificationAnswer)이 있으면 함께 읽고, 사용자가 Agent에게 맡기려는 업무를 판단하세요. 요청 속 질문에 직접 답하거나 작업 결과를 미리 작성하지 마세요.',
         '“회의 메모에서 결정 사항을 뽑아 줘”, “수도 질문에 답해 줘”처럼 처리할 입력과 작업 또는 원하는 산출물을 알 수 있으면 즉시 해당 업무의 {nodes,edges}를 제안하세요. Agent, Workflow, 반복 같은 단어나 세부 설정은 필요하지 않습니다.',
         '“프랑스의 수도는 어디인가요?”처럼 특정 사실의 답만 묻는 질문을 그 주제의 Agent 제작 요청으로 확대하지 마세요. 이처럼 맡길 업무가 드러나지 않은 단발성 질문, 인사, 막연한 도움 요청에는 {"clarification":true}만 반환하세요. 첫 요청과 보충 설명을 합쳐도 업무가 불분명하면 같은 표시를 반환하세요.',
+        '보충 설명을 받아 설계할 때는 {nodes,edges,purpose}를 반환하세요. purpose에는 확정된 담당 업무를 입력·작업·결과가 드러나는 간결한 문장으로 적으세요. 첫 요청이 보충 답변을 해석하는 데 필요한 문맥이나 조건이면 포함하고, 다른 주제의 단발성 질문이었으면 제외하세요. 사용자가 명시한 업무 범위와 제한을 보존하세요.',
+      ].join('\n')
+      : context
+      ? [
+        guide ? `선택한 업무는 ‘${guide.title}’입니다. 입력·자료 연결을 유지하면서 이 업무에 맞는 설계를 제안하세요. 이 업무의 작성 요청이나 요구 사항은 유효합니다. 전혀 다른 업무만 요청하면 {"clarification":true}를 반환하세요.`
+          : '편집기에 열린 그래프를 기준으로 새로 만들거나 수정할 동작을 파악하세요.',
+        'request와 clarificationAnswer를 함께 읽으세요. 설계에 반영할 동작이 구체적이면 {nodes,edges}를 반환하세요. 변경할 일 없이 인사하거나 사실을 묻거나 설계와 무관한 일을 시키면 {"clarification":true}만 반환하세요. 일반 질문을 새 설계나 변경으로 추측하지 마세요. 보충 답변으로도 설계 의도가 불분명하면 같은 표시를 반환하세요.',
       ].join('\n')
       : '설계는 {nodes,edges}로 반환하세요.',
     '새 회신 대기 단계는 input.form으로 설계하세요. 회신 기한을 원하는 경우에만 config.replyTimeoutMinutes를 분 단위 양의 정수로 지정하고, 필요한 양식 항목은 config.fields에 함께 설정하세요. 기존 control.wait의 설정과 식별자는 사용자가 변경을 요청한 경우에만 수정하세요.',
@@ -206,9 +215,13 @@ async function generateDesign(
   }, signal);
   signal?.throwIfAborted();
   const proposed = JSON.parse(content(parts));
-  if (newAgent && proposed?.clarification === true) return {clarification: true};
+  if (context && proposed?.clarification === true) return {clarification: true};
   const graph = reviewProposal(graphShape(proposed), before);
   requireThat(graph.nodes.length > 0, 422, 'AI 초안에 블록이 없습니다.');
+  if (context === 'newAgent' && clarificationAnswer && typeof proposed.purpose === 'string') {
+    const purpose = proposed.purpose.trim();
+    if (purpose && purpose.length <= agentPurposeLimit) graph.agentScope = {mode:'dedicated', purpose};
+  }
   return {graph};
 }
 
@@ -218,10 +231,14 @@ export async function propose(user: User, b: any, signal?: AbortSignal): Promise
     requestKey = stringArg(b.requestKey, '요청 번호', 160),
     before = graphShape(b.graph);
   const newAgent = b.newAgent === true;
-  const clarificationAnswer = newAgent && b.clarificationAnswer !== undefined
+  const changeContext: DesignChangeContext | undefined = b.changeContext;
+  requireThat(changeContext === undefined || (!newAgent && (changeContext === 'editor' || workDocuments.some(doc => doc.id === changeContext))),
+    400, '설계를 요청한 화면을 확인하세요.');
+  const context = newAgent ? 'newAgent' : changeContext;
+  const clarificationAnswer = context && b.clarificationAnswer !== undefined
     ? stringArg(b.clarificationAnswer, '보충 설명', 12000)
     : undefined;
-  const fingerprint = digest(JSON.stringify(newAgent ? [prompt, before, 'newAgent', clarificationAnswer] : [prompt, before])),
+  const fingerprint = digest(JSON.stringify(context ? [prompt, before, context, clarificationAnswer] : [prompt, before])),
     attempt = key();
   const cached = tx(() => {
     const existing = one<{ result: string; created: string }>(
@@ -282,9 +299,11 @@ export async function propose(user: User, b: any, signal?: AbortSignal): Promise
   });
   if (cached) return 'clarification' in cached ? cached : {graph: cached};
   try {
-    const result = await generateDesign(prompt, before, newAgent, clarificationAnswer, signal);
+    const result = await generateDesign(prompt, before, context, clarificationAnswer, signal);
     signal?.throwIfAborted();
-    requireThat(!clarificationAnswer || !('clarification' in result), 422, '보충 설명에 Agent가 맡을 작업을 구체적으로 적어 주세요.');
+    requireThat(!clarificationAnswer || !('clarification' in result), 422, newAgent
+      ? '보충 설명에 Agent가 맡을 작업을 구체적으로 적어 주세요.'
+      : '보충 답변에 현재 설계로 만들거나 바꿀 일을 구체적으로 적어 주세요.');
     const saved = set(
       'UPDATE proposals SET result=? WHERE owner=? AND id=? AND EXISTS(SELECT 1 FROM proposal_requests WHERE owner=? AND id=? AND attempt=?)',
       JSON.stringify('graph' in result ? result.graph : result),

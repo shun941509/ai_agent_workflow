@@ -2,7 +2,7 @@ import { registerBrowserAccount } from './browser-account';
 import assert from 'node:assert/strict';
 import {existsSync} from 'node:fs';
 import {chromium, expect, type BrowserContext} from '@playwright/test';
-import type {Graph} from '../src/domain';
+import {connectBlocks, connectionOptions, createBlock, validateGraph, type Graph} from '../src/domain';
 
 const baseURL = process.env.STUDIO_TEST_URL;
 if (!baseURL) throw Error('격리된 작업실 주소가 필요합니다.');
@@ -14,6 +14,27 @@ async function api(context: BrowserContext, action: string, data = {}) {
   const result = await response.json();
   assert.ok(response.ok(), action + ' ' + (result.error ?? ''));
   return result.data;
+}
+
+function reviewTeams(): Graph {
+  const inner: Graph = {nodes:[
+    createBlock('input.user_request', {id:'source', title:'전달받은 구절'}),
+    createBlock('quality.evidence', {id:'review', title:'구절 검토', x:320}),
+    createBlock('output.answer', {id:'result', title:'검토 결과', x:590}),
+  ], edges:[]};
+  inner.edges.push(...connectBlocks(inner, 'source', 'review'),
+    ...connectBlocks(inner, 'review', 'result', connectionOptions(inner, 'review', 'result')));
+  const graph: Graph = {nodes:[
+    createBlock('input.user_request', {id:'question', title:'원래 질문'}),
+    createBlock('agent.team', {id:'first', title:'첫 검토 팀', x:320, config:{goal:'원문 검토'}, graph:inner}),
+    createBlock('agent.team', {id:'second', title:'다음 검토 팀', x:590, config:{goal:'이중 검토'}, graph:inner}),
+    createBlock('output.answer', {id:'reply', title:'최종 답변', x:860}),
+  ], edges:[]};
+  graph.edges.push(...connectBlocks(graph,'question','first'), ...connectBlocks(graph,'first','second'),
+    ...connectBlocks(graph,'second','reply'));
+  assert.deepEqual(validateGraph(graph), []);
+  assert.ok(validateGraph(inner).length, '내부에서만 유효한 근거 전달 경로를 시험합니다.');
+  return graph;
 }
 
 async function check(mobile: boolean) {
@@ -68,17 +89,35 @@ async function check(mobile: boolean) {
     await page.keyboard.press('Delete');
     await expect(nodes).toHaveCount(beginner.graph.nodes.length);
 
-    // Only the model is replaced. The editor still applies and saves through the real project API.
+    // Simulate model availability and proposal responses. Project reads and writes still use the real API.
     let release!: () => void;
     const hold = new Promise<void>(resolve => { release = resolve; });
+    let releaseGuide!: () => void;
+    const guideHold = new Promise<void>(resolve => { releaseGuide = resolve; });
     const requests: string[] = [];
+    const change = '담당자가 없는 항목은 미정으로 표시해 줘';
+    const unrelated = '프랑스의 수도는 어디인가요?';
+    const material = '회의 메모: 금요일에 결과를 공유한다.';
+    const guideBootstrap = {...await api(context, 'bootstrap'), modelReady:true};
     await page.route('**/api/studio', async route => {
       const {action,data} = route.request().postDataJSON();
+      const isGuide = new URL(page.url()).searchParams.get('view') === 'guide';
+      if (action === 'bootstrap' && isGuide) return route.fulfill({json:{data:guideBootstrap}});
       if (action !== 'propose') return route.fallback();
       requests.push(data.prompt);
+      assert.equal(data.changeContext, isGuide ? 'meeting-report' : 'editor');
+      assert.ok(!JSON.stringify(data).includes(material));
+      if (isGuide && data.prompt === unrelated && !data.clarificationAnswer) await guideHold;
+      if ((data.prompt === '안녕하세요' || data.prompt === unrelated) && !data.clarificationAnswer)
+        return route.fulfill({json:{data:{clarification:true}}});
+      if (data.clarificationAnswer === '네')
+        return route.fulfill({status:422, json:{error:'보충 답변에 바꿀 일을 구체적으로 적어 주세요.'}});
       if (data.prompt === '늦은 요청') await hold;
       const graph: Graph = data.graph;
-      graph.nodes[0].title = data.prompt;
+      graph.nodes[0].title = data.clarificationAnswer ?? data.prompt;
+      if (data.prompt === '연결 오류가 있는 제안') graph.edges.push({
+        id:'broken', from:'missing', to:'review', kind:'flow', out:'next', input:'in',
+      });
       await route.fulfill({json:{data:{graph}}});
     });
     await button('AI 설계').click();
@@ -86,7 +125,22 @@ async function check(mobile: boolean) {
     const prompt = dialog.getByRole('textbox',{name:'만들거나 바꿀 일'});
     const send = dialog.getByRole('button',{name:/변경 제안.*받기/});
     const apply = dialog.getByRole('button',{name:'캔버스에 적용'});
+    await prompt.fill('안녕하세요');
+    await send.click();
+    const answer = dialog.getByRole('textbox',{name:'현재 설계에서 무엇을 바꾸고 싶으세요?'});
+    await expect(answer).toBeFocused();
+    await expect(send).toBeDisabled();
+    await answer.fill('네');
+    await send.click();
+    await expect(dialog.getByRole('alert')).toContainText('구체적으로');
+    await expect(answer).toHaveCount(1);
+    await expect(apply).toHaveCount(0);
+    await answer.fill(change);
+    await send.click();
+    await expect(apply).toBeEnabled();
+    await expect(first).not.toContainText(change);
     await prompt.fill('월요일 휴관 안내');
+    await expect(answer).toHaveCount(0);
     await send.click();
     await expect(apply).toBeEnabled();
     await prompt.fill('금요일 야간 개관 안내');
@@ -111,11 +165,83 @@ async function check(mobile: boolean) {
       .toBe('금요일 야간 개관 안내');
     await button('AI 설계').click();
     await expect(apply).toHaveCount(0);
+
+    const teams = reviewTeams();
+    const nested = await api(context, 'project.create', {title:'내부 설계 변경', graph:teams});
+    await page.goto('/?edit=' + nested.id);
+    await button('첫 검토 팀 블록 속성').press('Enter');
+    await button('팀 열기').click();
+    const teamHeading = page.getByRole('heading', {name:'첫 검토 팀', exact:true});
+    await expect(teamHeading).toBeVisible();
+    await button('AI 설계').click();
+    await prompt.fill('연결 오류가 있는 제안');
+    await send.click();
+    const warning = dialog.getByRole('status');
+    await expect(warning).toContainText('실행 전 수정 1곳');
+    await expect(warning).toContainText('첫 검토 팀 › 구절 검토');
+    await expect(warning).toContainText('연결할 블록을 찾을 수 없습니다.');
+    await dialog.getByRole('button',{name:'취소', exact:true}).click();
+    const originalNode = button('전달받은 구절 블록 속성');
+    await expect(originalNode).toBeVisible();
+    await button('AI 설계').click();
+    await prompt.fill('검증할 원문 구절');
+    await send.click();
+    await expect(apply).toBeEnabled();
+    await expect(warning).toHaveCount(0);
+    await expect(originalNode).toBeVisible();
+    await apply.click();
+    await expect(teamHeading).toBeVisible();
+    await expect(button('검증할 원문 구절 블록 속성')).toBeVisible();
+    await page.keyboard.press('Control+s');
+    const expected = structuredClone(teams);
+    expected.nodes[1].graph!.nodes[0].title = '검증할 원문 구절';
+    const savedTeams = async () => (await api(context,'project.open',{id:nested.id})).graph;
+    await expect.poll(savedTeams).toEqual(expected);
+    await button('실행 취소').click();
+    await expect(teamHeading).toBeVisible();
+    await expect(originalNode).toBeVisible();
+    await page.keyboard.press('Control+s');
+    await expect.poll(savedTeams).toEqual(teams);
+
+    await page.goto('/?view=guide&section=goals&step=1&template=meeting-report');
+    const startGuide = button('이 업무로 설계하기');
+    await startGuide.click();
+    const guide = page.getByRole('dialog',{name:'회의록·업무 보고 설계하기'});
+    const guidePrompt = guide.getByRole('textbox',{name:'맡길 일과 원하는 결과'});
+    const guideAnswer = guide.getByRole('textbox',{name:'회의록·업무 보고 설계에서 무엇을 바꾸고 싶으세요?'});
+    const notes = guide.getByRole('textbox',{name:/회의 메모/});
+    const preview = guide.getByRole('heading',{name:'제안된 Workflow'});
+    const propose = guide.getByRole('button',{name:'초안 제안받기',exact:true});
+    const followUp = guide.getByRole('button',{name:'답변으로 초안 제안받기'});
+    const projectCount = (await api(context,'project.list')).length;
+    await propose.click();
+    await expect(preview).toBeVisible();
+    await expect(guideAnswer).toHaveCount(0);
+    await guidePrompt.fill(unrelated);
+    await propose.click();
+    await expect.poll(() => requests).toContain(unrelated);
+    await notes.fill(material);
+    releaseGuide();
+    await expect(guideAnswer).toBeFocused();
+    await expect(notes).toHaveValue(material);
+    await expect(preview).toHaveCount(0);
+    await guideAnswer.fill('네');
+    await followUp.click();
+    await expect(guide.getByRole('alert')).toContainText('구체적으로');
+    await expect(guideAnswer).toHaveCount(1);
+    await guideAnswer.fill(change);
+    await guide.getByRole('button',{name:'닫기',exact:true}).click();
+    await startGuide.click();
+    await expect(guideAnswer).toHaveValue(change);
+    await expect(notes).toHaveValue(material);
+    await followUp.click();
+    await expect(preview).toBeVisible();
+    assert.equal((await api(context,'project.list')).length, projectCount);
   } finally { await context.close(); }
 }
 
 try {
   await check(false);
   await check(true);
-  console.log('PASS readable root canvas, overview, focused keyboard deletion and stale AI proposals on desktop and mobile.');
+  console.log('PASS desktop and mobile canvas controls, editor and guide clarification, stale proposals, and scoped team changes with validation and undo.');
 } finally { await browser.close(); }

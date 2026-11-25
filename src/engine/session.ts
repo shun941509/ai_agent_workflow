@@ -31,10 +31,12 @@ export class Session {
     return Object.entries(value).flatMap(([key,item])=>this.fileReferences(item,[...keys,key]));
   }
   state:EngineCheckpoint;
+  effectiveInput:string;
   private saveTail=Promise.resolve();
   private activeRemote=0;
   private remoteQueue:(()=>void)[]=[];
   constructor(readonly request:EngineRequest,readonly services:EngineServices,graph?:Graph) {
+    this.effectiveInput=request.input;
     if(request.checkpoint && (request.checkpoint.runId!==request.runId || request.checkpoint.input!==request.input || request.checkpoint.version!==1))
       throw new Error('실행 기록과 요청이 일치하지 않습니다.');
     this.state=request.checkpoint?structuredClone(request.checkpoint):{

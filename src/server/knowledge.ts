@@ -136,6 +136,22 @@ export function missingImportedCollections(graph:Graph,projectId:string,user:Use
   return [...missing];
 }
 
+export type ExportCollectionStage='release'|'draft'|'index'|'published-digest';
+
+/** A read-only view of the state needed by this block. Management staging is private to the collection owner. */
+export function exportCollectionSources(user:User,project:string,name:string,version:string,stage:ExportCollectionStage,manage:boolean):Source[]|undefined {
+  const c=collection(project,'live',name,version);
+  if(manage||stage!=='release')requireThat(c.owner===user.id,403,'자료집의 준비·색인·발행 상태는 소유자만 내보낼 수 있습니다.');
+  const value=load(c,stage+':'+c.version);
+  if(!value)return undefined;
+  if(stage==='release')return requiredSnapshot(c,authorize(user,c)).documents;
+  const draft=stage==='draft';
+  const documents:Source[]=draft?JSON.parse(value):requiredSnapshot(c,value).documents;
+  const manifest=load(c,draft?'sources-draft:'+c.version:'sources:'+value);
+  checkPins(user,manifest?JSON.parse(manifest):sourcePins({documents},new Map()));
+  return documents;
+}
+
 /** Materialize searchable editions alongside copied workflows, then install them under the new owner. */
 export function prepareKnowledgeCopy(graph:Graph,sourceProject:string,user:User,copyAsset:(ref:SourcePin)=>{id:string;version:number}){
   const editions=new Map<string,{collection:string;version:string;snapshot:KnowledgeSnapshot}>();

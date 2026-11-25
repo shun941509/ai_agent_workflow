@@ -23,7 +23,7 @@ const filterTests = [
 ].join('\n');
 
 function bugTriage(): Graph {
-  const d = new Drawing();
+  const d = new Drawing('할 일 앱에서 항목이 사라졌다는 오류 제보를 받아 표시 설정을 안내하거나 개발팀에 전달할 재현 보고서를 작성합니다.');
   d.node('input', 'input.user_request', '오류 제보 접수', 0, 1, {question: originalReport});
   d.node('ask', 'input.form', '사라지기 전후 상황 묻기', 1, 1, {
     prompt: '어떤 할 일이 어떤 동작 뒤에 사라졌나요? ‘완료 항목 숨기기’를 끄면 그 항목이 다시 보이는지도 알려주세요.',
@@ -106,7 +106,7 @@ function codeReview(): Graph {
   team.step('join', 'review-summary');
   team.step('review-summary', 'answer');
 
-  const d = new Drawing();
+  const d = new Drawing('할 일 앱의 목록 필터 코드와 요구사항을 검토해 수정안과 시험 사례를 제안합니다.');
   d.node('input', 'input.user_request', '할 일 앱 코드 검토 요청', 0, 0, {question: reviewQuestion});
   d.node('team', 'agent.team', '할 일 앱 코드 검토 팀', 1, 0, {
     goal: '목록 필터가 표시 요구사항에 맞는지 검토하고 수정안과 시험 사례를 제안합니다.',

@@ -68,6 +68,9 @@ test('저장한 방문 사례를 두 판으로 실행하면 모델에 전달된 
     globalThis.fetch = async (url, init) => {
       if (String(url) !== 'https://api.openai.com/v1/responses') return realFetch(url, init);
       const prompt = JSON.parse(String(init?.body));
+      if (prompt.instructions.includes('업무 범위 판정')) {
+        return Response.json({output:[{type:'message',content:[{type:'output_text',text:'{"status":"in_scope"}'}]}]});
+      }
       const skill = prompt.instructions.split('등록된 작업 지침 (방문 안내 작성 Skill · 1판): ')[1];
       assert.ok(skill, '등록된 Skill의 지침이 모델에 전달되어야 합니다.');
       const labels = Array.from(String(skill).matchAll(/(?:첫|둘째|셋째) 줄은 “([^”]+)”/g), match => match[1]);

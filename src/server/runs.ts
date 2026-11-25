@@ -31,6 +31,16 @@ function readCheckpoint(raw:string|null):EngineCheckpoint|undefined{
     return value;
   });
 }
+function previousScopeDecision(retries:string|null):EngineCheckpoint['scopeDecision'] {
+  const visited=new Set<string>();
+  while(retries && !visited.has(retries)){
+    visited.add(retries);
+    const attempt=one<{retries:string|null;decision:string|null}>(
+      "SELECT retries,json_extract(checkpoint,'$.scopeDecision') AS decision FROM runs WHERE id=?",retries);
+    if(attempt?.decision)return JSON.parse(attempt.decision);
+    retries=attempt?.retries??null;
+  }
+}
 function row(id:string){const r=one<Row>('SELECT * FROM runs WHERE id=?',id);requireThat(r,404,'실행을 찾을 수 없습니다.');return r;}
 function conversation(id:string){const c=one<Conv>('SELECT * FROM conversations WHERE id=?',id);requireThat(c,404,'대화를 찾을 수 없습니다.');return c;}
 function activeUser(id:string){const user=one<User>('SELECT id,login FROM people WHERE id=?',id);requireThat(user,403,'계정을 확인하세요.');return user;}
@@ -39,10 +49,28 @@ function checkSharedView(p:Project,user:User,view?:SharedView){
   if (view?.token !== undefined || view?.shareGeneration !== undefined)
     requireThat(canProject(p,user,view.token,view.shareGeneration),403,'이 Agent를 사용할 권한이 없습니다.');
 }
+// The first run of a retry conversation points to the attempt it replaces.
+// Each ancestor contributes only completed turns before that attempt, even after later turns are added.
+const conversationHistory = `WITH RECURSIVE segments(conversation,before_run) AS (
+  VALUES (?,NULL)
+  UNION ALL
+  SELECT original.conversation,original.rowid FROM segments
+    JOIN runs fork ON fork.conversation=segments.conversation AND fork.retries IS NOT NULL
+    JOIN runs original ON original.id=fork.retries AND original.rowid<fork.rowid
+    WHERE segments.before_run IS NULL OR fork.rowid<=segments.before_run
+), turns AS (
+  SELECT r.rowid AS position,segments.before_run,r.conversation,r.input,r.output,r.checkpoint FROM segments
+    CROSS JOIN runs r ON r.conversation=segments.conversation
+    WHERE r.state='completed' AND (segments.before_run IS NULL OR r.rowid<segments.before_run)
+    AND coalesce(json_extract(r.checkpoint,'$.scopeDecision.status'),'')!='out_of_scope'
+)`;
 function access(user:User,c:Conv,p=project(c.project)){requireThat(c.owner===user.id&&canReadProjectEdition(p,user,c.version,c.link_token ?? ''),403,'이 대화를 실행할 권한이 없습니다.');
  const graph=pins(resolveWorkflowRefs(JSON.parse(c.graph),user,p.id,{expand:true}),user);
  if(c.mode==='test')applyFixtureDocuments(graph,runFixture(c.id).documents);
- authorizeKnowledgeHistory(user,c.id,graph,p.id,c.mode==='test'?c.scope:'live');
+ const knowledgeScope=c.mode==='test'?c.scope:'live';
+ authorizeKnowledgeHistory(user,c.id,graph,p.id,knowledgeScope);
+ const inherited=all<{conversation:string}>(conversationHistory+' SELECT DISTINCT conversation FROM turns WHERE before_run IS NOT NULL',c.id);
+ for(const source of inherited)authorizeKnowledgeHistory(user,source.conversation,graph,p.id,knowledgeScope);
  return graph;}
 function mine(user:User,id:string){const r=row(id);requireThat(r.owner===user.id,403,'본인의 실행만 열 수 있습니다.');return r;}
 type CaseSnapshot={caseId:string|null;title:string;expected:string};
@@ -113,6 +141,7 @@ function dto(r:Row,full=true,view?:SharedView,number?:number){const c=conversati
   ...(p.lesson==='intro' && p.owner===viewer.id ? {isExampleAnswer:c.mode==='test' && r.state==='completed' &&
     r.input.trim()===membershipQuestion && isIntroExampleAnswer(graph,r.output)} : {}),
   files,outputFormat:checkpoint?.outputFormat,
+  partialScope:checkpoint?.scopeDecision?.status==='mixed'&&checkpoint.outputFormat==='json',
   prompts:r.state==='waiting'?Object.values(checkpoint?.waits??{}):[],
   ...(snapshot?{testCase:full?{...snapshot,fixture}:snapshot}:{}),
   events:full?events:[],operations:full?all<Operation>('SELECT * FROM operations WHERE run=?',r.id).map(o=>({id:o.id,tool:o.tool,status:o.status,result:parse(o.result)})):[]};}
@@ -309,7 +338,9 @@ async function execute(id:string,lease:string){
  const graph=access(user,c),assets=bindRunAssets(graph,user);
  const knowledge=bindKnowledge(graph,c.project,user,c.id,c.mode==='test'?c.scope:undefined);
  stripGraphGrants(graph);
- const history=all<{input:string;output:string;details:string|null}>("SELECT input,output,json_extract(checkpoint,'$.historyDetails') AS details FROM runs WHERE conversation=? AND state='completed' AND id!=? ORDER BY created",c.id,id)
+ const history=all<{input:string;output:string;details:string|null}>(conversationHistory+`
+   SELECT coalesce(json_extract(checkpoint,'$.scopeDecision.input'),input) AS input,output,json_extract(checkpoint,'$.historyDetails') AS details FROM turns
+   WHERE position<(SELECT rowid FROM runs WHERE id=?) ORDER BY position`,c.id,id)
    .flatMap(x=>{
      const file=attachmentFrom(x.input),question=literalRunQuestion(x.input)??(file?String(record(x.input).question??file.fileName):x.input);
      const details=x.details?Object.values(JSON.parse(x.details)):[];
@@ -374,9 +405,10 @@ async function execute(id:string,lease:string){
     catch(e){if(e instanceof StudioError&&e.status===422)set("UPDATE operations SET status='rejected' WHERE id=?",dispatchId);throw e;}
    }};
  const checkpoint=readCheckpoint(r.checkpoint);
+ const retryScopeDecision=checkpoint?.scopeDecision ? undefined : previousScopeDecision(r.retries);
  const pending=all<{data:string}>('SELECT data FROM replies WHERE run=? ORDER BY rowid',id).map(x=>JSON.parse(x.data)).filter(x=>checkpoint?.waits[x.waitId]&&!checkpoint?.replies[x.waitId]);
  const origin=one<{data:string}>('SELECT data FROM run_origins WHERE run=?',id);
- const req:EngineRequest={runId:id,input:r.input,checkpoint:checkpoint??undefined,replies:pending,history,trigger:origin?JSON.parse(origin.data):undefined};
+ const req:EngineRequest={runId:id,input:r.input,checkpoint:checkpoint??undefined,retryScopeDecision,replies:pending,history,trigger:origin?JSON.parse(origin.data):undefined};
  const result=await executeGraph(graph,req,services);
  set("UPDATE runs SET state=?,output=?,error=?,checkpoint=?,prompt=?,lease=NULL,lease_until=0,updated=? WHERE id=? AND state='running' AND lease=?",result.status,result.output,result.error??'',JSON.stringify(result.checkpoint),result.wait?JSON.stringify(result.wait):null,now(),id,lease);
  }catch(e){set("UPDATE runs SET state='failed',error=?,lease=NULL,lease_until=0,updated=? WHERE id=? AND state='running' AND lease=?",e instanceof Error?e.message:'실행에 실패했습니다.',now(),id,lease);}

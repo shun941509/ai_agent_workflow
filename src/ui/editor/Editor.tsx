@@ -17,11 +17,14 @@ import {
 import { Canvas, type CanvasBookmark, type CanvasHandle, type CanvasListPosition } from './Canvas';
 import { CanvasShortcuts } from './CanvasShortcuts';
 import { FlowConditionsModal } from './FlowConditionsModal';
+import { AgentScopeDialog } from './AgentScopeDialog';
+import { AgentExportDialog } from './AgentExportDialog';
 import { SourceCopyChoice, SourceTestChoice, type SaveReferenceDocument } from './InlineSourceEditor';
 import { useMaterialPreviews } from './use-material-previews';
 import { prepareSourceSave, sourceDraftStore, retainSourceDrafts, sourceDraftKey, type SourceDraft } from './source-drafts';
 import { sourceSnapshot, type SourceOutput } from './source-comparison';
 import type { TestSources } from '../../domain/source-preview';
+import type { DesignProposal } from '../../domain/design-proposal';
 import { SourceOutputChoice } from './SourceOutputChoice';
 import { placeNewBlock } from './node-layout';
 import { insertEvidenceSearch } from './evidence-search';
@@ -48,6 +51,7 @@ import {
   levels,
   nodeTitle,
   subgraph,
+  titleById,
   uniqueId,
   updateSubgraph,
   type Selection,
@@ -67,7 +71,7 @@ export interface EditorProps {
   getDraftRevision: () => number|undefined;
   onSaveReference: SaveReferenceDocument;
   onRefreshAssets: () => Promise<void>;
-  onPropose: (prompt: string, graph: Graph) => Promise<Graph>;
+  onPropose: (prompt: string, graph: Graph, clarificationAnswer?: string) => Promise<DesignProposal>;
   onVersions: () => void;
   onReopenDraft?: () => void | Promise<void>;
   onShare: () => void;
@@ -88,10 +92,23 @@ export interface EditorProps {
   lesson?: Pick<Lesson, 'id' | 'title' | 'task' | 'steps' | 'checks' | 'question' | 'example' | 'optionalPractice'>;
 }
 type Doc = { graph: Graph; title: string };
+type EditorProposal = { graph: Graph; base: string; scope: string; prompt: string; issues: string[] };
 type HistoryFocusChange = {path:string[]; before:Selection; after:Selection; undoText:string; redoText:string};
 type HistoryEntry = {doc: Doc; focus?:HistoryFocusChange; keyHold?:symbol; removedDrafts?:SourceDraft[]};
 const message = (cause: unknown) => (cause instanceof Error ? cause.message : String(cause));
 const fingerprint = (doc: Doc) => JSON.stringify(doc);
+function proposalIssue(graph: Graph, issue: Issue): string {
+  const path = issue.path ?? [];
+  let current = graph;
+  const location = path.map(id => {
+    const title = titleById(current, id);
+    current = subgraph(current, [id]);
+    return title;
+  });
+  if (issue.nodeId) location.push(titleById(current, issue.nodeId));
+  const detail = issue.message.slice(path.length ? (path.join(' › ') + ' › ').length : 0);
+  return location.length ? location.join(' › ') + ' · ' + detail : detail;
+}
 function preservePositions(proposed: Graph, previous: Graph): Graph {
   return {
     ...proposed,
@@ -145,8 +162,9 @@ function ToolButton({
   );
 }
 
-function ProjectMenu({ onSave, onVersions, onShare, onExport }: {
+function ProjectMenu({ onSave, onScope, onVersions, onShare, onExport }: {
   onSave: () => void;
+  onScope: () => void;
   onVersions: () => void;
   onShare: () => void;
   onExport: () => void;
@@ -183,6 +201,7 @@ function ProjectMenu({ onSave, onVersions, onShare, onExport }: {
     <summary aria-label="프로젝트 메뉴" title="프로젝트 메뉴"><Icon name="more" /><span>프로젝트 메뉴</span></summary>
     <div className="ws-project-commands">
       <ToolButton icon="save" onClick={() => activate(onSave)}>저장</ToolButton>
+      <ToolButton icon="settings" onClick={() => activate(onScope)}>Agent 업무 범위</ToolButton>
       <ToolButton icon="versions" onClick={() => activate(onVersions)}>버전</ToolButton>
       <ToolButton icon="share" onClick={() => activate(onShare)}>공유 설정</ToolButton>
       <ToolButton icon="export" onClick={() => activate(onExport)}>내보내기</ToolButton>
@@ -316,10 +335,16 @@ export default function Editor({
   const [status, setStatus] = useState<string | null>('설계 초안을 열었습니다.'),
     [saveState, setSaveState] = useState('저장됨');
   const [prompt, setPrompt] = useState(''),
-    [proposal, setProposal] = useState<{ graph: Graph; base: string; prompt: string } | null>(null),
+    [clarificationAnswer, setClarificationAnswer] = useState<string>(),
+    [proposal, setProposal] = useState<EditorProposal | null>(null),
     [requestedProposal, setRequestedProposal] = useState(false),
     [thinking, setThinking] = useState(false),
     [aiError, setAiError] = useState('');
+  const changeAnswerField = useRef<HTMLTextAreaElement>(null);
+  const needsChangeAnswer = clarificationAnswer !== undefined;
+  useEffect(() => {
+    if (dialog === 'ai' && needsChangeAnswer && !thinking && !proposal) changeAnswerField.current?.focus();
+  }, [dialog, needsChangeAnswer, thinking, proposal]);
   const [importText, setImportText] = useState(''),
     [importError, setImportError] = useState(''),
     [name, setName] = useState('');
@@ -334,6 +359,18 @@ export default function Editor({
   saveCallback.current = onSave;
   const lastProp = useRef(fingerprint({ graph, title })),
     aiRequest = useRef(0);
+  const aiScope = useRef(scope);
+  useLayoutEffect(() => {
+    if (aiScope.current === scope) return;
+    aiScope.current = scope;
+    aiRequest.current++;
+    setThinking(false);
+    setAiError('');
+    setProposal(null);
+    setRequestedProposal(false);
+    setPrompt('');
+    setClarificationAnswer(undefined);
+  }, [scope]);
   const workspace = subgraph(doc.graph, path),
     groups = groupEdges(workspace);
   const materialSources = useMaterialPreviews(workspace);
@@ -877,17 +914,25 @@ export default function Editor({
     setPane('canvas');
   };
   const propose = async () => {
-    if (!prompt.trim() || thinking) return;
+    if (!prompt.trim() || thinking || (needsChangeAnswer && !clarificationAnswer.trim())) return;
     const request = ++aiRequest.current,
-      base = clone(docRef.current.graph);
+      root = docRef.current.graph,
+      base = subgraph(root, path);
     setRequestedProposal(true);
     setThinking(true);
     setAiError('');
     setProposal(null);
     try {
-      const next = await onPropose(prompt.trim(), base);
+      const next = await onPropose(prompt.trim(), clone(base), clarificationAnswer?.trim());
       if (request !== aiRequest.current) return;
-      setProposal({ graph: preservePositions(next, base), base: JSON.stringify(base), prompt });
+      if ('clarification' in next) {
+        if (needsChangeAnswer) throw new Error('보충 답변에 현재 설계로 만들거나 바꿀 일을 구체적으로 적어 주세요.');
+        setClarificationAnswer('');
+      } else {
+        const graph = updateSubgraph(root, path, preservePositions(next.graph, base));
+        const issues = validateGraph(graph).map(issue => proposalIssue(graph, issue));
+        setProposal({graph, base:JSON.stringify(root), scope, prompt, issues});
+      }
     } catch (error) {
       if (request === aiRequest.current) setAiError(message(error));
     } finally {
@@ -946,19 +991,26 @@ export default function Editor({
     setProposal(null);
     setDialog('ai');
   };
-  const editPrompt = (value: string) => {
+  const editPrompt = (value: string, followUp = false) => {
     aiRequest.current++;
     setThinking(false);
     setProposal(null);
     setAiError('');
-    setPrompt(value);
+    if (followUp) setClarificationAnswer(value);
+    else {
+      setPrompt(value);
+      setClarificationAnswer(undefined);
+    }
   };
-  const proposalMatches = proposal && proposal.prompt === prompt && JSON.stringify(doc.graph) === proposal.base;
+  const proposalMatches = proposal && proposal.scope === scope && proposal.prompt === prompt && JSON.stringify(doc.graph) === proposal.base;
   const applyProposal = () => {
-    if (!proposal || proposal.prompt !== prompt || JSON.stringify(docRef.current.graph) !== proposal.base) return;
+    if (!proposal || proposal.scope !== scope || proposal.prompt !== prompt || JSON.stringify(docRef.current.graph) !== proposal.base) return;
     apply({ ...docRef.current, graph: proposal.graph }, 'AI 제안을 적용했습니다. 한 번에 되돌릴 수 있습니다.');
-    setPath([]);
-    setSelection(null);
+    if (needsChangeAnswer) {
+      setPrompt('');
+      setClarificationAnswer(undefined);
+    }
+    setSelection(validEditorFocus(proposal.graph, {path, selection})?.selection ?? null);
     closeAi();
     setLayoutRev(v => v + 1);
   };
@@ -1130,6 +1182,7 @@ export default function Editor({
           </div>
           <ProjectMenu
             onSave={() => void saveProject()}
+            onScope={() => setDialog('scope')}
             onVersions={() => void nav(onVersions)}
             onShare={() => void nav(onShare)}
             onExport={async () => {
@@ -1176,6 +1229,7 @@ export default function Editor({
             <div className="ws-authoring-actions">
               <ToolButton icon="spark" onClick={openAi}>AI 설계</ToolButton>
               <ToolButton icon="play" primary onClick={event => launchRun(event.currentTarget)}>시험 실행</ToolButton>
+              <ToolButton icon="export" onClick={() => setDialog('agent-export')}>Agent 내보내기</ToolButton>
             </div>
           </div>
           <div className="ws-actions">
@@ -1411,7 +1465,16 @@ export default function Editor({
             ? <SourceCopyChoice title={nodeTitle(chosen)} draft={sourceDrafts[sourceKey]} onChoose={duplicateBlock} onCancel={() => setDialog(null)}/>
             : <p>편집 중인 원문이 없습니다.</p>}
         </Modal>}
+        {dialog === 'scope' && <AgentScopeDialog scope={doc.graph.agentScope} onClose={() => setDialog(null)}
+          onApply={agentScope => {
+            const current = docRef.current;
+            apply({...current, graph:{...current.graph, agentScope}}, 'Agent 업무 범위를 적용했습니다.');
+            setDialog(null);
+          }}/>}
         {dialog === 'shortcuts' && <CanvasShortcuts onClose={() => setDialog(null)} />}
+        {dialog === 'agent-export' && <AgentExportDialog projectId={project.id} title={doc.title} graph={doc.graph}
+          hasSourceDrafts={hasSourceDrafts} onClose={() => setDialog(null)}
+          onDownloaded={() => { setStatus('Agent ZIP 다운로드를 시작했습니다.'); setDialog(null); }}/>}
         {dialog === 'export' && <Modal title="설계 내보내기" onClose={()=>setDialog(null)}>
           <SourceOutputChoice data={describeSources()} action="내보내기" edited={exportEdited} onChoose={setExportEdited}/>
           <button className="ws-btn ws-primary" disabled={exportEdited && Object.values(sourceDrafts).some(d=>!d.text.trim())}
@@ -1519,6 +1582,7 @@ export default function Editor({
         )}
         {dialog === 'ai' && (
           <Modal title="AI 설계 제안" onClose={closeAi}>
+            {parentBlock && <p className="ws-hint">‘{parentBlock.title}’ 내부 설계에 적용할 변경을 제안합니다.</p>}
             <label className="ws-field">
               <span>만들거나 바꿀 일</span>
               <textarea
@@ -1528,13 +1592,18 @@ export default function Editor({
                 rows={3}
               />
             </label>
+            {needsChangeAnswer && <label className="ws-field">
+              <span>현재 설계에서 무엇을 바꾸고 싶으세요?</span>
+              <textarea ref={changeAnswerField} value={clarificationAnswer}
+                onChange={e => editPrompt(e.target.value, true)} rows={2} />
+            </label>}
             <button
               className="ws-btn"
-              disabled={thinking || !prompt.trim()}
+              disabled={thinking || !prompt.trim() || (needsChangeAnswer && !clarificationAnswer.trim())}
               onClick={() => void propose()}
             >
               <Icon name="spark" />
-              {thinking ? '제안 작성 중…' : requestedProposal ? '변경 제안 다시 받기' : '변경 제안 받기'}
+              {thinking ? '제안 작성 중…' : needsChangeAnswer ? '답변으로 변경 제안받기' : requestedProposal ? '변경 제안 다시 받기' : '변경 제안 받기'}
             </button>
             {aiError && (
               <p className="ws-danger" role="alert">
@@ -1552,9 +1621,13 @@ export default function Editor({
                     <li key={i}>{t.length>320 ? <details><summary>{t.slice(0,140)}… · 전체 변경 보기</summary><p style={{whiteSpace:'pre-wrap'}}>{t}</p></details> : t}</li>
                   ))}
                 </ul>
+                {proposal.issues.length > 0 && <div role="status">
+                  <strong>실행 전 수정 {proposal.issues.length}곳</strong>
+                  <ul className="ws-issues">{proposal.issues.map((issue, i) => <li key={i}>{issue}</li>)}</ul>
+                </div>}
                 <div className="ws-modal-actions">
                   <button className="ws-btn" onClick={closeAi}>취소</button>
-                  <button className="ws-btn ws-primary" onClick={applyProposal}>캔버스에 적용</button>
+                  <button className="ws-btn ws-primary" onClick={applyProposal}>{proposal.issues.length ? '초안으로 적용해 수정' : '캔버스에 적용'}</button>
                 </div>
               </>
             )}

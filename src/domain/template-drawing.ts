@@ -3,6 +3,9 @@ import type { Block, EdgeKind, Graph } from './types';
 
 export class Drawing {
   graph: Graph = emptyGraph();
+  constructor(purpose?: string) {
+    if (purpose) this.graph.agentScope = {mode:'dedicated', purpose};
+  }
   node(id:string,type:string,title:string,column:number,row:number,config:Block['config']={},graph?:Graph) {
     this.graph.nodes.push(createBlock(type,{id,title,x:48+column*244,y:50+row*132,config,graph}));
     return id;

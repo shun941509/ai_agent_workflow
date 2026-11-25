@@ -34,6 +34,7 @@ async function answerLoanQuestion(page: Page, project: string, expectedLimit: 3 
     if (action !== 'run.start') return route.fallback();
     const {graph} = await api<{graph:Graph}>(page.context(), 'project.open', {id:project});
     const result = await executeGraph(graph, {input:data.input, runId}, {
+      scopeModel: async () => ({text:'{"status":"in_scope"}'}),
       asset: async (id, version) => {
         const edition = await api<{asset:Asset; version:number; payload:{content:string}}>(page.context(), 'asset.read', {id,version});
         return {id, title:edition.asset.name, version:String(edition.version), content:edition.payload.content};

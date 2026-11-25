@@ -5,7 +5,7 @@ const featureRequest = '할 일 앱에서 끝낸 항목을 잠깐 숨겼다가 �
 const acceptanceInstruction = '완료 항목을 숨긴 상태에서 어떤 조작을 하면 무엇이 다시 보이는지, 직접 시험할 수 있는 확인 조건을 쓰세요.';
 
 function requirementsGraph() {
-  const d = new Drawing();
+  const d = new Drawing('할 일 앱의 기능 요청을 개발자가 구현할 요구사항과 확인 질문으로 정리합니다.');
   d.node('input', 'input.user_request', '사용자 요청', 0, 0, { question: featureRequest });
   d.node('agent', 'ai.single_task', '요구사항 작성 Agent', 1, 0, {
     goal: '할 일 앱 사용자의 요청을 개발자가 읽을 수 있게 정리합니다.',
@@ -34,7 +34,7 @@ const releaseSkill = [
 ].join('\n');
 
 function releaseNotesGraph() {
-  const d = new Drawing();
+  const d = new Drawing('할 일 앱의 변경 기록에 근거해 배포한 기능과 예정 기능을 구분한 릴리스 안내문을 작성합니다.');
   d.node('input', 'input.user_request', '안내 작성 요청', 0, 0, { question: releaseQuestion });
   d.node('agent', 'ai.single_task', '업데이트 안내 Agent', 1, 0, {
     goal: '할 일 앱을 사용하는 사람이 이번 버전에 쓸 수 있는 기능과 예정된 기능을 확인하게 합니다.',

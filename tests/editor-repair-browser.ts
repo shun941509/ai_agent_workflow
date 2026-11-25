@@ -45,6 +45,7 @@ try {
   assert.equal(result.edges.length, original.edges.length);
   assert.equal(result.edges.find(e => e.id === route.id)?.to, route.to);
   const classified = await executeGraph(result,{input:'도서 대출 규정',runId:'renamed-category'},{
+    scopeModel:async () => ({text:'{"status":"in_scope"}'}),
     model:async request => ({text:request.instruction.includes('범주') ? '{"category":"이용 규정"}' : '{"status":"insufficient","references":[]}'}),
     tool:async () => {throw new Error('규정 문의에서 예약 도구를 호출했습니다.');},
   });

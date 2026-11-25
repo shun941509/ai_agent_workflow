@@ -11,6 +11,7 @@ import {encodeRunQuestion} from '../src/domain/run-input';
 import { legacyGuestSession } from './legacy-guest';
 import {createProject,openProject,runnable,saveProject} from '../src/server/projects';
 import {readAsset} from '../src/server/assets';
+import {scopeModel} from './scope-fixture';
 
 process.env.STUDIO_DATA_DIR=mkdtempSync(join(tmpdir(),'studio-capability-matrix-'));
 const designer=legacyGuestSession().user;
@@ -42,6 +43,7 @@ function linear(nodes:Block[]):Graph{
 const simple=(type:string,config:Block['config']={},graph?:Graph)=>linear([src,block('stage',type,config,graph),out]);
 function services(extra:Partial<EngineServices>={}):EngineServices {
   return {
+    scopeModel,
     model:async r=>({text:'모델 결과: '+r.input}),
     tool:async()=>{throw Error('승인 없이 도구 호출');},
     ...extra,

@@ -11,6 +11,8 @@ import {templates} from '../../../domain';
 import {triggerList,enableTrigger,disableTrigger,ownerEvent} from '../../../server/triggers';
 import {readJsonBody} from '../../../server/request-json';
 import {recordEditorVisit,resumeWorkspace} from '../../../server/projects';
+import {prepareAgentExport,previewAgentExport} from '../../../server/agent-export';
+import {buildAgentZip} from '../../../server/agent-zip';
 export const runtime='nodejs';export const dynamic='force-dynamic';
 function success(data: unknown, cookie?: string) {
   const res = NextResponse.json({data}, {headers: {'cache-control': 'no-store'}});
@@ -49,6 +51,15 @@ async function handler(req:NextRequest){
      case 'project.create':data=createProject(user,b);break;
      case 'project.save':data=saveProject(user,b);break;
      case 'project.inspectImport':data=inspectImportedDesign(user,b);break;
+     case 'project.exportPreview':data=previewAgentExport(user,b);break;
+     case 'project.exportAgent':{
+       const pkg=prepareAgentExport(user,b);
+       const filename=encodeURIComponent((pkg.title.replace(/[\\/:*?"<>|]/g,'-')||'Agent')+'.zip').replace(/'/g,'%27');
+       return new Response(await buildAgentZip(pkg),{headers:{
+         'content-type':'application/zip','cache-control':'no-store',
+         'content-disposition':"attachment; filename=\"agent.zip\"; filename*=UTF-8''"+filename,
+       }});
+     }
      case 'project.delete':data=deleteProject(user,b);break;
      case 'project.restore':data=restoreProject(user,b);break;
      case 'project.purge':data=purgeTrashedProjects(user,b);break;

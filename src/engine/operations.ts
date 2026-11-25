@@ -132,11 +132,11 @@ export async function evaluate(node:Block,scope:Scope,bindings:Values,s:Session,
   // Use the invited role inside this block. The outer frame tracks who receives its result.
   scope={...scope,responsible:assignedRole||scope.responsible,connectors:mcpScope(scope.connectors,flattened(bindings.mcp))};
   const path=s.key(scope,node), input=Object.hasOwn(bindings,'input')?bindings.input:scope.input;
-  const scopedQuestion=typeof scope.input==='string' && literalRunQuestion(s.request.input)!==scope.input && attachmentFrom(scope.input)
+  const scopedQuestion=typeof scope.input==='string' && literalRunQuestion(s.effectiveInput)!==scope.input && attachmentFrom(scope.input)
     ? record(scope.input).question??scope.input : scope.input;
   const question=readable(bindings.question??scopedQuestion);
-  const originalQuestion=literalRunQuestion(s.request.input)??(attachmentFrom(s.request.input)?
-    asText(record(s.request.input).question??attachmentFrom(s.request.input)?.fileName):s.request.input);
+  const originalQuestion=literalRunQuestion(s.effectiveInput)??(attachmentFrom(s.effectiveInput)?
+    asText(record(s.effectiveInput).question??attachmentFrom(s.effectiveInput)?.fileName):s.effectiveInput);
   const context=[...scope.context,...flattened(bindings.context)].filter(x=>x!==undefined);
   const fields={...object(input),...bindings,input,question};
   const contextText=context.map(x=>asText(x)).join('\n');
@@ -160,7 +160,7 @@ export async function evaluate(node:Block,scope:Scope,bindings:Values,s:Session,
   switch(node.type){
     case 'input.user_request': {
       if(scope.depth>0)return finished(scope.input);
-      if(typeof scope.input==='string' && scope.input===literalRunQuestion(s.request.input))return finished(scope.input);
+      if(typeof scope.input==='string' && scope.input===literalRunQuestion(s.effectiveInput))return finished(scope.input);
       const envelope=typeof scope.input==='string'?record(scope.input):object(scope.input);
       return finished(typeof envelope.fileName==='string'&&typeof envelope.content==='string'&&typeof envelope.question==='string'?envelope.question:scope.input);
     }
@@ -180,7 +180,7 @@ export async function evaluate(node:Block,scope:Scope,bindings:Values,s:Session,
     case 'workflow.tool':return finished(c.name,[],{ref:{name:String(c.name||node.id),description:c.description,blockId:node.id,graph:node.graph,workflowId:c.workflowId,version:c.version}});
     case 'file.input':{
       const accept=fileExtensions(c.accept);
-      let file=c.attachmentMode==='request'?undefined:attachmentFrom(s.request.input);
+      let file=c.attachmentMode==='request'?undefined:attachmentFrom(s.effectiveInput);
       if(!file || attachmentError(file,accept)){
         const prompt=file?attachmentError(file,accept):'‘'+node.title+'’에서 처리할 파일을 첨부하세요.';
         const reply=await s.ask(node,path,{kind:'file',prompt,fileAccept:accept});
@@ -591,7 +591,8 @@ export async function evaluate(node:Block,scope:Scope,bindings:Values,s:Session,
       const model=await askModel('evaluate','원래 질문과 원문 근거를 함께 확인한 후 다음 기준으로 평가해 JSON {"score":0~100,"reason":"이유"}로 답하세요. '+asText(c.criterion),input,
         asText({question:originalQuestion,task:question,criterion:c.criterion,evidence:bindings.evidence??context}));
       const parsed=record(model.text);
-      if(typeof parsed.score!=='number'||!Number.isFinite(parsed.score))throw new Error('평가 점수를 읽을 수 없습니다.');
+      if(typeof parsed.score!=='number'||!Number.isFinite(parsed.score)||parsed.score<0||parsed.score>100)throw new Error('평가 점수는 0부터 100 사이의 숫자여야 합니다.');
+      if(typeof parsed.reason!=='string'||!parsed.reason.trim())throw new Error('평가 이유를 읽을 수 없습니다.');
       const threshold = typeof c.threshold==='string'&&!c.threshold.trim() ? 70 : integer(c.threshold,70,0,100);
       return finished({...parsed,passed:parsed.score>=threshold,input});
     }

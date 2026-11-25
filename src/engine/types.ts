@@ -67,12 +67,14 @@ export interface EngineCheckpoint {
   outputFormat?:'text'|'json'|'markdown';
   historyDetails?:Record<string,unknown>;
   version: 1; runId: string; input: string; events: EngineEvent[];
+  scopeDecision?: {status:'in_scope'|'out_of_scope'} | {status:'mixed'; input:string};
   steps: Record<string, Step>; memo: Record<string, unknown>; waits: Record<string, Prompt>;
   replies: Record<string, {value:string;approved?:boolean}>;
   counts: { steps: number; modelCalls: number; toolCalls: number; agents:number };
 }
 export interface EngineRequest {
   runId: string; input: string; checkpoint?: EngineCheckpoint; history?: History;
+  retryScopeDecision?: EngineCheckpoint['scopeDecision'];
   reply?: { value: string; approved?: boolean; waitId?: string; receivedAt?: number };
   replies?:NonNullable<EngineRequest['reply']>[];
   trigger?:{kind:'manual'|'schedule'|'event'; nodeId?:string; name?:string; scheduledAt?:string};

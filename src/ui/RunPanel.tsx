@@ -18,7 +18,7 @@ type RunState = 'queued' | 'running' | 'waiting' | 'completed' | 'failed' | 'sto
 type Run = {
   id:string;conversation:string;state:RunState;input:string;output:string;error?:string;
   prompt?:Prompt|null;events?:EngineEvent[];operations?:{id:string;tool:string;status:string;result?:unknown}[];
-  prompts?:Prompt[];files?:{path:string;fileName:string;content:string}[];outputFormat?:string;
+  prompts?:Prompt[];files?:{path:string;fileName:string;content:string}[];outputFormat?:string;partialScope?:boolean;
   mode:'test'|'live';version?:number;created:string;updated:string;runNumber:number;
   usedEditions:{title:string;version:number}[];
   testCase?:{caseId:string|null;title:string;expected:string;fixture?:unknown};
@@ -762,6 +762,7 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
                 {selected&&(active(turn)||turn.state==='waiting')&&<button disabled={busy} onClick={()=>void action(()=>stop(turn))}>실행 중지</button>}</div>
               {active(turn)&&!sharingRevoked&&<p className="run-note">실행 경로를 업데이트하고 있습니다.</p>}
               {turn.output&&<FormattedAnswer text={turn.output} format={turn.outputFormat}/>}{turn.error&&<p className="run-error">{turn.error}</p>}
+              {turn.partialScope&&<p>요청 중 이 Agent의 업무 범위 밖인 부분은 제외했습니다.</p>}
               {embedded&&<EditionSummary run={turn}/>}
               <CaseEvidence run={turn}/>
               {selected?<>

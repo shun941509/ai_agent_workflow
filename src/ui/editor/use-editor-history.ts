@@ -5,7 +5,7 @@ import type {InspectorTab} from './InspectorTabs';
 
 export type HistoryPane = 'canvas' | 'inspector' | 'palette';
 export type WireChoiceSource = {node:string; output?:string};
-export type EditorDialog = 'ai' | 'issues' | 'import' | 'name' | 'export' | 'shortcuts' | 'copy-source' | 'attach-shared' | null;
+export type EditorDialog = 'ai' | 'issues' | 'import' | 'name' | 'scope' | 'export' | 'agent-export' | 'shortcuts' | 'copy-source' | 'attach-shared' | null;
 export type PairEdit = 'transfers' | 'conditions';
 export type ConnectionTarget = {from?:string; to?:string; input?:string; routeId?:string; edit?:PairEdit};
 export interface EditorLocation extends EditorFocus {
@@ -61,11 +61,25 @@ export function useEditorHistory(
   restore:(location:EditorLocation)=>void,
 ) {
   const rewinding = useRef(false);
+  const lastLocation = useRef<{entry:EditorLocation; key:string|undefined}>(undefined);
+  function remember(entry:EditorLocation) {
+    lastLocation.current = {entry,key:window.navigation?.currentEntry?.key};
+    return entry;
+  }
+  function save(entry:EditorLocation,push=false) {
+    write(entry,push);
+    remember(entry);
+  }
   // Closing a panel with its own button consumes the same entry as browser Back.
   // A sibling transition (for example, inspector → child team) replaces that final entry.
   function sync() {
     if (!ref || rewinding.current || new URLSearchParams(location.search).get('edit') !== current.project) return;
-    const previous = editorLocation(current.project);
+    const stored = editorLocation(current.project);
+    // After reload the router can replace the traversed entry with its own state.
+    // The editor has already restored that entry. Keep its layers and camera in place.
+    const last = lastLocation.current;
+    const previous = stored ? remember(stored) : last?.key && last.entry.project===current.project &&
+      last.key===window.navigation?.currentEntry?.key ? last.entry : undefined;
     const next = layers(current);
     if (!previous) {
       if (history.length === 1 || (!document.referrer && window.navigation?.canGoBack === false)) {
@@ -73,12 +87,12 @@ export function useEditorHistory(
         history.replaceState({...history.state, workspacePosition:{y:0, projectId:current.project}}, '', '/?view=projects');
         history.pushState(null, '', address);
       }
-      next.forEach((entry,index) => write(entry,index > 0));
+      next.forEach((entry,index) => save(entry,index > 0));
       return;
     }
     if (sameLayer(previous,current)) {
       const updated = {...current, bookmark:previous.bookmark};
-      if (JSON.stringify(updated)!==JSON.stringify(previous)) write(updated);
+      if (!stored || JSON.stringify(updated)!==JSON.stringify(previous)) save(updated);
       return;
     }
     const before = layers(previous);
@@ -91,17 +105,18 @@ export function useEditorHistory(
       history.go(-stepsBack);
       return;
     }
-    if (replaceSibling) write(next[shared++]);
+    if (replaceSibling) save(next[shared++]);
     else {
       const parent = next[shared-1];
-      write({...parent, list:previous.list, bookmark:readBookmark(parent.path) ?? previous.bookmark});
+      save({...parent, list:previous.list, bookmark:readBookmark(parent.path) ?? previous.bookmark});
     }
-    for (let i=shared; i<next.length; i++) write(next[i],true);
+    for (let i=shared; i<next.length; i++) save(next[i],true);
   }
   useLayoutEffect(sync);
   useImperativeHandle(ref, () => () => {
     const entry = editorLocation(current.project);
-    if (!entry) { rewinding.current = false; return false; }
+    if (!entry) { rewinding.current = false; lastLocation.current=undefined; return false; }
+    remember(entry);
     if (rewinding.current) {
       rewinding.current = false;
       sync();

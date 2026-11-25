@@ -8,6 +8,7 @@ import { authenticate } from '../src/server/auth';
 import { db } from '../src/server/db';
 import { createProject, openProject, saveProject } from '../src/server/projects';
 import { runGet, startRun, workOne } from '../src/server/runs';
+import {inScopeReply} from './scope-fixture';
 
 const dir = mkdtempSync(join(tmpdir(), 'studio-intro-example-'));
 process.env.STUDIO_DATA_DIR = dir;
@@ -21,9 +22,10 @@ test('only a membership answer from the original instruction counts in its examp
   const other = createProject(owner, {lesson:'intro'});
   const hasAnswer = (id: string) => openProject(owner, id).hasExampleAnswer;
   let modelReply = '';
-  t.mock.method(globalThis, 'fetch', async () => Response.json({
-    output:[{type:'message', content:[{type:'output_text', text:modelReply}]}],
-  }));
+  t.mock.method(globalThis, 'fetch', async (_url:unknown,init:RequestInit) => {
+    const text = JSON.parse(String(init.body)).instructions.includes('업무 범위 판정') ? inScopeReply : modelReply;
+    return Response.json({output:[{type:'message', content:[{type:'output_text',text}]}]});
+  });
   const ask = async (input: string, reply: string) => {
     modelReply = reply;
     const run = startRun(owner, {id:example.id, mode:'test', input, requestKey:crypto.randomUUID()});

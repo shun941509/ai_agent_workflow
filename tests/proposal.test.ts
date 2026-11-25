@@ -9,6 +9,53 @@ import { modelGraph, reviewProposal } from '../src/server/proposal';
 import { propose } from '../src/server/model';
 import { usage } from '../src/server/auth';
 import { legacyGuestSession } from './legacy-guest';
+import { workDocumentGraph, workDocuments } from '../src/domain/work-documents';
+import { newAgentPurpose } from '../src/domain/design-proposal';
+
+test('홈에서 만든 Agent는 업무를 설명한 최초 요청과 보충 답변을 함께 보존한다', () => {
+  const task = '회의 메모에서 결정 사항을 뽑아 줘';
+  assert.equal(newAgentPurpose(task), task);
+  assert.equal(newAgentPurpose(' 안녕하세요! ', task), task);
+  const purpose = newAgentPurpose('회의 메모를 매주 받는데요', '결정 사항만 표로요');
+  assert.match(purpose, /회의 메모를 매주 받는데요/);
+  assert.match(purpose, /결정 사항만 표로요/);
+  const long = newAgentPurpose('가'.repeat(12000), '나'.repeat(12000));
+  assert.equal(long.length, 12000);
+  assert.ok(long.includes('가') && long.includes('나'));
+  const receipt: Graph = {nodes:[createBlock('agent.task', {config:{goal:'회의 메모에서 결정 사항을 뽑습니다.', instruction:'결정 사항만 표로 작성합니다.'}})], edges:[]};
+  const recovered = newAgentPurpose('프랑스의 수도는 어디인가요?', '결정 사항만 표로요', receipt);
+  assert.match(recovered, /회의 메모/);
+  assert.match(recovered, /표로 작성/);
+  assert.doesNotMatch(recovered, /프랑스/);
+});
+
+test('편집기와 업무 가이드의 모호한 변경은 한 번 묻고 구체적인 변경은 바로 제안한다', async t => {
+  process.env.STUDIO_DATA_DIR = mkdtempSync(join(tmpdir(), 'studio-change-intent-'));
+  process.env.OPENAI_API_KEY = 'offline-test-value';
+  process.env.OPENAI_MODEL = 'test-model';
+  const meeting = workDocuments.find(doc => doc.id === 'meeting-report')!;
+  const graph: Graph = JSON.parse(JSON.stringify(workDocumentGraph(meeting)));
+  const change = '담당자가 없는 항목은 미정으로 표시해 줘';
+  const revised = structuredClone(graph);
+  revised.nodes.find(node => node.id === 'report')!.config.instruction = change;
+  const model = t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => {
+    const input = JSON.parse(JSON.parse(String(options.body)).input);
+    const result = (input.clarificationAnswer ?? input.request) === change ? {...revised, purpose:'모델이 새로 지정한 담당 업무'} : {clarification:true};
+    return Response.json({output:[{type:'message', content:[{type:'output_text', text:JSON.stringify(result)}]}]});
+  });
+  for (const changeContext of ['editor', meeting.id]) {
+    const actor = legacyGuestSession().user;
+    const initial = {prompt:'안녕하세요', graph, changeContext, requestKey:'greet'};
+    const calls = model.mock.callCount();
+    assert.deepEqual(await propose(actor, initial), {clarification:true});
+    assert.equal(model.mock.callCount(), calls);
+    await assert.rejects(propose(actor, {...initial, requestKey:'unclear', clarificationAnswer:'아무거나'}), {status:422});
+    const answer = {...initial, requestKey:'clarified', clarificationAnswer:change};
+    assert.deepEqual(await propose(actor, answer), {graph:revised});
+    assert.deepEqual(await propose(actor, answer), {graph:revised});
+    assert.deepEqual(await propose(actor, {...initial, requestKey:'direct', prompt:change}), {graph:revised});
+  }
+});
 
 test('수정안의 입력별 완료 기준이 편집 가능한 텍스트로 보존되고 실행 모델에 우선순위 순서로 전달된다', async () => {
   for (const type of ['ai.single_task', 'agent.task']) {
@@ -196,4 +243,37 @@ test('새 Agent의 인사말은 초안 대신 한 번 보충을 요청하고, �
     [task, undefined],
   ]);
   await assert.rejects(propose(actor, {...followup, clarificationAnswer: '번역해 줘'}), /다른 설계/);
+});
+
+test('단발성 지식 질문에 보충을 한 번만 요청하고 같은 주제의 업무가 정해지면 초안을 반환한다', async t => {
+  process.env.STUDIO_DATA_DIR = mkdtempSync(join(tmpdir(), 'studio-agent-clarification-'));
+  process.env.OPENAI_API_KEY = 'offline-test-value';
+  process.env.OPENAI_MODEL = 'test-model';
+  const actor = legacyGuestSession().user;
+  const initial = {newAgent: true, graph: {nodes: [], edges: []}, prompt: '프랑스의 수도는 어디인가요?', requestKey: 'unspecified'};
+  const task = '수도 질문에 답해 줘';
+  const graph: Graph = {nodes:[createBlock('input.user_request', {id:'in'}),
+    createBlock('agent.task', {id:'task', config:{goal:task}}), createBlock('output.answer', {id:'out'})], edges:[]};
+  graph.edges.push(...connectBlocks(graph, 'in', 'task'), ...connectBlocks(graph, 'task', 'out'));
+  const model = t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => {
+    const {request, clarificationAnswer} = JSON.parse(JSON.parse(String(options.body)).input);
+    const result = (clarificationAnswer ?? request) === task ? {...graph, purpose:'입력한 나라의 수도를 안내합니다.'} : {clarification:true};
+    return Response.json({output:[{type:'message', content:[{type:'output_text', text:JSON.stringify(result)}]}]});
+  });
+  assert.deepEqual(await propose(actor, initial), {clarification: true});
+  assert.deepEqual(await propose(actor, initial), {clarification: true});
+  assert.equal(model.mock.callCount(), 1);
+  await assert.rejects(
+    propose(actor, {...initial, clarificationAnswer: '그러면 이탈리아 수도는 어디예요?', requestKey: 'still-unspecified'}),
+    {status: 422, message: '보충 설명에 Agent가 맡을 작업을 구체적으로 적어 주세요.'}
+  );
+  await assert.rejects(
+    propose(actor, {...initial, clarificationAnswer: '가'.repeat(12001), requestKey: 'too-long'}),
+    {status: 400}
+  );
+  assert.equal(model.mock.callCount(), 2);
+  await assert.rejects(propose(actor, {...initial, newAgent:false, requestKey:'editor'}), /Workflow 구조/);
+  const clarified = await propose(actor, {...initial, clarificationAnswer:task, requestKey:'follow-up-role'});
+  assert.deepEqual(clarified, {graph:{...graph, agentScope:{mode:'dedicated', purpose:'입력한 나라의 수도를 안내합니다.'}}});
+  assert.deepEqual(await propose(actor, {...initial, prompt:task, requestKey:'direct-role'}), {graph});
 });

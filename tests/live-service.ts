@@ -9,6 +9,9 @@ import {
   type Graph,
 } from '../src/domain';
 import type { EngineEvent, Prompt } from '../src/engine/types';
+import { newAgentPurpose, type DesignProposal } from '../src/domain/design-proposal';
+import { Drawing } from '../src/domain/template-drawing';
+import {workDocumentGraph, workDocuments} from '../src/domain/work-documents';
 import type { ReleaseAction, ReleaseDecision } from '../src/domain/release-decision';
 import type { SharedAssetPin } from '../src/ui/editor/asset-attachment';
 import { checkLiveTeamInheritance, checkLiveTeamModes } from './live-team-inheritance';
@@ -120,13 +123,79 @@ const five = /(5\s*권|다섯\s*권)/,
   three = /(3\s*권|세\s*권)/,
   fourOClock = /(오후\s*4\s*시|16\s*시|16:00|오후\s*4:00)/;
 
+async function newAgentIntentScenario() {
+  const greeting = '안녕하세요';
+  const task = '회의 메모에서 결정 사항을 뽑아 줘';
+  const request = (prompt: string, clarificationAnswer?: string) => author<DesignProposal>('propose', {
+    newAgent: true, graph: emptyGraph(), requestKey: randomUUID(), prompt, clarificationAnswer,
+  });
+  assert.deepEqual(await request(greeting), { clarification: true });
+  const oneOff = '프랑스의 수도는 어디인가요?';
+  assert.deepEqual(await request(oneOff), {clarification:true}, '단발성 지식 질문으로 새 Agent의 업무를 추측하면 안 됩니다.');
+  const geography = await request(oneOff, '여러 나라의 수도를 묻는 질문에 답하는 Agent를 만들고 싶어요.');
+  assert.ok('graph' in geography);
+  assert.deepEqual(validateGraph(geography.graph), []);
+  assert.match(JSON.stringify(geography.graph.nodes.map(node => node.config)), /수도|capital/i);
+  const meeting = await request(oneOff, task);
+  assert.ok('graph' in meeting);
+  const purpose = newAgentPurpose(oneOff, task, meeting.graph);
+  assert.match(purpose, /회의|메모/);
+  assert.doesNotMatch(purpose, /수도|프랑스/);
+  for (const [prompt, answer] of [[task], [greeting, task]]) {
+    const result = await request(prompt, answer);
+    assert.ok('graph' in result, '회의 메모에서 추출할 항목이 정해지면 바로 설계를 제안해야 합니다.');
+    assert.deepEqual(validateGraph(result.graph), []);
+    const tasks = result.graph.nodes.filter(node => ['agent.task', 'ai.single_task'].includes(node.type));
+    assert.match(JSON.stringify(tasks.map(node => node.config)), /결정|의결|합의|decision/i);
+  }
+}
+
+async function agentScopeScenario() {
+  const doc = workDocuments.find(item => item.id === 'meeting-report')!;
+  const graph = workDocumentGraph(doc);
+  const meeting = await author<Project>('project.create', {title:doc.title, workDocument:doc.id, graph});
+  assert.equal(meeting.graph.agentScope?.mode, 'dedicated');
+  const outside = await ask(author, meeting, '프랑스의 수도는 어디인가요?');
+  match(outside, /회의/);
+  assert.doesNotMatch(outside.output, /파리|Paris/i);
+  const mixed = await ask(author, meeting, '회의 결정: 윤서가 안내문 17부를 인쇄하기로 확정했다. 이 결정을 정리해 줘. 그리고 내 점심 메뉴도 추천해 줘.');
+  match(mixed, /17\s*부/);
+  assert.match(mixed.output, /윤서/);
+  assert.match(mixed.output, /범위|업무에 해당|맡은 업무/);
+  const source = await ask(author, meeting, '다음 회의 메모를 정리해 줘. 오늘 회의에서 점심 메뉴를 비빔밥으로 결정했다.');
+  match(source, /비빔밥/);
+
+  const general = new Drawing();
+  general.graph.agentScope = {mode:'general', purpose:''};
+  general.node('input', 'input.user_request', '질문', 0, 0);
+  general.node('answer', 'ai.single_task', '질문에 답하기', 1, 0, {goal:'다양한 주제의 질문에 답합니다.', instruction:'사용자의 질문에 한국어로 답해 주세요.'});
+  general.node('output', 'output.answer', '답변', 2, 0);
+  general.step('input', 'answer');
+  general.step('answer', 'output');
+  const assistant = await author<Project>('project.create', {title:'범용 질의응답', graph:general.graph});
+  match(await ask(author, assistant, '프랑스의 수도는 어디인가요?'), /파리|Paris/i);
+
+  const change = (changeContext:string, prompt:string, clarificationAnswer?:string) => author<DesignProposal>('propose', {
+    changeContext, prompt, clarificationAnswer, graph, requestKey:randomUUID(),
+  });
+  const nextInstruction = '담당자가 없는 항목은 “배정 대기”로 표시해 줘.';
+  for (const [context, vague] of [['editor', '안녕하세요'], [doc.id, '프랑스의 수도는 어디인가요?']]) {
+    assert.deepEqual(await change(context, vague), {clarification:true});
+    for (const revised of [await change(context, vague, nextInstruction), await change(context, nextInstruction)]) {
+      assert.ok('graph' in revised);
+      assert.deepEqual(validateGraph(revised.graph), []);
+      assert.match(JSON.stringify(revised.graph.nodes.find(node => node.id === 'report')?.config), /배정 대기/);
+    }
+  }
+}
+
 async function proposalScenario() {
-  const proposal = await author<{ graph: Graph }>('propose', {
-    graph: emptyGraph(),
-    prompt:
-      '회의 내용에서 결정 사항과 담당자를 뽑아 주는 Agent를 만들어 주세요. 초안은 담당자가 정해진 항목만 정리하세요. 사용자가 입력한 회의록, AI 작업, 답변 전달의 세 블록을 사용하세요.',
+  const taskRequest = '회의 내용에서 결정 사항과 담당자를 뽑아 주는 Agent를 만들어 주세요. 초안은 담당자가 정해진 항목만 정리하세요. 사용자가 입력한 회의록, AI 작업, 답변 전달의 세 블록을 사용하세요.';
+  const proposal = await author<DesignProposal>('propose', {
+    newAgent:true, graph:emptyGraph(), prompt:taskRequest,
     requestKey: randomUUID(),
   });
+  assert.ok('graph' in proposal);
   assert.deepEqual(
     validateGraph(proposal.graph),
     [],
@@ -134,7 +203,7 @@ async function proposalScenario() {
   );
   let meeting = await author<Project>('project.create', {
     title: '실제 회의록 검증',
-    graph: proposal.graph,
+    graph: {...proposal.graph, agentScope:{mode:'dedicated', purpose:taskRequest}},
   });
   const task = meeting.graph.nodes.find(n => n.type === 'agent.task' || n.type === 'ai.single_task');
   assert.ok(task, '초안에 회의록을 정리할 AI 작업이 있어야 합니다.');
@@ -146,13 +215,15 @@ async function proposalScenario() {
   assert.match(draft.output, new RegExp(String(copies)), draftDetails);
   assert.match(draft.output, /유진/, draftDetails);
   assert.doesNotMatch(draft.output, /홍보/, '처음 설계는 담당자가 있는 항목만 추출해야 합니다. ' + draftDetails);
-  const revised = await author<{ graph: Graph }>('propose', {
-    graph: meeting.graph,
+  const revised = await author<DesignProposal>('propose', {
+    changeContext:'editor', graph:meeting.graph,
     prompt:
       '담당자가 정해지지 않은 항목의 담당자를 “미정”으로 표시하세요. 다른 블록과 연결은 유지하세요.',
     requestKey: randomUUID(),
   });
+  assert.ok('graph' in revised);
   assert.deepEqual(validateGraph(revised.graph), []);
+  assert.deepEqual((await author<Project>('project.open', {id:meeting.id})).graph, meeting.graph, '제안만 받은 시점에는 기존 설계가 유지되어야 합니다.');
   const revisedTask = revised.graph.nodes.find(n => n.id === task.id);
   assert.ok(revisedTask, '수정 제안은 기존 AI 작업을 유지해야 합니다.');
   const settings = { draft: task.config, revised: revisedTask.config };
@@ -160,7 +231,7 @@ async function proposalScenario() {
   assert.match([revisedTask.config.goal, revisedTask.config.instruction, revisedTask.config.criterion].join('\n'), /미정/, JSON.stringify(settings));
   assert.equal(revised.graph.nodes.length, meeting.graph.nodes.length);
   for (const original of meeting.graph.nodes) {
-    const updated = revised.graph.nodes.find(n => n.id === original.id);
+    const updated: Graph['nodes'][number] | undefined = revised.graph.nodes.find(n => n.id === original.id);
     assert.ok(updated, `보존해야 하는 블록이 사라졌습니다: ${original.id}`);
     const expected: Graph['nodes'][number] = original.id === task.id
       ? { ...original, config: revisedTask.config } : original;
@@ -631,6 +702,8 @@ async function runTeamGraph(graph: Graph, input: string) {
 }
 
 const scenarios = new Map<string, () => Promise<void>>([
+  ['agent-scope', agentScopeScenario],
+  ['new-agent-intent', newAgentIntentScenario],
   ['proposal', proposalScenario],
   ['intro', introScenario],
   ['beginner', beginnerScenario],
@@ -654,7 +727,7 @@ const scenarios = new Map<string, () => Promise<void>>([
     downloads: (project, runs) => checkReleaseDownloads(base!, authorCredentials, project.id, runs),
   }),
 ]);
-const expectedCases = ['proposal', 'team-inheritance', 'team-inheritance-modes', ...templates.map((lesson) => lesson.id)];
+const expectedCases = ['agent-scope', 'new-agent-intent', 'proposal', 'team-inheritance', 'team-inheritance-modes', ...templates.map((lesson) => lesson.id)];
 assert.deepEqual([...scenarios.keys()].sort(), expectedCases.sort(), '모든 실습에 실제 모델 시험이 필요합니다.');
 const filter = process.env.STUDIO_LIVE_CASES?.trim();
 const selected = filter ? [...new Set(filter.split(',').map((id) => id.trim()))] : [...scenarios.keys()];

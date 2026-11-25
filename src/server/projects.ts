@@ -200,6 +200,7 @@ export function createProject(user:User,b:any) {
 }
 
 function installWorkDocument(user:User, graph:Graph, doc:WorkDocument) {
+  graph.agentScope ??= {mode:'dedicated', purpose:doc.prompt};
   const bindings = workDocumentBindings(graph, doc);
   requireThat(bindings, 422, '업무 입력과 작성 규칙이 연결된 설계를 선택하세요.');
   stringArg(bindings.input.config.question, doc.inputLabel, runInputLimit);

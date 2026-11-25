@@ -333,7 +333,7 @@ test('기존 토큰 없는 대화는 업그레이드에서 확인 가능한 공�
   // Run the same database initializer used by an upgraded process on a pre-existing file.
   execFileSync(process.execPath,['--import','tsx','--input-type=module','-e',
     'import {db} from "./src/server/db.ts"; db().close();']);
-  assert.equal(one<{user_version:number}>('PRAGMA user_version')!.user_version,1);
+  assert.equal(one<{user_version:number}>('PRAGMA user_version')!.user_version,2);
   assert.equal(runGet(reader,unknown.id).input,'');
   assert.equal(runGet(reader,confirmed.id).input,'이전 대화');
   const publicV2=snapshot(owner,{id:publicAgent.id,revision:publicAgent.revision}).number;

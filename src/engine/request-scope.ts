@@ -2,6 +2,7 @@ import {isDelegatedRole, modelBlocks} from '../domain/agent-context';
 import {attachmentFrom, encodeRunQuestion, literalRunQuestion} from '../domain/run-input';
 import type {Graph} from '../domain/types';
 import type {Session} from './session';
+import type {EngineCheckpoint} from './types';
 import {record} from './values';
 
 function usesModel(graph: Graph): boolean {
@@ -39,9 +40,7 @@ function removeExcluded(question: string, excluded: unknown): string {
   return kept;
 }
 
-type ScopeDecision = {status:'in_scope'|'out_of_scope'} | {status:'mixed'; input:string};
-
-async function classify(purpose:string,session:Session,raw:string,path:string):Promise<ScopeDecision> {
+async function classify(purpose: string, session: Session, raw = session.request.input, path='root#scope'): Promise<NonNullable<EngineCheckpoint['scopeDecision']>> {
   const literal = literalRunQuestion(raw);
   const file = attachmentFrom(raw);
   const question = literal ?? (file ? String(record(raw).question ?? file.fileName) : raw);
@@ -68,4 +67,16 @@ export async function scopedChildInput(graph:Graph,session:Session,path:string,i
   if(decision.status==='out_of_scope')throw Error('하위 Agent의 업무 범위에 해당하지 않습니다. '+graph.agentScope.purpose);
   if(decision.status==='mixed')return literalRunQuestion(decision.input)??decision.input;
   return input;
+}
+
+export async function checkRequestScope(graph: Graph, session: Session): Promise<EngineCheckpoint['scopeDecision']> {
+  if (graph.agentScope?.mode !== 'dedicated' || (session.request.trigger && session.request.trigger.kind !== 'manual') || !usesModel(graph)) return;
+  if (session.state.scopeDecision) return session.state.scopeDecision;
+  const decision = session.request.retryScopeDecision ?? await classify(graph.agentScope.purpose, session);
+  session.state.scopeDecision = decision;
+  session.event({id:'',title:'업무 범위 확인'},'root#scope','result',{
+    in_scope:'맡길 일을 확인했습니다.', out_of_scope:'업무 범위를 안내했습니다.',mixed:'업무에 해당하는 요청만 전달합니다.',
+  }[decision.status]);
+  await session.save();
+  return decision;
 }

@@ -9,6 +9,7 @@ import { registerBrowserAccount } from './browser-account';
 import { guideHelp, guideSteps, libraryQuestion as question } from '../src/ui/guide/content';
 import { templateOutcomes } from '../src/ui/guide/template-outcomes';
 import { libraryTemplates as templates } from '../src/domain/templates';
+import {workDocuments} from '../src/domain/work-documents';
 
 const baseURL = process.env.STUDIO_TEST_URL;
 if (!baseURL) throw Error('격리 시험용 작업실 주소가 필요합니다.');
@@ -22,7 +23,8 @@ const citation = '회원증을 처음 만들 때는 신분증을 가져오세요
 const changedInstruction = '답을 쓰고 다음 줄에 안내문의 근거 문장을 그대로 인용하세요.';
 
 async function verifyTemplatePreviews(page: Page, guide: Locator, mobile: boolean) {
-  const field = '미리 볼 템플릿';
+  const field = '만들고 싶은 결과';
+  const optionCount = templates.length + workDocuments.length + 1; // 할 일 앱 요구사항
   const list = guide.getByRole('combobox', { name: field, exact: true });
   const options = guide.getByRole('group', { name: field, exact: true });
   const select = async (lesson: typeof templates[number]) => {
@@ -45,9 +47,10 @@ async function verifyTemplatePreviews(page: Page, guide: Locator, mobile: boolea
   try {
     if (mobile) {
       await expect(list).toBeVisible();
-      await expect(list.locator('option')).toHaveCount(templates.length);
+      await expect(list.locator('option')).toHaveCount(optionCount);
     } else {
-      await expect(options.getByRole('radio')).toHaveCount(templates.length);
+      await expect(options.getByRole('radio')).toHaveCount(optionCount);
+      await select(templates[0]);
       await options.getByRole('radio', { name: templates[0].title, exact: true }).focus();
     }
     for (const lesson of templates) {
@@ -638,6 +641,7 @@ async function exercise(mobile: boolean) {
       attempts.push({ project: data.id, input: data.input, conversation: data.conversation,
         instruction: graph.nodes.find(node => node.type === 'ai.single_task')?.config.instruction });
       const result = await executeGraph(graph, { runId: 'guide-run-' + index, input: data.input }, {
+        scopeModel: async () => ({text:'{"status":"in_scope"}'}),
         model: async request => {
           modelCalls.push(request);
           const source = request.context.match(/회원증을 처음 만들 때는 신분증을 가져오세요\./)?.[0];

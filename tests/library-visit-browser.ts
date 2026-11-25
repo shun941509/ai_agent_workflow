@@ -34,6 +34,15 @@ async function verify(width: number) {
     await expect(page).toHaveURL(url => url.searchParams.has('edit'));
     const id = new URL(page.url()).searchParams.get('edit')!;
     const readGraph = async () => (await api<{graph: Graph}>(ctx, 'project.open', {id})).graph;
+    if(!modelReady){
+      // The dedicated template checks scope with the model before reading any resources.
+      // Exercise the real search and MCP paths offline in this account's test copy.
+      const draft=await api<{title:string;revision:number;graph:Graph}>(ctx,'project.open',{id});
+      await api(ctx,'project.save',{id,title:draft.title,revision:draft.revision,graph:{
+        ...draft.graph,agentScope:{mode:'general',purpose:''},
+      }});
+      await page.reload();
+    }
     const before = await readGraph();
     const panel = page.getByRole('tabpanel', {name:'실행 결과'});
     const mobileSheet = page.getByRole('dialog', {name:'속성 패널'});
