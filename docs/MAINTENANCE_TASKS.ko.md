@@ -43,4 +43,4 @@
 | 비밀 링크 철회·사본 만들기 | `openProject`는 유효한 비밀 링크 방문을 기록합니다. `revoke`는 비공개로 전환하며 토큰을 교체합니다. `projectCopy`는 자료와 하위 Workflow를 별도 사본에 담습니다. 철회 뒤 이전 주소와 대화의 접근이 제한되고 이미 만든 사본은 계속 열리는지 확인하세요. [공유·복사](../src/server/projects.ts) · [하위 Workflow 참조](../src/server/workflow-refs.ts) · [공유 시험](../tests/sharing-releases.test.ts) · [두 브라우저 시험](../tests/browser-smoke.ts) |
 | 삭제·휴지통 복구·영구 삭제 | `project.delete`의 `deleteProject`는 실행을 중지하고 공유·자동 시작을 해제합니다. `project.restore`는 비공개로 복구합니다. 선택 영구 삭제는 `purgeTrashedProjects`가 소유자와 각 항목의 리비전을 확인합니다. 72시간 보관 기한은 워커 정리와 휴지통 조회 시 모두 적용됩니다. [휴지통 화면](../src/ui/ProjectTrash.tsx) · [삭제·복구](../src/server/projects.ts) · [연관 데이터 정리](../src/server/project-purge.ts) · [워커 정리 작업](../src/server/worker.ts) · [삭제·복구 시험](../tests/project-deletion.test.ts) · [보관 기한·일괄 삭제 시험](../tests/project-purge.test.ts) |
 
-특정 서버 동작만 확인하려면 프로젝트 루트에서 `pnpm exec tsx --test tests/sharing-releases.test.ts`처럼 해당 파일을 지정하세요. 브라우저 시나리오는 `pnpm test:browser`로 실행합니다. [전체 검증 명령](DEVELOPER_GUIDE.ko.md)
+위 표에서 찾은 시험만 실행하려면 개발자 가이드의 예제를 참고하세요. 전체 회귀 시험과 브라우저 시험 명령은 README에 있습니다. [시험 파일 지정 예제](DEVELOPER_GUIDE.ko.md#변경-후-확인하기) · [전체 검증 명령](../README.md#검증)

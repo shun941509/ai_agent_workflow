@@ -59,15 +59,21 @@ Windows에서 타입 검사, 자동 시험 90개, Chromium 브라우저 시험�
 
 상위 Skill 수신자를 회원증 담당과 운영시간 담당 사이에서 바꿔 두 차례 실행했다. 팀 목표에만 적은 임의의 행사표기는 두 담당자의 실제 답변에 모두 나왔다. Skill에만 적은 확인문구는 지정한 담당자에게서만 나왔고, 선택하지 않은 담당자는 모두 ‘지정 없음’이라고 답했다. 세 번째 실행에서는 인계 담당자와 동적으로 생성된 중앙도서관 담당자가 각자의 내부 Workflow에서 같은 행사표기와 자신이 받은 Skill의 문구만 답했다. 세 팀 실행에서 담당자 답변 여섯 개를 확인했다. [담당자별 실제 모델 시험](../tests/live-team-inheritance.ts)
 
+## 2026년 11월 25일 · 저장소와 로컬 실행 점검
+
+기준 리비전은 `b89f308`이다. 앱 소스, 설정, 실행 스크립트, 테스트, 개발 문서를 검토하고 Windows에서 Node.js 26.5.0과 pnpm 12.16.1로 다음 항목을 확인했다.
+
+| 항목 | 실행과 결과 |
+|---|---|
+| 설치와 빌드 | 격리 사본에서 `pnpm install --frozen-lockfile --offline`으로 기존 캐시를 사용해 설치했다. `pnpm build`가 성공했고 `.next/`가 생성됐다. |
+| 개발·프로덕션 기동 | 모델 호출을 끄고 임시 포트에서 `pnpm dev`와 `pnpm start`를 실행했다. 두 모드에서 `/login`은 HTTP 200을 반환했고, 인증 전 `/` 요청은 HTTP 307로 `/login`에 이동했다. 각 모드의 임시 데이터 폴더에 `studio.sqlite`와 `library.sqlite`가 생성됐다. 이전 DB의 마이그레이션은 코드로 확인했다. [작업실 DB](../src/server/db.ts) · [도서관 DB](../src/mcp/server.ts) |
+| 타입 검사와 회귀 시험 | `pnpm typecheck`가 통과했다. `pnpm test`는 모의 모델 응답과 임시 데이터를 사용했다. 첫 실행에서는 로컬 HTTP 연결이 제한돼 MCP 관련 6건이 실패했고, 루프백 연결을 허용한 재실행에서 191건 모두 통과했다. |
+| 명령과 설정 검토 | `start.cmd`는 진입 경로를 코드로 확인했다. 이 리비전의 패키지에는 별도 린트·포맷 스크립트가 없었고, 저장소에는 앱용 CI 워크플로나 클라우드 배포 매니페스트가 없었다. [Windows 기동 명령](../start.cmd) · [패키지 스크립트](../package.json) |
+| 브라우저와 실제 모델 시험 | 브라우저 전체 시나리오와 실제 OpenAI 모델 시험은 이 점검에서 생략했다. 위의 인수·실제 모델 시험 결과는 이전 점검 기록이다. |
+| Codex 지침 로딩 | Codex CLI 0.171.0에서 `codex debug prompt-input`을 실행했다. 분리 전 루트 `AGENTS.md`의 본문과 기존 Next.js·도구 선택 지침이 모델 입력에 포함됐다. |
+
 ## 재현 명령
 
-| 명령 | 검증 대상 |
-|---|---|
-| `pnpm typecheck` | 웹·서버·실행기·시험 TypeScript 검사 |
-| `pnpm test` | 도메인, 편집기, 임시 SQLite, 실제 도서관 MCP 및 로컬 HTTP MCP 회귀 시험 |
-| `pnpm test:browser` | 프로덕션 빌드, 임시 저장소와 사용 가능한 포트에서 서비스 기동, 헤드리스 브라우저, 종료·정리 |
-| `pnpm test:live` | 같은 격리 환경에서 실제 서버 모델과 도서관 MCP로 AI 제안·실행·버전 비교. 모델 사용량이 발생한다. |
-
-브라우저 시험은 Windows에 설치된 Chrome을 사용한다. 다른 설치 경로에서는 `PLAYWRIGHT_CHROMIUM_EXECUTABLE`로 Chromium 실행 파일을 지정할 수 있다. 두 종합 시험은 기본 실행 시 사용 중인 작업실 데이터와 분리된 임시 데이터베이스를 만든다.
+공통 검증 명령과 브라우저 실행 조건은 README에서 확인한다. [검증](../README.md#검증)
 
 일부 시나리오를 다시 실행할 때는 PowerShell에서 `$env:STUDIO_LIVE_CASES = 'proposal,intermediate'`처럼 시험 ID를 쉼표로 지정한 뒤 `pnpm test:live`를 실행한다. 다시 전체를 시험하려면 `Remove-Item Env:STUDIO_LIVE_CASES`로 선택을 해제한다.

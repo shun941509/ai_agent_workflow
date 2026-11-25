@@ -12,14 +12,14 @@
 | 실행이 멈추거나 인용·공유 버전이 예상과 다를 때 | [diagnosing-bugs](../.agents/skills/diagnosing-bugs/SKILL.md) | 같은 질문, 자료판, 대화 조건으로 재현한다. 실행 경로에서 처음으로 기대와 달라진 블록을 찾아 수정하고 그 조건으로 다시 실행한다. |
 | 화면·API·저장소에 걸친 기능을 수정할 때 | [codebase-design](../.agents/skills/codebase-design/SKILL.md) · [tdd](../.agents/skills/tdd/SKILL.md) | 자료 휴지통처럼 여러 계층을 지나는 기능은 화면에서 시작해 권한 검사와 저장까지 추적한다. 복구한 자료를 기존 Workflow가 원래 판으로 다시 읽는지도 확인한다. [기능별 수정 위치와 테스트](MAINTENANCE_TASKS.ko.md) |
 | 개인 Agent가 참고할 사용자·동료 프로필을 만들거나 갱신할 때 | [distilly](../.agents/skills/distilly/SKILL.md) | 본인의 선호와 작업 방식을 정리할 때는 소유자 프로필 절차를, 제공받은 동료 자료를 정리할 때는 인물 프로필 생성 절차를 따른다. |
-| 변경 결과 검증하기 | [verification-before-completion](../.agents/skills/verification-before-completion/SKILL.md) | [프로젝트 검증 명령](../README.md#검증) 중 해당 동작을 관찰할 수 있는 시험을 고른다. 실행·저장에는 `pnpm test`, 화면 조작에는 `pnpm test:browser`, 실제 OpenAI 응답이 기준일 때는 `pnpm test:live`를 사용한다. 실제 모델 시험은 사용량이 발생한다. |
+| 변경 결과 검증하기 | [verification-before-completion](../.agents/skills/verification-before-completion/SKILL.md) | 실행·저장, 화면 조작, 실제 모델 응답 중 이번 변경에서 확인할 동작을 정하고 그에 맞는 시험을 고른다. [프로젝트 검증 명령](../README.md#검증) |
 | GitHub PR의 Actions 검사가 실패했을 때 | 사용자 스킬 `$gh-fix-ci` | 설치 확인 당시 이 폴더는 Git 작업 트리 밖에 있었다. 이 프로젝트의 GitHub 저장소와 PR이 준비되면 해당 체크아웃에서 실패한 검사와 로그를 확인한다. |
 
 예를 들어 “동료 검토에서 어느 담당자가 어떤 초안을 고쳤는지 연결선을 따라가기 어렵습니다”는 편집기 디자인 작업이다. “실행했더니 한 담당자의 교정 근거가 답변에서 사라집니다”는 같은 화면에서 발견했더라도 실행 오류 진단으로 시작한다.
 
 ## 하위 Agent와 플러그인 선택
 
-독립적으로 조사하거나 검증할 일이 있으면 아래 표에서 그 일을 맡을 역할을 고른다. [역할 정의 폴더](../.codex/agents)에는 176개 정의가 있으며 101개는 읽기 전용, 75개는 작업 공간 쓰기 권한을 선언한다. 새 대화에서는 선택한 TOML의 `developer_instructions`와 `sandbox_mode`를 확인한다. 역할을 이름으로 호출할 수 있으면 그 역할로 위임한다. 일반 하위 Agent만 제공되는 세션에서는 TOML의 관련 지침과 작업 범위를 위임문에 명시하고, 읽기 전용 역할에는 조사·검토를 맡긴다.
+독립적으로 조사하거나 검증할 일이 있으면 아래 표에서 그 일을 맡을 역할을 고른다. [역할 정의 폴더](../.codex/agents)에는 176개 정의가 있으며 101개는 읽기 전용, 75개는 작업 공간 쓰기 권한을 선언한다. 선택한 TOML의 `developer_instructions`와 `sandbox_mode`를 확인하고, 담당 범위와 확인할 결과를 위임문에 적는다. 역할을 이름으로 호출할 수 있으면 그 역할로 위임한다. 일반 하위 Agent만 제공되는 세션에서는 TOML의 관련 지침을 함께 전달하고, 읽기 전용 역할에는 조사·검토를 맡긴다.
 
 | 작업 | 하위 Agent에 맡길 일 | 플러그인이 도움이 되는 경우 |
 |---|---|---|
@@ -36,6 +36,12 @@
 초급 템플릿 **내 자료로 안내하기 → 내 사본으로 시작**을 열면 ‘근거 인용 Skill’이 ‘도서관 안내 Agent’에 연결되어 있다. 대출 질문을 보내면 그 지침이 답변과 원문 인용에 어떻게 반영되는지 볼 수 있다.
 
 내 지침을 쓰려면 **도구 및 자료 → 자료 등록 → Skill**에서 `SKILL.md` 파일, 폴더 또는 ZIP을 등록한다. 편집기에서 AI 작업 블록을 선택하고 **도구 및 자료 → 사용할 Skill**에서 등록한 판을 고른다. 실행기는 그 판의 `SKILL.md` 본문을 모델에 전달한다. 부속 코드 파일은 보관·미리보기·내보내기를 지원하며, 스크립트 실행이 필수인 판은 실행·게시가 제한된다. [자료 등록 화면](../src/ui/ResourceLibrary.tsx) · [블록 속성](../src/ui/editor/Panels.tsx)
+
+## Codex 프로젝트 지침 확인하기
+
+프로젝트 루트에서 `codex`로 새 세션을 열고 “적용된 프로젝트 지침과 근거 파일을 요약해 주세요”라고 요청한다. CLI에서 `codex debug prompt-input`을 지원하면 입력 미리보기에서도 지침 본문을 확인할 수 있다.
+
+예상한 지침이 보이지 않으면 세션의 작업 디렉터리와 파일 우선순위를 확인한다. Codex는 전역 지침을 읽은 뒤 프로젝트 루트에서 작업 디렉터리까지 탐색한다. 루트를 찾지 못하면 현재 디렉터리만 확인한다. 각 디렉터리에서는 내용이 있는 `AGENTS.override.md`, `AGENTS.md`, 설정한 대체 이름 순으로 최대 한 파일을 읽고, 충돌하면 작업 디렉터리에 가까운 지침을 우선한다. 파일을 바꿨다면 새 세션에서 확인한다. [OpenAI 공식 지침 탐색 문서](https://learn.chatgpt.com/docs/agent-configuration/agents-md)
 
 ## 설치 목록
 

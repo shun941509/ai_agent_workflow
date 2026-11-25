@@ -2,26 +2,23 @@
 
 버전·공유 화면을 고친다면 [기능별 수정 위치와 테스트](MAINTENANCE_TASKS.ko.md)에서 해당 작업을 찾으세요. 프로젝트를 처음 맡았다면 아래의 **질문 한 건이 답변이 되기까지**를 따라가 보세요. 화면 코드와 별도 프로세스에서 실행되는 코드를 함께 읽을 수 있습니다.
 
-## 로컬에서 시작하기
+## 로컬 실행 프로세스
 
-Windows에서 Node.js 24 이상과 pnpm을 준비합니다. 저장소가 지정한 패키지 관리자 버전은 `package.json`의 `packageManager`에 있습니다. 프로젝트 루트의 PowerShell에서 실행합니다. [패키지와 명령 정의](../package.json)
-
-```powershell
-pnpm install --frozen-lockfile
-pnpm dev
-```
-
-기본 작업실 주소는 `http://127.0.0.1:3100`입니다. 실행 스크립트 하나가 Next.js, 실행 워커, 도서관 MCP 서버를 자식 프로세스로 시작합니다. 워커나 MCP 서버의 TypeScript를 바꿨다면 실행 중인 터미널에서 Ctrl+C로 종료하고 `pnpm dev`로 다시 시작하세요. [시작 스크립트](../scripts/start.mjs)
+Windows에서 프로젝트를 설치하고 실행하려면 README의 절차를 따르세요. 시작 스크립트는 Next.js, 실행 워커, 도서관 MCP 서버를 각각 자식 프로세스로 시작합니다. 워커나 MCP 서버의 TypeScript를 바꿨다면 실행 중인 터미널에서 Ctrl+C로 종료하고 개발 서버를 다시 시작하세요. [설치 안내](../README.md#사전-요구사항-및-설치) · [로컬 실행](../README.md#로컬-실행-테스트-및-빌드) · [시작 스크립트](../scripts/start.mjs)
 
 | 프로세스 | 처음 열 파일 | 맡은 일 |
 | --- | --- | --- |
 | Next.js 웹 서버 | [화면 진입점](../src/app/page.tsx), [Studio](../src/ui/Studio.tsx), [Studio API](../src/app/api/studio/route.ts) | 루트 페이지에서 계정 세션을 확인하고 [로그인 페이지](../src/app/login/page.tsx) 또는 작업실을 엽니다. Studio API는 작업실 요청마다 세션을 확인합니다. |
 | 실행 워커 | [worker.ts](../src/server/worker.ts), [runs.ts](../src/server/runs.ts), [그래프 실행기](../src/engine/index.ts) | 대기열에서 실행할 작업을 가져와 블록을 실행하고 진행 상태와 결과를 저장합니다. |
-| 도서관 MCP 서버 | [서버 쪽 MCP 클라이언트](../src/server/mcp.ts), [도서관 도구 구현](../src/mcp/server.ts) | 기본 3101번 포트에서 도서관 도구 요청을 받고 예약과 처리 영수증을 관리합니다. |
+| 도서관 MCP 서버 | [서버 쪽 MCP 클라이언트](../src/server/mcp.ts), [도서관 도구 구현](../src/mcp/server.ts) | 기본 `http://127.0.0.1:3101/mcp`에서 도서관 도구 요청을 받고 예약과 처리 영수증을 관리합니다. |
 
 편집기의 화면 배치를 바꿀 때는 `src/ui/editor`에서 시작합니다. 비슷한 이름의 `src/app/prototype/library`는 개발 모드에서만 여는 도서관 시안입니다. [실제 편집기](../src/ui/editor/Editor.tsx) · [시안의 페이지 진입점](../src/app/prototype/library/page.tsx)
 
-기본 데이터 폴더는 `.studio-data`입니다. 작업실의 프로젝트·버전·대화·실행 기록은 `studio.sqlite`에, 도서관의 예약은 `library.sqlite`에 저장합니다. 별도 작업실이 필요하면 시작 전에 `STUDIO_DATA_DIR`을 지정합니다. 모델을 쓰는 기능은 서버의 `OPENAI_API_KEY`와 `OPENAI_MODEL`을 읽습니다. [작업실 DB 스키마](../src/server/db.ts) · [설정 예시](../.env.example) · [실행 환경을 조합하는 코드](../scripts/runtime-env.mjs)
+Next.js의 기본 산출물 경로는 `.next/`이며 `STUDIO_NEXT_DIR`로 바꿀 수 있습니다. 경로를 바꾸면 프로덕션 빌드와 실행에 같은 값을 사용하세요. `next-env.d.ts`는 Next.js가 생성하는 타입 선언이고, `tsconfig.tsbuildinfo`는 TypeScript의 증분 검사 캐시입니다. [Next.js 설정](../next.config.ts) · [타입 검사 설정](../tsconfig.json)
+
+별도 초기화 명령 없이 작업실은 DB를 처음 열 때 `studio.sqlite`의 스키마를 준비하고, 해당되는 이전 저장 데이터에 호환 처리를 적용합니다. 도서관 MCP는 기동할 때 `library.sqlite`의 테이블을 준비합니다. 기존 DB에 대한 호환 변경을 확인할 때는 서비스가 종료된 상태에서 데이터 폴더를 복사한 뒤 사본을 가리키는 `STUDIO_DATA_DIR`로 실행하세요. [환경 변수 설정](../README.md#환경-변수-설정) · [작업실 DB](../src/server/db.ts) · [도서관 DB](../src/mcp/server.ts)
+
+모델 요청은 작업실 서버에서 OpenAI Responses API로 보냅니다. 인증이 필요한 외부 MCP를 등록할 때는 자격 증명이 담긴 서버 환경 변수의 이름을 입력하세요. 이름은 `STUDIO_CONNECTOR_`로 시작하고 뒤에는 영문 대문자, 숫자, 밑줄만 쓸 수 있습니다. 외부 MCP 클라이언트는 호출할 때 해당 값을 읽고, 값이 비어 있으면 자격 증명 설정 오류를 반환합니다. [모델 호출](../src/server/model.ts) · [외부 MCP 등록](../src/server/assets.ts) · [외부 MCP 호출](../src/server/mcp.ts)
 
 ## 질문 한 건이 답변이 되기까지
 
@@ -54,17 +51,11 @@ pnpm dev
 
 ## 변경 후 확인하기
 
-프로젝트 루트에서 수정한 경로에 맞는 명령을 실행합니다. [명령 정의](../package.json) · [브라우저 시험 실행기](../scripts/test-browser.mjs)
+버전 공개 범위와 전문가 실습의 게시·복구 판단을 바꿨다면 프로젝트 루트에서 관련 시험 파일만 실행할 수 있습니다. 공유 회귀 시험의 MCP 사례는 루프백 HTTP 연결을 사용합니다. 전체 회귀 시험, 브라우저 시험에 필요한 격리 조건과 실제 모델 시험 설정은 README에서 확인하세요. [명령과 전제 조건](../README.md#검증)
 
-| 확인하려는 동작 | 명령 |
-| --- | --- |
-| 컴포넌트와 서버 호출부가 같은 타입을 사용하는지 확인 | `pnpm typecheck` |
-| 버전 공개 범위와 전문가의 게시·복구 판단만 빠르게 확인 | `pnpm exec tsx --test tests/sharing-releases.test.ts tests/release-exercise.test.ts` |
-| 설계·실행기·저장소 회귀 시험 전체 | `pnpm test` |
-| 저장·게시·복원 버튼부터 실제 API까지 브라우저로 확인 | `pnpm test:browser` |
-| 실제 모델 응답까지 확인해야 하는 변경 | `pnpm test:live` (서버의 모델 설정 필요, API 사용량 발생) |
-
-`pnpm test:browser`의 기본 동작은 프로덕션 빌드 후 임시 DB와 별도 포트에서 모델 호출을 끄고 시험하는 것입니다. `STUDIO_TEST_URL`을 지정하면 해당 서버를 직접 사용하므로, 기존 사용자 데이터가 있는 작업실과 분리해 시험할 때는 이 값을 비워 두세요.
+```powershell
+pnpm exec tsx --test tests/sharing-releases.test.ts tests/release-exercise.test.ts
+```
 
 화면 이름만 아는 경우에는 IDE의 ‘정의로 이동’과 아래 검색을 함께 쓰면 호출부, 서버 처리, 테스트를 찾을 수 있습니다.
 
