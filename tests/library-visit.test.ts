@@ -1,0 +1,73 @@
+import { after, test } from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { authenticate } from '../src/server/auth';
+import { assetList, readAsset, readLibraryAsset, writeAsset } from '../src/server/assets';
+import { caseList, createProject, projectCopy, publish, snapshot } from '../src/server/projects';
+import { bindRunAssets } from '../src/server/run-assets';
+import { db } from '../src/server/db';
+import type { Graph } from '../src/domain';
+
+const directory = mkdtempSync(join(tmpdir(), 'studio-library-visit-'));
+process.env.STUDIO_DATA_DIR = directory;
+after(() => { db().close(); rmSync(directory, {recursive: true, force: true}); });
+
+test('새 방문 준비 실습은 수령 규정 두 판과 실제 자료 네 종류를 비공개로 준비한다', () => {
+  const user = authenticate('signup', 'visit-participant', 'visit-test-password', '').user;
+  const request = {lesson: 'library-visit', requestKey: 'new-visit'};
+  const project = createProject(user, request);
+  assert.equal(createProject(user, request).id, project.id);
+  const assets = assetList(user);
+  assert.deepEqual(assets.map(asset => asset.kind).sort(), ['document','knowledge','mcp','skill']);
+  assert.ok(assets.every(asset => asset.mine && asset.visibility === 'private'));
+  const graph = project.graph as Graph;
+  const references = graph.nodes.filter(node => node.config.assetId);
+  assert.equal(references.length, 4);
+  for (const {config} of references) {
+    assert.ok(assets.some(asset => asset.id === config.assetId));
+    assert.equal(Number(config.version), 1);
+  }
+  const pickup = assets.find(a => a.kind === 'document')!;
+  assert.equal(pickup.version, 2);
+  assert.match(readAsset(user, pickup.id, 1).payload.content, /회원증이 필요합니다/);
+  assert.match(readAsset(user, pickup.id, 2).payload.content, /모바일 회원증도 가능합니다/);
+  const [scenario] = caseList(user, project.id);
+  assert.deepEqual(scenario.fixture, {reservations: [{book:'어린 왕자',branch:'중앙도서관'}]});
+  const connector = assets.find(a => a.kind === 'mcp')!;
+  const {payload} = readLibraryAsset(user, connector.id, 1);
+  assert.deepEqual(payload.tools, ['reservations.list']);
+  assert.equal(payload.url, undefined);
+  assert.equal(payload.testUrl, undefined);
+  assert.equal(payload.credentialEnv, undefined);
+  assert.throws(() => writeAsset(user, {kind:'mcp', name:'다른 연결', payload}), /운영자/);
+  assert.throws(() => writeAsset(user, {id:connector.id, baseVersion:1, name:'수정', payload}));
+  const bound = bindRunAssets(graph,user);
+  bound.validate();
+  const tool = graph.nodes.find(n => n.id === 'lookup')!.config.tool;
+  assert.equal(tool, 'mcp.' + connector.id + '.reservations.list');
+  assert.throws(() => bound.connector(tool, {assetId:connector.id,version:2}));
+  assert.throws(() => bound.connector('mcp.' + connector.id + '.reservations.create', {assetId:connector.id,version:1}));
+  const version = snapshot(user, {id:project.id,revision:project.revision}).number;
+  assert.throws(() => publish(user, {id:project.id,version,visibility:'public'}), /자료판/);
+  const copy = projectCopy(user, {id:project.id});
+  const copiedGraph = copy.graph as Graph;
+  // An independent Agent carries its pinned edition. The guided exercise needs both editions and its saved case.
+  assert.equal(copy.lesson,null);
+  assert.deepEqual(caseList(user,copy.id),[]);
+  const copiedPickup = copiedGraph.nodes.find(n => n.id === 'pickup')!.config;
+  assert.throws(() => readAsset(user,copiedPickup.assetId,2));
+  const copiedPin = copiedGraph.nodes.find(n => n.id === 'library')!.config;
+  assert.notEqual(copiedPin.assetId,connector.id);
+  assert.deepEqual(readLibraryAsset(user,copiedPin.assetId,1).payload.tools,['reservations.list']);
+  assert.equal(copiedGraph.nodes.find(n => n.id === 'lookup')!.config.tool,'mcp.' + copiedPin.assetId + '.reservations.list');
+  bindRunAssets(copiedGraph,user).validate();
+  assert.equal(assetList(user).length,8);
+  const nextLesson = createProject(user,{lesson:'library-visit'});
+  const nextGraph = nextLesson.graph!;
+  const nextPickup = nextGraph.nodes.find(node => node.id === 'pickup')!.config;
+  assert.notEqual(nextPickup.assetId,pickup.id);
+  assert.equal(nextPickup.version,1);
+  assert.match(readAsset(user,nextPickup.assetId,2).payload.content,/모바일 회원증/);
+});

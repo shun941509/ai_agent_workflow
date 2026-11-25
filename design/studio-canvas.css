@@ -1,0 +1,157 @@
+.sc-canvas {
+  --sc-text: #142a3b;
+  --sc-panel: #fff;
+  --sc-dots: #d6e1e4;
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  height: 100%;
+  min-height: 220px;
+  overflow: hidden;
+  color: var(--sc-text);
+  background-color: #edf2f5;
+  background-image: radial-gradient(circle, var(--sc-dots) .75px, transparent .95px);
+  background-size: 18px 18px;
+  font-family: inherit;
+  font-size: 13px;
+  text-align: left;
+  line-height: 1.45;
+  touch-action: none;
+}
+.sc-canvas:focus-visible, .sc-canvas button:focus-visible, .sc-canvas .sc-line:focus-visible {
+  outline: 3px solid #177aa2;
+  outline-offset: 3px;
+}
+.sc-world {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  transform-origin: 0 0;
+}
+.sc-wire-layer { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible }
+.sc-line { cursor: pointer; pointer-events: stroke; outline: none }
+.sc-ink { fill: none; stroke-linecap: round; stroke-linejoin: round; pointer-events: none }
+.sc-hit { stroke-width: 18; stroke: transparent; fill: none }
+.sc-line:focus-visible .sc-hit { stroke: #3393ac55 }
+.sc-node {
+  --sc-node-border: #99afb5;
+  position: absolute;
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin: 0;
+  padding: 12px 13px;
+  color: var(--sc-text);
+  font: inherit;
+  font-weight: 400;
+  text-align: left;
+  background: var(--sc-panel);
+  border: 1px solid var(--sc-node-border);
+  border-radius: 8px;
+  box-sizing: border-box;
+  box-shadow: 0 1px 3px #122a3b0e;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.sc-node:active { cursor: grabbing }
+.sc-node:hover { --sc-node-border: #558c8d }
+.sc-node[aria-pressed=true] {
+  --sc-node-border: #008578;
+  outline: 1px solid #008578;
+  outline-offset: 3px;
+}
+.sc-node-text { min-width: 0; flex: 1; display: grid; gap: 4px }
+.sc-node-name, .sc-node-detail {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+.sc-node-name { -webkit-line-clamp: 1; font-size: 13px; font-weight: 700; line-height: 1.4 }
+.sc-node-detail { -webkit-line-clamp: 2; color: #3e535f; font-size: 11px; line-height: 1.4 }
+.sc-icon {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 29px;
+  width: 29px;
+  height: 29px;
+  border-radius: 7px;
+  background: var(--icon-bg,#e8f0f2);
+  color: var(--icon-ink,#2d6164);
+}
+.sc-icon svg { width: 18px; height: 18px; display: block }
+.sc-port {
+  position: absolute;
+  display: block;
+  width: 7px;
+  height: 7px;
+  border: 1px solid #82999d;
+  border-radius: 50%;
+  background: #fff;
+  box-sizing: border-box;
+  transform: translate(-50%,-50%);
+  pointer-events: none;
+}
+.sc-port.w { top: 50%; left: 0 }.sc-port.e { top: 50%; left: 100% }
+.sc-port.n { left: 50%; top: 0 }.sc-port.s { left: 50%; top: 100% }
+.sc-canvas[data-variant=b] .sc-node { align-items: center; border-radius: 6px; padding: 11px 8px; gap: 8px; --sc-node-border: #9daeb7 }
+.sc-canvas[data-variant=b] .sc-node[aria-pressed=true] { outline: 0; border: 2px solid #008d83; padding: 10px 7px }
+.sc-canvas[data-variant=b] .sc-node[aria-pressed=true] .sc-port { width: 9px; height: 9px; border-color: #007daa; border-width: 1.5px }
+.sc-canvas[data-variant=b] .sc-icon { width: 35px; height: 35px; flex-basis: 35px; border-radius: 50%; background: radial-gradient(ellipse at 35% 30%, #ffffffa0, transparent 70%), var(--icon-bg) }
+.sc-canvas[data-variant=b] .sc-node-name { font-size: 14px; line-height: 1.3; -webkit-line-clamp: 2 }
+.sc-canvas[data-variant=b] .sc-node-detail { font-size: 12px }
+.sc-minimap, .sc-zoom, .sc-status {
+  position: absolute;
+  z-index: 3;
+  border: 1px solid #d5dfe3;
+  background: #fffffffa;
+  border-radius: 5px;
+}
+.sc-minimap { width: min(18%,150px); aspect-ratio: 3 / 2; right: 15px; top: 15px; padding: 7px; box-sizing: border-box; pointer-events: none }
+.sc-minimap svg { width: 100%; height: 100%; display: block }
+.sc-zoom { left: 16px; bottom: 16px; display: flex; align-items: center; overflow: hidden; box-shadow: 0 1px 3px #1938440c }
+.sc-zoom button {
+  display: grid; place-items: center; width: 36px; min-width: 0; height: 37px; min-height: 0;
+  padding: 0; border: 0; border-radius: 0; border-right: 1px solid #d7e1e4;
+  color: #193c4a; background: transparent; font-size: 18px; font-weight: 400; cursor: pointer;
+}
+.sc-zoom button:last-child { border-right: 0 }
+.sc-zoom button:hover { background: #edf6f3 }
+.sc-zoom button:disabled { color: #9aa9ae; cursor: default }
+.sc-zoom output { padding: 0 5px; font-size: 11px; color: #456067 }
+.sc-zoom output { display: none }
+.sc-status {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px; right: 15px; bottom: 16px;
+  padding: 5px 9px; color: #29454d; font-size: 11px; line-height: 1.5; pointer-events: none;
+}
+.sc-status:empty { display: none }
+.sc-status .sc-in { color: #155da5 }.sc-status .sc-out { color: #98500f }
+.sc-status .sc-legend-item { display: inline-flex; gap: 4px; align-items: center }
+.sc-swatch { display: inline-block; width: 19px; height: 0; border-top: 2px solid #445c62 }
+.sc-swatch.data { border-top: 2px dashed #00887e }.sc-swatch.reference { border-top: 2px dotted #8253d0 }
+.sc-list {
+  box-sizing: border-box; position: absolute; inset: 0; z-index: 4;
+  padding: 20px; overflow: auto; background: #f6f8f9; touch-action: pan-y;
+}
+.sc-list h3 { margin: 0 0 10px; color: var(--sc-text); font-size: 14px }
+.sc-list h3:not(:first-child) { margin-top: 20px }
+.sc-list button {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 8px 11px; margin: 4px 0;
+  background: #fff; color: var(--sc-text); border: 1px solid #c8d6d9; border-radius: 6px; font: inherit; text-align: left; cursor: pointer;
+}
+.sc-list button[aria-pressed=true] { border-color: #008477; background: #f0faf6 }
+.sc-list small { display: block; font-size: 11px; color: #47626c }
+.sc-canvas [hidden] { display: none !important }
+@media(max-width:640px) {
+  .sc-canvas { min-height: 300px }
+  .sc-minimap { display: none }
+  .sc-zoom { left: 8px; bottom: 8px }
+  .sc-zoom button { width: 38px; height: 40px }
+  .sc-status { right: 8px; bottom: 8px; gap: 5px; padding: 4px; font-size: 10px }
+  .sc-swatch { width: 10px }
+  .sc-list { padding: 10px }
+}

@@ -1,0 +1,119 @@
+.account-entry {
+  min-height: 100dvh;
+  background: #f6f7f5;
+  color: #19202b;
+  word-break: keep-all;
+}
+
+.account-masthead {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 12px clamp(20px, 4vw, 62px);
+  background: #1c2430;
+  color: white;
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -.06em;
+}
+
+.account-main {
+  width: min(100% - 40px, 410px);
+  margin-inline: auto;
+  padding-block: clamp(40px, 10vh, 104px) 48px;
+}
+
+.account-intro h1 {
+  margin: 0;
+  font-size: clamp(34px, 6vw, 44px);
+  line-height: 1.18;
+  letter-spacing: -.065em;
+}
+
+.account-intro p {
+  margin: 12px 0 32px;
+  color: #515963;
+}
+
+.account-form, .account-field { display: grid; }
+.account-form { gap: 20px; }
+.account-field { gap: 7px; }
+.account-field label, .account-migration legend { font-weight: 650; }
+.account-field input {
+  width: 100%;
+  min-height: 48px;
+  padding: 9px 12px;
+  border: 1px solid #9aa5b1;
+  border-radius: 4px;
+  background: white;
+  font-size: 16px;
+}
+
+.account-entry :is(input, button):focus-visible {
+  outline: 3px solid #354eab;
+  outline-offset: 3px;
+}
+
+.account-field small, .account-migration small, .account-migration p {
+  color: #515963;
+  font-size: .88rem;
+}
+
+.account-migration {
+  min-width: 0;
+  margin: 0;
+  padding: 8px 15px 14px;
+  border: 1px solid #c6ccd4;
+  border-radius: 4px;
+}
+
+.account-migration legend { padding-inline: 4px; }
+.account-migration p { margin: 4px 0; }
+.account-migration label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  cursor: pointer;
+}
+.account-migration input { margin: 0; accent-color: #243fab; }
+.account-migration small { display: block; margin-top: 4px; }
+
+.account-error {
+  margin: 0;
+  color: #9c251f;
+}
+
+.account-submit {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 18px;
+  border: 0;
+  border-radius: 4px;
+  background: #243fab;
+  color: white;
+  font-weight: 700;
+}
+.account-submit:hover:enabled { background: #1c328b; }
+
+.account-switch {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 12px;
+  margin-top: 26px;
+  padding-top: 12px;
+  border-top: 1px solid #cdd2d9;
+  color: #515963;
+}
+.account-switch button {
+  min-height: 44px;
+  padding: 4px 0;
+  border: 0;
+  background: transparent;
+  color: #243fab;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

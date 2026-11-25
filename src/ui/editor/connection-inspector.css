@@ -1,0 +1,21 @@
+.ws-inspector .ws-connection-route {
+  margin: 6px 0 16px;
+  font-weight: 650;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.ws-connection-fact {
+  border-top: 1px solid var(--ws-line);
+  padding: 12px 0 2px;
+  margin-top: 10px;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.ws-inspector .ws-connection-fact h3 { margin: 0 0 6px; font-size: 13px; }
+.ws-inspector .ws-connection-fact p { margin: 5px 0; color: var(--ws-muted); }
+.ws-connection-fact ul { list-style: none; padding: 0; margin: 6px 0 0; }
+.ws-connection-fact li { display: grid; gap: 2px; }
+.ws-connection-fact li + li { margin-top: 9px; }
+.ws-connection-fact small, .ws-connection-receives { color: var(--ws-muted); }

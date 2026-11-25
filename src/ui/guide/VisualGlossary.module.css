@@ -1,0 +1,109 @@
+.reader {
+  margin-block: 0 26px;
+}
+.picker {
+  min-width: 0;
+  margin: 0;
+  padding: 0 0 18px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+}
+.picker legend {
+  padding: 0;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: .9rem;
+  font-weight: 650;
+}
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.option {
+  position: relative;
+  cursor: pointer;
+}
+.option input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.option span {
+  display: grid;
+  place-items: center;
+  min-height: 40px;
+  padding: 5px 17px;
+  border: 1px solid #a5b9b8;
+  border-radius: 5px;
+  background: white;
+  color: var(--ink);
+  font-size: .93rem;
+  font-weight: 600;
+}
+.option input:checked + span {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: white;
+  font-weight: 750;
+}
+.option input:focus-visible + span {
+  outline: 3px solid #205f8c;
+  outline-offset: 2px;
+}
+.example {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(240px, 1fr);
+  grid-template-areas: "picture definition" "picture notes";
+  grid-template-rows: auto 1fr;
+  gap: 13px clamp(20px, 3vw, 42px);
+  padding-top: 20px;
+  align-items: start;
+}
+.definition { grid-area: definition; }
+.picture { grid-area: picture; min-width: 0; }
+.notes { grid-area: notes; }
+.example h3 {
+  margin: 0;
+  font-size: clamp(1.15rem, 1.65vw, 1.5rem);
+  letter-spacing: -.035em;
+  line-height: 1.35;
+}
+.example h4 {
+  margin: 0;
+  font-size: .96rem;
+}
+.example p {
+  margin: 5px 0 0;
+  max-width: 62ch;
+  line-height: 1.65;
+}
+.notes p { color: var(--muted); }
+.notes h4:not(:first-child) { margin-top: 14px; }
+.locate { margin-top: 8px; }
+.locate summary {
+  width: fit-content;
+  padding-block: 9px;
+  color: var(--accent);
+  cursor: pointer;
+  font-weight: 650;
+}
+@container guide (max-width: 680px) {
+  .example {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "definition" "picture" "notes";
+    gap: 14px;
+    padding-top: 15px;
+  }
+}
+@media (max-width: 580px) {
+  .options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .option span { min-height: 44px; padding-inline: 4px; }
+}
+@media (forced-colors: active) {
+  .option input:checked + span { outline: 2px solid Highlight; outline-offset: -3px; }
+}

@@ -1,0 +1,68 @@
+.reference {
+  min-width: 0;
+}
+
+.reference h2 {
+  width: fit-content;
+  margin: 0;
+  color: var(--ink);
+  font-size: clamp(1.4rem, 2.1vw, 2rem);
+  line-height: 1.35;
+  letter-spacing: -.035em;
+  scroll-margin-block-start: 5rem;
+}
+
+.reference h2:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.reference > p {
+  margin: 6px 0 18px;
+  color: var(--muted);
+}
+
+.group {
+  border-top: 1px solid var(--border);
+}
+
+.group h3 {
+  margin: 12px 0 2px;
+  font-size: .88rem;
+  color: var(--accent);
+}
+
+.group dl {
+  margin: 0;
+}
+
+.group dl > div {
+  display: grid;
+  grid-template-columns: minmax(10.5rem, 23%) minmax(0, 1fr);
+  gap: 4px 22px;
+  align-items: baseline;
+  padding-block: 8px;
+}
+
+.group dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 650;
+}
+
+.group dt svg {
+  flex: none;
+  color: var(--accent);
+}
+
+.group dd {
+  max-width: 72ch;
+  margin: 0;
+  color: var(--muted);
+}
+
+@container guide (max-width: 580px) {
+  .group dl > div { grid-template-columns: minmax(0, 1fr); }
+  .group dd { padding-inline-start: 25px; }
+}

@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>참고 Studio 화면 비교</title>
+<style>
+* { box-sizing: border-box }
+body { max-width: 2000px; margin: auto; padding: clamp(16px, 3vw, 48px); color: #162e31; background: #f3f6f6; font: 16px/1.6 "Malgun Gothic", sans-serif; word-break: keep-all }
+h1 { font-size: clamp(23px, 3vw, 34px); margin: 0 0 4px }
+p { margin: 0; color: #43595e }
+main { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(12px, 2vw, 32px); margin-top: 24px }
+article { min-width: 0 }
+h2 { font-size: 19px; margin: 0 0 4px }
+article p { margin-bottom: 12px }
+img { display: block; width: 100%; height: auto; border: 1px solid #b9cbcc; border-radius: 6px }
+a { display: block; cursor: zoom-in }
+a:focus-visible { outline: 3px solid #02655e; outline-offset: 3px }
+@media (max-width: 900px) { main { grid-template-columns: 1fr } }
+</style>
+<h1>참고 Studio 화면 비교</h1>
+<p>각 이미지를 누르면 원본 크기로 볼 수 있습니다.</p>
+<main>
+<article><h2>A · 실제 편집기</h2><p>11월 17일 브라우저 테스트에서 캡처한 화면입니다. 42종 블록을 검색하고, 캔버스에서 연결하며, 오른쪽에서 선택한 블록의 속성을 편집합니다.</p>
+<a href="./studio-actual-reference.png"><img src="./studio-actual-reference.png" alt="실제 편집기. 전체 메뉴와 블록 검색 목록 오른쪽에 두 줄로 배치한 다섯 블록, 네 방향 연결점과 속성 패널이 보입니다."></a></article>
+<article><h2>B · 초기 디자인 콘셉트</h2><p>시작부터 종료까지 높낮이를 달리해 배치하고, 진행·데이터·참조를 선 모양으로 구분한 그림입니다.</p>
+<a href="../../ai_agent_workflow_studio/design/editor-concept.png"><img src="../../ai_agent_workflow_studio/design/editor-concept.png" alt="콘셉트 이미지. 시작, 입력, 검토 Agent가 계단식으로 이어지고 아래쪽 자료와 결과 출력 블록이 연결돼 있습니다."></a></article>
+</main>
+</html>

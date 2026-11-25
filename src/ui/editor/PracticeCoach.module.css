@@ -1,0 +1,189 @@
+.coach {
+  display: flex;
+  flex: 0 1 auto;
+  flex-direction: column;
+  max-height: min(36dvh, 340px);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border-block-end: 1px solid #c1d2cf;
+  background: #f6f9f7;
+  color: #21332f;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.coach .toggle {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 0;
+  text-align: left;
+  background: #e6efeb;
+  color: #214f44;
+}
+
+.practiceName {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.number {
+  flex: none;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.toggle[aria-expanded=true] .chevron {
+  transform: rotate(180deg);
+}
+
+.frame:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.reading {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 10px 12px;
+  scrollbar-width: thin;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.coach .title {
+  margin: 0 0 6px;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.coach .check {
+  margin: 0 0 8px;
+  padding-inline-start: 8px;
+  border-inline-start: 2px solid #608779;
+  color: #304d40;
+}
+
+.check strong {
+  margin-inline-end: 5px;
+}
+
+.prerequisite {
+  border-inline-start: 2px solid #ad792d;
+  padding-inline-start: 8px;
+  margin-block: 8px;
+}
+
+.prerequisite p {
+  margin: 2px 0;
+}
+
+.instructions ol {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding-inline-start: 20px;
+}
+
+.help {
+  margin-top: 8px;
+}
+
+.help summary {
+  width: fit-content;
+  padding-block: 4px;
+  cursor: pointer;
+  font-weight: 650;
+  color: #31584d;
+}
+
+.coach .help p {
+  margin: 2px 0 4px;
+}
+
+.continue {
+  display: grid;
+  justify-items: start;
+  gap: 3px;
+  margin-top: 7px;
+  padding-top: 8px;
+  border-top: 1px solid #ccd9d3;
+}
+
+.coach .continue p {
+  margin-top: 5px;
+}
+
+.coach .continue button,
+.coach .overview {
+  color: #17594a;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.coach .continue button,
+.coach .prerequisite button {
+  min-height: 30px;
+  padding: 2px 0;
+  border: 0;
+  text-align: start;
+  background: transparent;
+}
+
+.controls {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 8px;
+  border-top: 1px solid #d6e1db;
+  background: #f6f9f7;
+}
+
+.coach .controls button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  min-height: 30px;
+  padding: 3px 6px;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 630;
+}
+
+.coach .overview {
+  margin-inline-end: auto;
+}
+
+.coach button:hover:not(:disabled) {
+  background-color: #ddeae3;
+}
+
+.coach .toggle:focus-visible,
+.coach .reading:focus-visible {
+  outline-offset: -3px;
+}
+
+@media (max-width: 680px) {
+  .coach {
+    max-height: min(30dvh, 245px);
+  }
+}
+
+@media (max-height: 540px) {
+  .coach { max-height: 33dvh; }
+  .coach .toggle { min-height: 29px; padding-block: 3px; }
+  .coach .controls button { min-height: 24px; }
+}

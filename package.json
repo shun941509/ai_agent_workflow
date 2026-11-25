@@ -1,0 +1,35 @@
+{
+  "name": "ai-agent-workflow-studio",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "packageManager": "pnpm@12.16.1",
+  "scripts": {
+    "dev": "node scripts/start.mjs",
+    "start": "node scripts/start.mjs --production",
+    "build": "next build --webpack",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts src/ui/editor/*.test.ts",
+    "test:browser": "node scripts/test-browser.mjs",
+    "test:live": "node scripts/test-browser.mjs --live"
+  },
+  "dependencies": {
+    "baseline-browser-mapping": "2.11.37",
+    "fflate": "0.8.3",
+    "lucide-react": "1.63.0",
+    "next": "16.4.6",
+    "react": "19.3.1",
+    "react-dom": "19.3.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1",
+    "@types/node": "26.6.6",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "typescript": "6.0.3",
+    "tsx": "4.23.15"
+  }
+}

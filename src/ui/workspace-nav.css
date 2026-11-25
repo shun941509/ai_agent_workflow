@@ -1,0 +1,206 @@
+:root {
+  --workspace-nav-width: 176px;
+}
+
+.workspace-rail {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  color: #e9eced;
+  background: #1c2430;
+  font: 15px/1.55 Inter, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  letter-spacing: normal;
+}
+
+.workspace-rail button,
+button.workspace-menu-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+}
+
+.workspace-rail-head {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 29px 15px 24px;
+}
+
+.workspace-rail .workspace-brand {
+  gap: 8px;
+  padding: 0;
+  color: #fff;
+  font: 650 20px/.98 Inter, 'Segoe UI', sans-serif;
+  letter-spacing: -.065em;
+}
+
+.workspace-rail-links {
+  flex: 1;
+  min-height: 76px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  padding: 0 12px 12px;
+}
+
+.workspace-rail-links h2 {
+  margin: 19px 10px 5px;
+  color: #afbac9;
+  font-size: 11px;
+  font-weight: 560;
+  letter-spacing: normal;
+}
+
+.workspace-rail-links button {
+  display: flex;
+  width: 100%;
+  min-height: 38px;
+  padding: 8px;
+  border-radius: 4px;
+  color: inherit;
+  font-size: 13px;
+}
+
+.workspace-rail-links button:hover,
+.workspace-rail-account button:hover,
+.workspace-rail .workspace-drawer-close:hover {
+  background: #2c3543;
+  color: #fff;
+}
+
+.workspace-rail-links button[aria-current='page'] {
+  background: #384253;
+  box-shadow: inset 2px 0 #b4c6ff;
+  color: #fff;
+  font-weight: 650;
+}
+
+.workspace-rail-account {
+  display: grid;
+  flex: none;
+  gap: 10px;
+  margin-top: auto;
+  padding: 18px 16px 20px;
+  border-top: 1px solid #39404c;
+}
+
+.workspace-rail-identity {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.workspace-avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 33px;
+  height: 33px;
+  border-radius: 50%;
+  background: #384253;
+  color: #d0daee;
+}
+
+.workspace-rail-identity strong,
+.workspace-rail-identity small {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.workspace-rail-identity strong {
+  font-size: 13.5px;
+}
+
+.workspace-rail-identity small {
+  margin-top: 3px;
+  color: #b9c2d0;
+  font-size: 11.5px;
+}
+
+.workspace-rail-account button {
+  justify-self: start;
+  padding: 4px 0;
+  color: #b9c2d0;
+  font-size: 12.5px;
+}
+
+.workspace-rail button:focus-visible {
+  outline: 2px solid #b4c6ff;
+  outline-offset: 2px;
+}
+
+button.workspace-menu-button {
+  display: none;
+  flex: none;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 4px;
+  color: #394654;
+}
+
+button.workspace-menu-button:hover {
+  background: #edf0f4;
+}
+
+.workspace-drawer {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: min(270px, 83vw);
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: #1c2430;
+}
+
+.workspace-drawer::backdrop {
+  background: #162d386b;
+}
+
+.workspace-drawer .workspace-rail {
+  position: static;
+}
+
+.workspace-rail .workspace-drawer-close {
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 4px;
+}
+
+@media (max-width: 800px) {
+  aside.workspace-rail {
+    display: none;
+  }
+
+  button.workspace-menu-button {
+    display: inline-flex;
+  }
+
+  .workspace-rail-links button,
+  .workspace-rail-account button {
+    min-height: 44px;
+  }
+
+  html:has(.workspace-drawer[open]) {
+    overflow: hidden;
+  }
+}

@@ -1,0 +1,99 @@
+.lp-shell {
+  --lp-paper: #f6f7f5;
+  --lp-ink: #19202b;
+  --lp-blue: #243fab;
+  display: grid;
+  grid-template-columns: 176px minmax(0, 1fr);
+  min-height: 100dvh;
+  background: var(--lp-paper);
+  color: var(--lp-ink);
+  font: 15px/1.5 Inter, "Noto Sans KR", "Malgun Gothic", sans-serif;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+.lp-shell button, .lp-shell select, .lp-shell input { font-family: inherit; }
+.lp-shell :where(button,a,input,summary,select,textarea):focus-visible {
+  outline: 3px solid #748cf6;
+  outline-offset: 3px;
+}
+.lp-skip { position: fixed; left: 10px; top: -80px; z-index: 20; background: white; color: var(--lp-ink); padding: 9px 18px; }
+.lp-skip:focus { top: 8px; }
+.lp-rail {
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100dvh;
+  background: #1c2430;
+  color: #e9eced;
+  padding: 29px 12px 22px;
+}
+.lp-brand, .lp-nav button, .lp-resources button, .lp-resources a, .lp-back {
+  display: flex; align-items: center; text-align: left; text-decoration: none;
+  gap: 10px; color: inherit; background: none; border: 0;
+}
+.lp-brand {
+  padding: 1px 8px 29px;
+  gap: 10px;
+  color: #fff;
+  font: 650 20px/.98 Inter, "Segoe UI", sans-serif;
+  letter-spacing: -.065em;
+}
+.lp-mark { position: relative; width: 31px; height: 34px; flex-shrink: 0; display: inline-block; }
+.lp-mark i { position: absolute; height: 14px; width: 12px; border: 2px solid #b4c6ff; transform: skewY(-25deg); }
+.lp-mark i:first-child { left: 1px; top: 13px; }
+.lp-mark i:nth-child(2) { left: 11px; top: 7px; }
+.lp-mark i:last-child { left: 21px; top: 1px; background: #b4c6ff; }
+.lp-nav { display: grid; gap: 4px; }
+.lp-nav button, .lp-resources button, .lp-resources a, .lp-back {
+  width: 100%; padding: 9px 10px; border-radius: 4px; color: #c7cdd7;
+  font-size: 13px; font-weight: 500; letter-spacing: -.025em; min-height: 38px;
+}
+.lp-rail :is(a,button):hover { color: white; }
+.lp-nav button:hover, .lp-resources :is(button,a):hover, .lp-back:hover { background: #2c3543; }
+.lp-nav button[aria-current="page"] { color: #fff; background: #384253; box-shadow: inset 2px 0 #b4c6ff; }
+.lp-rail :is(button,a) svg { width: 15px; height: 15px; stroke-width: 1.6; flex-shrink: 0; }
+.lp-resources { padding-top: 15px; margin-top: 14px; border-top: 1px solid #39404c; }
+.lp-rail .lp-external { width: 12px; height: 12px; margin-left: auto; color: #9ea7b6; }
+.lp-back { margin-top: auto; gap: 7px; font-size: 12px; white-space: nowrap; }
+.lp-panel { min-width: 0; }
+.lp-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px;
+  padding: 0 clamp(16px, 3vw, 46px); border-bottom: 1px solid #d8dcd9; background: #fafbf9;
+  font-size: 12px; letter-spacing: -.015em;
+}
+.lp-editing .lp-bar { padding-inline: 22px; }
+.lp-crumb, .lp-tools, .lp-proto { display: flex; align-items: center; gap: 8px; }
+.lp-crumb { color: #606871; }
+.lp-crumb strong { color: #333c47; font-weight: 600; }
+.lp-tools { gap: 15px; }
+.lp-view-option select {
+  background: transparent; color: #494f57; font-size: 12px; border: 0; padding: 6px 0; cursor: pointer;
+}
+.lp-proto { font-size: 11px; color: #525971; white-space: nowrap; }
+.lp-proto > span { width: 7px; height: 7px; border-radius: 2px; background: #6979b9; }
+#lp-work { min-width: 0; outline: none; }
+.lp-dialog { max-width: min(430px, calc(100vw - 32px)); padding: 24px; border: 1px solid #bbc2cc; border-radius: 6px; color: #19202b; }
+.lp-dialog::backdrop { background: #14192275; }
+.lp-dialog header { display:flex; gap:12px; align-items:center; justify-content:space-between; }
+.lp-dialog h2 { margin: 0; font-size: 22px; }
+.lp-dialog header button { display:grid; place-items:center; width:36px; height:36px; border:1px solid #ccd0d5; background:white; border-radius:4px; }
+.lp-dialog ol { padding-left: 1.55em; margin-bottom: 0; }
+.lp-dialog li { margin-top: 12px; padding-left: 3px; }
+@media (max-width: 1020px) and (min-width: 701px) {
+  .lp-shell { grid-template-columns: 142px minmax(0,1fr); }
+  .lp-rail { padding-inline: 6px; }
+}
+@media (max-width: 700px) {
+  .lp-shell { display: block; }
+  .lp-rail { height: auto; position: static; padding: 0 14px; min-height: 54px; flex-direction: row; align-items: center; justify-content: space-between; }
+  .lp-brand { padding: 0; font-size: 14px; gap: 7px; }
+  .lp-mark { transform: scale(.72); margin-left: -5px; margin-right: -5px; }
+  .lp-nav { display: flex; gap:2px; }
+  .lp-nav button { width: auto; gap:5px; padding: 5px 8px; font-size: 12px; }
+  .lp-nav button[aria-current="page"] { box-shadow: inset 0 -2px #b4c6ff; }
+  .lp-resources, .lp-back { display: none; }
+  .lp-bar, .lp-editing .lp-bar { min-height: 36px; padding-inline: 14px; }
+  .lp-tools { gap: 8px; }
+}

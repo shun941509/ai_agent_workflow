@@ -1,0 +1,5 @@
+.trigger-pane .trigger-row{display:grid;gap:.5rem;padding:.75rem 0;border-bottom:1px solid #dce3e4}
+.trigger-pane .trigger-row:last-child{border-bottom:none}
+.trigger-pane label{display:grid;gap:.3rem}
+.trigger-pane button{justify-self:start}
+.trigger-pane [role=alert]{color:#984030}
