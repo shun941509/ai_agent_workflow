@@ -1,15 +1,17 @@
 import { createHash } from 'node:crypto';
 import type { AgentContext } from '../domain/agent-context';
-import type { Block } from '../domain/index';
+import type { Block,Graph } from '../domain/index';
+import {recoverLegacyFilePaths} from './legacy-files';
 import { toolPin, type McpPin } from '../domain/mcp-scope';
 import {replyFieldError} from '../domain/reply-form';
 import type { EngineCheckpoint, EngineEvent, EngineRequest, EngineServices, ModelInput, ModelOutput, Prompt, Values } from './types';
 import { asText, integer, object, record, strings } from './values';
 
 export class Suspended extends Error {}
-export class Stopped extends Error {}
-export class LimitReached extends Error {}
-export interface Scope { path:string; input:unknown; permissions:string[] | undefined; depth:number; context:unknown[]; responsible?:string; connectors?:McpPin[]; agentContext?:AgentContext }
+export class RunAborted extends Error {}
+export class Stopped extends RunAborted {}
+export class LimitReached extends RunAborted {}
+export interface Scope { path:string; budgetPath?:string; input:unknown; permissions:string[] | undefined; depth:number; context:unknown[]; responsible?:string; connectors?:McpPin[]; agentContext?:AgentContext }
 export const message=(error:unknown)=>error instanceof Error?error.message:String(error);
 export function stable(value:unknown):string {
   if(Array.isArray(value)) return '['+value.map(stable).join(',')+']';
@@ -21,24 +23,47 @@ export function allowed(config:unknown, ceiling:string[]|undefined):string[] {
   return [...new Set(strings(config))].filter(name=>!ceiling || ceiling.includes(name));
 }
 export class Session {
+  readonly fileOrigins=new WeakMap<object,string>();
+  fileReferences(value:unknown,keys:string[]=[]):NonNullable<import('./types').Step['fileOrigins']>{
+    if(!value || typeof value!=='object')return [];
+    const path=this.fileOrigins.get(value);
+    if(path)return [{keys,path}];
+    return Object.entries(value).flatMap(([key,item])=>this.fileReferences(item,[...keys,key]));
+  }
   state:EngineCheckpoint;
   private saveTail=Promise.resolve();
   private activeRemote=0;
   private remoteQueue:(()=>void)[]=[];
-  constructor(readonly request:EngineRequest,readonly services:EngineServices) {
+  constructor(readonly request:EngineRequest,readonly services:EngineServices,graph?:Graph) {
     if(request.checkpoint && (request.checkpoint.runId!==request.runId || request.checkpoint.input!==request.input || request.checkpoint.version!==1))
       throw new Error('실행 기록과 요청이 일치하지 않습니다.');
     this.state=request.checkpoint?structuredClone(request.checkpoint):{
       version:1,runId:request.runId,input:request.input,events:[],steps:{},memo:{},waits:{},replies:{},counts:{steps:0,modelCalls:0,toolCalls:0,agents:0},
     };
+    if(request.checkpoint&&graph&&!this.state.fileOriginVersion)recoverLegacyFilePaths(graph,this.state);
+    this.state.fileOriginVersion=1;
+    for(const step of Object.values(this.state.steps)){
+      for(const {keys,path} of step.fileOrigins??[]){
+        let file=step.values.value;
+        for(const k of keys)file=file&&typeof file==='object'?Object.getOwnPropertyDescriptor(file,k)?.value:undefined;
+        if(file&&typeof file==='object')this.fileOrigins.set(file,path);
+      }
+    }
   }
   key(scope:Scope,node:Block) {return scope.path+'/'+encodeURIComponent(node.id);}
-  async stopCheck() {if(await this.services.isStopped?.()) throw new Stopped('사용자가 실행을 중지했습니다.');}
+  private interruption?:Error;
+  interrupt(reason:Error){return this.interruption??=reason;}
+  assertActive(){if(this.interruption)throw this.interruption;}
+  async stopCheck() {
+    this.assertActive();
+    if(await this.services.isStopped?.())throw this.interrupt(new Stopped('사용자가 실행을 중지했습니다.'));
+    this.assertActive();
+  }
   private async remote<T>(operation:()=>Promise<T>):Promise<T> {
     const limit=integer(this.services.limits?.concurrency,4,1,12);
     if(this.activeRemote>=limit)await new Promise<void>(resume=>this.remoteQueue.push(resume));
     else this.activeRemote++;
-    try{await this.stopCheck();return await operation();}
+    try{await this.stopCheck();this.assertActive();return await operation();}
     finally{const next=this.remoteQueue.shift();if(next)next();else this.activeRemote--;}
   }
   save() {
@@ -47,7 +72,7 @@ export class Session {
     this.saveTail=this.saveTail.then(()=>this.services.save!(snapshot));
     return this.saveTail;
   }
-  event(node:Block,path:string,kind:EngineEvent['kind'],detail:string,data?:unknown) {
+  event(node:Pick<Block, 'id'|'title'> & {type?:string},path:string,kind:EngineEvent['kind'],detail:string,data?:unknown) {
     this.state.events.push({id:this.state.events.length+1,time:new Date().toISOString(),nodeId:node.id,blockType:node.type,path,title:node.title,kind,detail,...(data===undefined?{}:{data})});
   }
   charge(counter:keyof EngineCheckpoint['counts'],id:string,maximum?:number) {
@@ -79,12 +104,12 @@ export class Session {
     }
     throw new Suspended(prompt.prompt);
   }
-  async model(node:Block,path:string,round:string,request:ModelInput):Promise<ModelOutput> {
+  async model(path:string,round:string,request:ModelInput,invoke=this.services.model):Promise<ModelOutput> {
     const key='model:'+path+'#'+round;
     if(Object.hasOwn(this.state.memo,key)) return this.state.memo[key] as ModelOutput;
     await this.stopCheck();
     this.charge('modelCalls',key);
-    const output=await this.remote(()=>this.services.model({...request,history:this.request.history??[]}));
+    const output=await this.remote(()=>invoke({...request,history:this.request.history??[]}));
     if(typeof output?.text!=='string') throw new Error('모델이 읽을 수 있는 결과를 반환하지 않았습니다.');
     this.state.memo[key]=output;
     await this.save();
@@ -115,7 +140,7 @@ export class Session {
     await this.stopCheck();
     const value=await this.remote(()=>this.services.tool(name,args,{operationId:id,approved:!readOnly,connector}));
     this.state.memo[key]=value??null;
-    this.event(node,path,'tool',name+' 처리 결과',{operationId:id,result:value});
+    this.event(node,path,'tool',name+' 처리 결과',{operationId:id,tool:name,write:!readOnly,result:value});
     await this.save();
     return value;
   }

@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { chromium, expect, type Locator, type Page, type Route } from '@playwright/test';
 import { templates, validateGraph, type Graph } from '../src/domain';
 import { executeGraph } from '../src/engine';
+import { completedRunFiles } from '../src/engine/legacy-files';
 import { propose } from '../src/server/model';
 import { one } from '../src/server/db';
 import { registerBrowserAccount } from './browser-account';
@@ -112,8 +113,9 @@ async function verifyReleaseDownload(page: Page, panel: Locator) {
       tool: async name => { throw Error('예상하지 않은 도구 호출 ' + name); },
     });
     const now = new Date().toISOString();
+    const files=result.status==='completed'?completedRunFiles(graph,result.checkpoint):[];
     await route.fulfill({json:{data:{id:runId, conversation:runId, runNumber:1, mode:'test', input,
-      state:result.status, output:result.output, events:result.events, error:result.error, created:now, updated:now}}});
+      state:result.status, output:result.output, files, events:result.events, error:result.error, created:now, updated:now}}});
   };
   await page.route('**/api/studio', localRun);
   try {

@@ -2,6 +2,7 @@
 import { useEffect, useId, useState } from 'react';
 import {
   canonicalErrorStrategy,
+  answerFormat,
   changesKnowledgeRelease,
   evidenceNeedsSearch,
   connectionOptions,
@@ -512,6 +513,7 @@ export function Inspector(props: InspectorProps) {
     }
     const errorStrategy = node.type === 'error.handle' && f.key === 'strategy';
     let value = node.config[f.key];
+    if(node.type==='output.answer'&&f.key==='format')value=answerFormat(value);
     if (errorStrategy) value = canonicalErrorStrategy(value || 'continue');
     if (node.type === 'control.wait' && f.key === 'fields') value = undefined;
     return (
@@ -682,6 +684,11 @@ export function Inspector(props: InspectorProps) {
                 </div>
               ))}
           {['workflow.call','workflow.tool'].includes(node.type)&&<WorkflowRefPicker id={String(node.config.workflowId||'')} version={String(node.config.version||'')} change={(workflowId,version)=>update({config:{...node.config,workflowId,version,workflowGrant:undefined}})}/>}
+          {node.type==='agent.task'&&Array.isArray(node.config.requiredTools)&&node.config.requiredTools
+            .filter((tool:string)=>!node.config.allowedTools?.includes(tool)).map((tool:string)=>
+              <div key={tool} className="ws-missing"><small>도구 연결 필요 · {tool}</small>
+                <button className="ws-btn" onClick={()=>setField('requiredTools',node.config.requiredTools.filter((name:string)=>name!==tool))}>이 제안 제외</button>
+              </div>)}
           {!!connectors?.length&&canPickTool&&<McpToolPicker pins={connectors} ceiling={props.inheritedTools} allowMultiple={node.type==='agent.task'}
             chosen={node.type==='agent.task'?(Array.isArray(node.config.allowedTools)?node.config.allowedTools:[]):[String(node.config.tool??'')]}
             onChoose={tool=>{if(node.type==='agent.task')setField('allowedTools',Array.from(new Set([...(Array.isArray(node.config.allowedTools)?node.config.allowedTools:[]),tool])));

@@ -85,9 +85,11 @@ try {
   }
   const env = { ...process.env, STUDIO_TEST_URL: url, ...(isolated ? { STUDIO_TEST_DATA_DIR: isolated } : {}) };
   const scripts = live
-    ? ['live-service']
+    ? ['live-service', 'live-tool-approval']
     : [
         'browser-smoke',
+        'run-recovery-browser',
+        'agent-decisions-browser',
         'creation-sharing-browser',
         'home-lesson-browser',
         'workflow-guide-browser',
@@ -97,6 +99,7 @@ try {
         'dynamic-policy-browser',
         'library-visit-browser',
         'editor-focus-proposal-browser',
+        'editor-contracts-browser',
         'editor-source-navigation-browser',
         'canvas-editing-browser',
         'canvas-keyboard-browser',

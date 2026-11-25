@@ -3,7 +3,7 @@ import {useCallback,useEffect,useState} from 'react';
 import './trigger-pane.css';
 
 type Registration={id:string;node:string;enabled:boolean;version:number;kind:string;setting:string;input:string;nextAt:string|null;note:string};
-type Overview={version:number|null;triggers:{id:string;title:string;kind:string;setting:string}[];registrations:Registration[]};
+type Overview={version:number|null;triggers:{id:string;title:string;kind:string;setting:string;resumeAt?:string|null}[];registrations:Registration[]};
 export default function TriggerPane({id,api,onRun}:{id:string;api:(action:string,data?:any)=>Promise<any>;onRun:(id:string)=>Promise<void>}){
   const [state,setState]=useState<Overview|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
   const [input,setInput]=useState<Record<string,string>>({}),[secrets,setSecrets]=useState<Record<string,string>>({});
@@ -24,8 +24,9 @@ export default function TriggerPane({id,api,onRun}:{id:string;api:(action:string
           </>}
         </>:<label>시작할 때 전달할 입력<input value={input[t.id]??a?.input??''} onChange={e=>setInput({...input,[t.id]:e.target.value})}/></label>}
         {a?.note&&<small>{a.note}</small>}
+        {t.resumeAt&&<small>지금 재개하면 첫 예약은 {new Date(t.resumeAt).toLocaleString('ko-KR',{timeZone:'Asia/Seoul'})} (한국 시각)입니다.</small>}
         {a?.enabled?<button disabled={busy} onClick={()=>void act(async()=>{await api('trigger.disable',{id:a.id});setSecrets(old=>({...old,[a.id]:''}));})}>자동 시작 해제</button>:
-          <button disabled={busy||!(input[t.id]??a?.input)?.trim()} onClick={()=>void act(async()=>{const next=await api('trigger.enable',{id,node:t.id,version:state.version,input:input[t.id]??a?.input});if(next.secret)setSecrets(old=>({...old,[next.id]:next.secret}));})}>게시한 버전으로 활성화</button>}
+          <button disabled={busy||!(input[t.id]??a?.input)?.trim()} onClick={()=>void act(async()=>{const next=await api('trigger.enable',{id,node:t.id,version:state.version,input:input[t.id]??a?.input});if(next.secret)setSecrets(old=>({...old,[next.id]:next.secret}));})}>{t.kind==='schedule'&&a?.note?'게시한 버전으로 예약 재개':'게시한 버전으로 활성화'}</button>}
       </div>;})}
     {state?.registrations.filter(a=>a.enabled&&!state.triggers.some(t=>t.id===a.node)).map(a=><div key={a.id}><p>이전 {a.version}판 · {a.setting}</p><button onClick={()=>void act(async()=>{await api('trigger.disable',{id:a.id});})}>이전 설정 해제</button></div>)}
   </section>;

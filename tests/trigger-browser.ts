@@ -49,6 +49,26 @@ try{
   await api('trigger.enable',{id:scheduler.id,version:sv.number,node:'entry',input:'예약한 문서'});
   await expect.poll(async()=>{const runs=await api('run.list',{id:scheduler.id});return runs.length===1?runs[0].output:'';},{timeout:30000}).toBe('예약한 문서');
   assert.equal((await api('trigger.list',{id:scheduler.id})).registrations[0].enabled,false);
+  const recurring=structuredClone(scheduleGraph);
+  recurring.nodes[0].config.schedule='매 60분';
+  const timer=await api('project.create',{title:'예약 재개 검증',graph:recurring});
+  const first=await api('versions.save',{id:timer.id,revision:timer.revision});
+  const second=await api('versions.save',{id:timer.id,revision:timer.revision});
+  const publishTimer=(version:number,expectedPublicVersion:number|null)=>api('versions.publish',{
+    id:timer.id,version,visibility:'private',expectedVisibility:'private',expectedPublicVersion,
+  });
+  await publishTimer(first.number,null);
+  await api('trigger.enable',{id:timer.id,node:'entry',input:'점검',version:first.number});
+  await publishTimer(second.number,first.number);
+  await publishTimer(first.number,second.number);
+  await page.goto('/?edit='+timer.id);
+  await page.getByRole('button',{name:'시험 실행',exact:true}).click();
+  await results.getByRole('button',{name:'실행 설정',exact:true}).click();
+  await page.getByRole('button',{name:'자동 시작',exact:true}).click();
+  await expect(page.getByText(/지금 재개하면 첫 예약은/)).toBeVisible();
+  await page.getByRole('button',{name:'게시한 버전으로 예약 재개'}).click();
+  await expect(page.getByText(/다음 실행 .*한국 시각/)).toBeVisible();
+  await page.getByRole('button',{name:'자동 시작 해제',exact:true}).click();
   const input=createBlock('input.user_request',{id:'entry',title:'질문',x:30,y:30});
   const childGraph={...graph,nodes:[input,graph.nodes[1]]};
   const child=await api('project.create',{title:'재사용할 개인 설계',graph:childGraph});

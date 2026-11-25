@@ -1076,7 +1076,7 @@ async function verifyTerminalAndErrorSettings(page: Page) {
   const panel = page.locator('.ws-inspector');
   const palette = page.locator('.ws-palette');
   const mode = panel.getByRole('combobox', {name:'종료 방식', exact:true});
-  const format = panel.getByLabel('표시 형식', {exact:true});
+  const format = panel.getByRole('combobox',{name:'표시 형식',exact:true});
   const message = panel.getByLabel('종료 안내', {exact:true});
   const strategy = panel.getByRole('combobox', {name:'처리 방식', exact:true});
   await page.goto('/?edit='+project.id);
@@ -1139,7 +1139,7 @@ async function verifyTerminalAndErrorSettings(page: Page) {
       .toMatchObject({type:'control.terminate', config:{status, message:'예약을 중지했습니다.'}});
   }
   await mode.selectOption({label:'답변 반환'});
-  await format.fill('markdown');
+  await format.selectOption('markdown');
   await selectNode('기존 대체 경로');
   await strategy.selectOption('stop');
   await page.keyboard.press('Control+s');

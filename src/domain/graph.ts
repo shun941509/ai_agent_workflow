@@ -1,5 +1,5 @@
-import { byType, canonicalErrorStrategy, changesKnowledgeRelease, portsFor } from './catalog';
-import type { Block, Edge, EdgeKind, Graph, Issue, Port } from './types';
+import { answerFormat, byType, canonicalErrorStrategy, changesKnowledgeRelease, portsFor } from './catalog';
+import type { AgentScope, Block, Edge, EdgeKind, Graph, Issue, Port } from './types';
 
 export const emptyGraph = (): Graph => ({nodes:[],edges:[]});
 function uid(prefix: string) { return prefix + '-' + crypto.randomUUID(); }
@@ -36,7 +36,9 @@ export function connectionOptions(graph: Graph, fromId: string, toId: string, ro
   // A named route must actually reach the target, even if a data mapping would be compatible on its own.
   if (routeId !== undefined && !options.some(option => option.kind === 'flow')) return [];
   for (const option of options) {
-    const alternatives=options.filter(o=>o.kind===option.kind);
+    // Line records are an explicit mapping. A new document connection still defaults to its body.
+    if(source.type==='document.read'&&option.out==='lines'){option.automatic=false;continue;}
+    const alternatives=options.filter(o=>o.kind===option.kind&&!(source.type==='document.read'&&o.out==='lines'));
     if (alternatives.length<2) continue;
     // Original-question inputs supplement the primary work item. Only one source output
     // may be inferred; a block with two possible outputs still needs an explicit choice.
@@ -66,6 +68,12 @@ export function evidenceNeedsSearch(source: Block | undefined, directDocument: b
 const emptyValue=(v: unknown)=>v==null || (typeof v==='string'&&!v.trim()) || (Array.isArray(v)&&v.length===0);
 const record=(v: unknown): v is Record<string,any>=>!!v && typeof v==='object' && !Array.isArray(v);
 
+export const agentPurposeLimit = 12000;
+export function isAgentScope(value: unknown): value is AgentScope {
+  return record(value) && (value.mode === 'dedicated' || value.mode === 'general') &&
+    typeof value.purpose === 'string' && value.purpose.length <= agentPurposeLimit;
+}
+
 export function validateGraph(graph: Graph): Issue[] {
   const issues: Issue[]=[];
   function visit(g: Graph,parents:string[],depth:number) {
@@ -74,6 +82,8 @@ export function validateGraph(graph: Graph): Issue[] {
     });
     if (depth>12) {add('내부 설계가 너무 깊습니다.'); return;}
     if (!record(g)|| !Array.isArray(g.nodes)|| !Array.isArray(g.edges)) {add('블록·연결 목록이 필요한 설계입니다.');return;}
+    if (g.agentScope !== undefined && !isAgentScope(g.agentScope)) add('Agent의 용도와 담당 업무 설정을 확인하세요.');
+    else if (g.agentScope?.mode === 'dedicated' && !g.agentScope.purpose.trim()) add('전용 Agent의 담당 업무를 입력하세요.');
     if (g.nodes.length>512 || g.edges.length>5000) {add('설계의 블록 또는 연결 수가 처리 범위를 넘었습니다.');return;}
     const nodes=new Map<string,Block>(), outgoing=new Map<string,Edge[]>(), incoming=new Map<string,Edge[]>();
     let structurallyValid=true;
@@ -87,12 +97,18 @@ export function validateGraph(graph: Graph): Issue[] {
       if (!Number.isFinite(n.x)||!Number.isFinite(n.y)) add('블록 위치가 올바르지 않습니다.',n.id);
       for (const f of def.fields) {
         const raw=n.config[f.key];
-        const v=n.type==='error.handle' && f.key==='strategy' && typeof raw==='string' ? canonicalErrorStrategy(raw) : raw;
-        if (f.required && emptyValue(v)) {add(f.label+'을(를) 설정하세요.',n.id);continue;}
+        const v=n.type==='output.answer'&&f.key==='format'&&typeof raw==='string'?answerFormat(raw):
+          n.type==='error.handle' && f.key==='strategy' && typeof raw==='string' ? canonicalErrorStrategy(raw) : raw;
+        if (f.required && emptyValue(v)) {
+          if(f.key==='tool'&&typeof n.config.suggestedTool==='string')add('도구 연결 필요 · '+n.config.suggestedTool,n.id,undefined,undefined,'tool');
+          else add(f.label+'을(를) 설정하세요.',n.id);
+          continue;
+        }
         if (emptyValue(v)) continue;
         if (f.type==='number' && (!Number.isFinite(v)|| !Number.isInteger(v) || v<(f.min??-Infinity)||v>(f.max??Infinity))) add(f.label+'의 범위를 확인하세요.',n.id);
         if (f.type==='select' && !f.options?.some(o=>o.value===v)) add(f.label+'의 옵션을 다시 선택하세요.',n.id);
-        if (f.type==='json' && (typeof v!=='object'|| v===null || (Array.isArray(f.default)!==Array.isArray(v)))) add(f.label+'의 자료 형식이 올바르지 않습니다.',n.id);
+        const objectPlaceholder=f.key==='args'&&typeof v==='string'&&/^\{\{[^{}\r\n]+\}\}$/.test(v);
+        if (f.type==='json' && !objectPlaceholder && (typeof v!=='object'|| v===null || (Array.isArray(f.default)!==Array.isArray(v)))) add(f.label+'의 자료 형식이 올바르지 않습니다.',n.id);
         if ((f.type==='text'||f.type==='textarea') && typeof v!=='string' && !(f.key==='version' && Number.isInteger(v) && v>0)) add(f.label+'에 글을 입력하세요.',n.id);
         if (f.type==='boolean' && typeof v!=='boolean') add(f.label+'에 참 또는 거짓을 지정하세요.',n.id);
       }
@@ -104,8 +120,10 @@ export function validateGraph(graph: Graph): Issue[] {
         if (cats.some(v=>typeof v!=='string'||!v.trim()) || new Set(cats.map(v=>v.trim())).size!==cats.length) add('분류 이름은 비어 있지 않고 서로 달라야 합니다.',n.id);
       }
       if (n.type==='control.trigger' && n.config.trigger==='schedule' && !n.config.schedule) add('시작 일정을 지정하세요.',n.id);
-      if (n.type==='control.trigger' && n.config.trigger==='event' && !n.config.event) add('시작 이벤트를 지정하세요.',n.id);
+      if (n.type==='control.trigger' && n.config.trigger==='event' && emptyValue(n.config.event)) add('시작 이벤트를 지정하세요.',n.id);
       if (n.type==='agent.team'&&!n.graph) add('팀을 열어 담당자와 결과 경로를 설정하세요.',n.id);
+      if (n.type==='agent.create_dynamic' && n.config.resultRequirement==='evidence' && !n.graph)
+        add('원문 근거 확인을 완료 조건으로 쓰려면 하위 설계를 연결하세요.',n.id,undefined,undefined,'resultRequirement');
       if (n.type==='control.loop'&&!n.graph) add('반복할 내부 Workflow를 설정하세요.',n.id);
       if (['workflow.call','workflow.tool'].includes(n.type)&&!n.graph&&!n.config.workflowId) add('실행할 Workflow를 연결하세요.',n.id);
       if (n.graph) visit(n.graph,[...parents,n.id],depth+1);
@@ -150,6 +168,12 @@ export function validateGraph(graph: Graph): Issue[] {
     for (const n of nodes.values()) {
       const def=byType.get(n.type);if (!def) continue;
       const ins=incoming.get(n.id)!,outs=outgoing.get(n.id)!;
+      if(n.type==='agent.task'){
+        const missing=Array.isArray(n.config.requiredTools)?n.config.requiredTools.filter(name=>!n.config.allowedTools?.includes(name)):[];
+        if(missing.length)add('도구 연결 필요 · '+missing.join(', '),n.id,undefined,undefined,'allowedTools');
+        const names=ins.filter(e=>e.kind==='reference'&&e.input==='workflow').map(e=>nodes.get(e.from)?.config.name);
+        if(new Set(names).size!==names.length)add('호출 가능한 Workflow 도구 이름이 중복되었습니다.',n.id);
+      }
       const missingSearch=n.type==='quality.evidence' && evidenceNeedsSearch(
         nodes.get(ins.find(e=>e.kind==='data' && e.input==='input')?.from??''),
         ins.some(e=>e.kind==='reference' && e.input==='context'), depth===0);
@@ -160,15 +184,10 @@ export function validateGraph(graph: Graph): Issue[] {
         if (p.required&&!count && !(missingSearch && p.id==='input')) add('‘'+n.title+'’의 '+p.label+'에 전달할 값을 연결하세요.',n.id);
         if (count>1&&!p.multiple) add('‘'+p.label+'’에 연결된 여러 값 중 하나를 선택하세요.',n.id);
       }
-      if (n.type!=='ai.classify' && def.outputs.some(p=>p.kind==='flow') && !outs.some(e=>e.kind==='flow')) add('다음 작업 또는 종료 경로를 연결하세요.',n.id);
-      if (n.type==='control.branch') for (const route of ['yes','no']) if (!outs.some(e=>e.kind==='flow'&&e.out===route)) add('분기의 두 경로를 모두 연결하세요.',n.id);
-      if (n.type==='approval.action') for (const route of ['approved','rejected']) if (!outs.some(e=>e.kind==='flow'&&e.out===route)) add('승인·거절 경로를 모두 연결하세요.',n.id);
-      if (n.type==='quality.evidence') for (const route of ['verified','insufficient','conflicting']) if (!outs.some(e=>e.kind==='flow'&&e.out===route)) add('근거 있음·부족·상충 경로를 모두 연결하세요.',n.id);
-      if (n.type==='ai.classify') {
-        for (const route of portsFor(n).outputs.filter(port=>port.kind==='flow')) {
-          const connected=outs.some(e=>e.kind==='flow'&&e.out===route.id&&nodes.get(e.to)?.type!=='error.handle');
-          if (!connected) add('‘'+route.label+'’ 경로의 다음 블록을 연결하세요.',n.id,undefined,route.id);
-        }
+      const normalRoutes=new Set(outs.filter(e=>e.kind==='flow'&&nodes.get(e.to)?.type!=='error.handle').map(e=>e.out));
+      const routes=portsFor(n).outputs.filter(p=>p.kind==='flow');
+      if (!(n.type==='error.handle' && n.config.strategy==='stop')) for(const route of routes){
+        if (!normalRoutes.has(route.id)) add(routes.length===1?'다음 작업 또는 종료 경로를 연결하세요.':'‘'+route.label+'’ 경로의 다음 블록을 연결하세요.',n.id,undefined,route.id);
       }
     }
   }
@@ -179,6 +198,7 @@ export function validateGraph(graph: Graph): Issue[] {
 /** Old design-only files used individual wires without port IDs and stored B positions separately. */
 export function migrateGraph(raw: unknown): Graph {
   if (!record(raw)||!Array.isArray(raw.nodes)||!Array.isArray(raw.edges)) throw new Error('블록과 연결이 담긴 Workflow JSON을 선택하세요.');
+  if (raw.agentScope !== undefined && !isAgentScope(raw.agentScope)) throw new Error('Agent의 용도와 담당 업무 설정을 확인하세요.');
   const old=raw.nodes.some((n: unknown)=>record(n)&&(!record(n.config)||n.kind!==undefined));
   const legacySlots:Record<string,[number,number]>={input:[0,0],agent:[206,144],output:[402,310],resource:[5,285]};
   const usedKinds=new Set<string>();let extras=0;
@@ -199,6 +219,7 @@ export function migrateGraph(raw: unknown): Graph {
       config:{...legacy,...(n.config??{})},graph:n.graph?migrateGraph(n.graph):undefined});
   });
   const g:Graph={nodes,edges:[]};
+  if (raw.agentScope) g.agentScope = {...raw.agentScope};
   for (const [i,e] of raw.edges.entries()) {
     if (!record(e)||typeof e.from!=='string'||typeof e.to!=='string'|| !['flow','data','reference'].includes(e.kind)) throw new Error('연결 데이터가 올바르지 않습니다.');
     const options=connectionOptions(g,e.from,e.to).filter(o=>o.kind===e.kind);

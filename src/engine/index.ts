@@ -1,8 +1,10 @@
 import type { Block, Edge, Graph } from '../domain/types';
+import {answerFormat} from '../domain/catalog';
 import { evaluate, readable } from './operations';
-import { LimitReached, Session, Stopped, Suspended, message, type Scope } from './session';
-import { integer } from './values';
+import { RunAborted, Session, Stopped, Suspended, message, type Scope } from './session';
+import { flattened,integer,isPassage,object } from './values';
 import {literalRunQuestion} from '../domain/run-input';
+import {scopedChildInput} from './request-scope';
 import type { EngineRequest, EngineResult, EngineServices, Step, Values } from './types';
 export type * from './types';
 export { retrieve } from './values';
@@ -38,6 +40,21 @@ class Frame {
   }
   private path(node:Block){return this.s.key(this.scope,node);}
   private get(id:string){const node=this.byId.get(id);return node?this.s.state.steps[this.path(node)]:undefined;}
+  private skippedCauses=new Map<string,string[]>();
+  private causes(edge:Edge):string[]{
+    if(edge.kind!=='flow')return [];
+    const source=this.get(edge.from),destination=this.byId.get(edge.to)!;
+    // A block that failed before choosing a named outcome never entered any of its branches.
+    if(!source?.error || (edge.out!=='next' && destination.type!=='error.handle'))return [];
+    if(source.state==='failed')return [edge.from];
+    if(source.state!=='skipped')return [];
+    let ids=this.skippedCauses.get(edge.from);
+    if(!ids){
+      ids=[...new Set((this.incoming.get(edge.from)??[]).flatMap(e=>this.causes(e)))];
+      this.skippedCauses.set(edge.from,ids);
+    }
+    return ids;
+  }
   private responsibleFor(node:Block){
     const active=(this.incoming.get(node.id)??[]).filter(edge=>edge.kind==='flow'&&this.get(edge.from)?.routes.includes(edge.out));
     const owners=new Set(active.map(edge=>this.get(edge.from)?.responsible).filter(Boolean));
@@ -51,7 +68,7 @@ class Frame {
         const path=this.path(node),key='ref:'+path;
         if(!this.s.state.memo[key]){
           this.s.state.memo[key]=true;
-          this.s.event(node,path,'result','연결한 참조를 확인했습니다.',{type:node.type,title:node.title,version:node.config.version||null});
+          this.s.event(node,path,'result','연결한 참조를 확인했습니다.',{type:node.type,title:node.title,version:node.config.version||null,assetId:node.config.assetId||null});
           await this.s.save();
         }
         return value;
@@ -63,27 +80,51 @@ class Frame {
   private async bindings(node:Block):Promise<Values>{
     const inputs:Record<string,unknown[]>=Object.create(null);
     const incoming=this.incoming.get(node.id)||[];
+    const failures=new Map<string,{error:string;role:string}>();
+    const flowInputs:unknown[]=[];
+    let hasInputValue=false;
     for(const edge of incoming){
-      if(edge.kind==='flow')continue;
-      const source=this.byId.get(edge.from)!;
-      const step=resources.has(source.type)?await this.ref(source):this.get(source.id);
-      if(!step)continue;
-      if(step.state==='skipped'){
-        if(catcher(node)&&step.error)(inputs[edge.input]??=[]).push({error:step.error,role:source.title});
+      if(edge.kind==='flow'){
+        if(catcher(node)){
+          for(const id of this.causes(edge))if(!failures.has(id)){
+            const failure={error:this.get(id)!.error!,role:this.byId.get(id)!.title};
+            failures.set(id,failure);(inputs.input??=[]).push(failure);flowInputs.push(failure);
+          }
+          const predecessor=this.get(edge.from);
+          if(node.type==='control.join'&&predecessor?.routes.includes(edge.out))flowInputs.push(predecessor.values.value);
+        }
         continue;
       }
+      if(node.type==='error.handle')continue;
+      const source=this.byId.get(edge.from)!;
+      const step=resources.has(source.type)?await this.ref(source):this.get(source.id);
+      if(!step||step.state==='skipped'||(node.type==='control.join'&&step.state==='failed'))continue;
       const value=step.state==='failed'?{error:step.error,role:source.title}:step.values[edge.out];
-      if(value!==undefined){(inputs[edge.input]??=[]).push(value);}
+      if(value!==undefined){
+        (inputs[edge.input]??=[]).push(value);
+        if(edge.input==='input')hasInputValue=true;
+      }
     }
-    if(catcher(node)&&!inputs.input){
-      inputs.input=incoming.filter(e=>e.kind==='flow').flatMap(e=>{
-        const step=this.get(e.from);
-        if(!step||(step.state==='skipped'&&!step.error))return [];
-        return [{value:step.error?{error:step.error,role:this.byId.get(e.from)!.title}:step.values.value}];
-      }).map(x=>x.value);
+    if(node.type==='control.join'){
+      if(!hasInputValue)inputs.input=flowInputs;
+      if(failures.size)inputs.laneErrors=[...failures.values()];
     }
     const result=Object.fromEntries(Object.entries(inputs).map(([name,values])=>[name,values.length===1?values[0]:values]));
-    if(incoming.some(e=>e.kind==='data'&&e.input==='input'&&['knowledge.search','quality.evidence'].includes(this.byId.get(e.from)!.type)))result.ragInput=true;
+    const evidence=incoming.filter(e=>e.kind==='data'&&e.input==='input').flatMap(e=>{
+      const step=this.get(e.from);
+      if(step?.state!=='done')return [];
+      if(step.evidence)return [step.evidence];
+      const type=this.byId.get(e.from)!.type,value=step.values[e.out];
+      return ['knowledge.search','quality.evidence'].includes(type)?[flattened(object(value).passages??value).filter(isPassage)]:[];
+    });
+    if(evidence.length){
+      const sourceTypes=incoming.filter(e=>e.kind==='data'&&e.input==='input'&&this.get(e.from)?.state==='done').map(e=>this.byId.get(e.from)!.type);
+      result.ragInput=sourceTypes.every(type=>['knowledge.search','quality.evidence','control.branch','control.join','control.parallel'].includes(type));
+      result.evidence=[...new Map(evidence.flat().map(p=>[JSON.stringify(p),p])).values()];
+      const states=incoming.filter(e=>e.kind==='data'&&e.input==='input').map(e=>this.get(e.from)?.evidenceStatus);
+      result.evidenceStatus=states.includes('conflicting')?'conflicting':states.includes('insufficient')?'insufficient':states.includes('verified')?'verified':undefined;
+    }
+    if(incoming.some(e=>e.kind==='data'&&e.input==='input'&&e.out==='value'&&this.get(e.from)?.attachmentInput))result.attachmentInput=true;
     return result;
   }
   private readiness(node:Block):'run'|'skip'|'pending'{
@@ -96,8 +137,8 @@ class Frame {
     const active=flows.some(edge=>{
       const source=this.get(edge.from);
       if(!source)return false;
-      if(source.state==='skipped')return Boolean(source.error&&catcher(node));
-      return source.state==='failed'?catcher(node):node.type!=='error.handle'&&source.routes.includes(edge.out);
+      if(source.state!=='done')return catcher(node)&&this.causes(edge).length>0;
+      return node.type!=='error.handle'&&source.routes.includes(edge.out);
     });
     return active?'run':'skip';
   }
@@ -108,33 +149,38 @@ class Frame {
       const fresh=!Object.hasOwn(this.s.state.memo,'budget:steps:'+path);
       this.s.charge('steps',path);
       const bindings=await this.bindings(node);
+      await this.s.stopCheck();
       if(fresh)this.s.event(node,path,'start',node.title+' 시작',bindings);
       const responsible=this.responsibleFor(node);
-      const step=await evaluate(node,{...this.scope,responsible},bindings,this.s,(graph,scope)=>new Frame(graph,scope,this.s).run());
+      const step=await evaluate(node,{...this.scope,responsible},bindings,this.s,async(graph,scope)=>{
+        const input=await scopedChildInput(graph,this.s,scope.path,scope.input);
+        return new Frame(graph,{...scope,input},this.s).run();
+      });
       await this.s.stopCheck();
       step.responsible=node.type==='agent.handoff'?String(node.config.role):responsible;
+      if(Array.isArray(step.values.citations))step.evidence=step.values.citations.filter(isPassage);
+      else if(!['quality.evidence','knowledge.search'].includes(node.type)&&Array.isArray(bindings.evidence))step.evidence=bindings.evidence.filter(isPassage);
+      if(node.type==='quality.evidence'){
+        const checked=object(step.values.value);
+        step.evidence=flattened(checked.passages).filter(isPassage);
+        step.evidenceStatus=checked.status as Step['evidenceStatus'];
+      }else if(step.evidence)step.evidenceStatus=(step.values.status??bindings.evidenceStatus) as Step['evidenceStatus'];
+      if(node.type==='file.input'||(bindings.attachmentInput&&['document.read','control.branch','control.parallel'].includes(node.type)))step.attachmentInput=true;
+      if(node.type==='file.create'&&step.state==='done'&&step.values.value&&typeof step.values.value==='object')
+        this.s.fileOrigins.set(step.values.value,path);
+      const origins=this.s.fileReferences(step.values.value);
+      if(origins.length)step.fileOrigins=origins;
       this.s.state.steps[path]=step;
       this.s.event(node,path,'result',node.title+' 완료',{...step.values,responsible:step.responsible});
     }catch(error){
-      if(error instanceof Suspended || error instanceof Stopped || error instanceof LimitReached)throw error;
+      if(error instanceof Suspended || error instanceof RunAborted)throw error;
       const reason=message(error);
       this.s.state.steps[path]={state:'failed',values:{},routes:[],error:reason};
-      this.s.event(node,path,'error',reason);
+      const partialText=error instanceof Error && 'partialModelText' in error && typeof error.partialModelText==='string'?error.partialModelText:undefined;
+      this.s.event(node,path,'error',reason,partialText?{partialText}:undefined);
+      if((this.splits.get(node.id)??[]).some(n=>n.config.failurePolicy==='stop'))throw this.s.interrupt(new RunAborted(reason));
     }
     await this.s.save();
-  }
-  private handlesFailure(source:string) {
-    const seen=new Set([source]),queue=[source];
-    while(queue.length){
-      const id=queue.shift()!;
-      for(const edge of this.outgoing.get(id)||[]){
-        const node=this.byId.get(edge.to)!;
-        const step=this.get(node.id);
-        if(catcher(node)&&step?.state==='done')return true;
-        if(step?.state==='skipped'&&!seen.has(node.id)){queue.push(node.id);seen.add(node.id);}
-      }
-    }
-    return false;
   }
   async run():Promise<unknown>{
     const nodes=this.graph.nodes.filter(n=>!resources.has(n.type));
@@ -147,7 +193,9 @@ class Frame {
         if(this.get(node.id)||waiting.has(node.id))continue;
         const state=this.readiness(node);
         if(state==='skip'){
-          const error=(this.incoming.get(node.id)||[]).filter(e=>e.kind==='flow').map(e=>this.get(e.from)?.error).filter(Boolean).join('; ');
+          const causes=[...new Set((this.incoming.get(node.id)||[]).flatMap(e=>this.causes(e)))];
+          const error=causes.map(id=>this.get(id)?.error).join('; ');
+          this.skippedCauses.set(node.id,causes);
           this.s.state.steps[this.path(node)]={state:'skipped',values:{},routes:[],...(error?{error}:{})};skipped++;
         }else if(state==='run')ready.push(node);
       }
@@ -168,31 +216,35 @@ class Frame {
       const fatal=failures.find(x=>!(x.reason instanceof Suspended));
       if(fatal)throw fatal.reason;
       settled.forEach((entry,i)=>{if(entry.status==='rejected'&&entry.reason instanceof Suspended)waiting.add(batch[i].id);});
-      for(const node of batch){
-        const step=this.get(node.id);
-        if(step?.state==='failed'&&(this.splits.get(node.id)||[]).some(n=>n.config.failurePolicy==='stop'))throw new Error(step.error);
-      }
     }
-    const left=nodes.find(n=>this.get(n.id)?.state==='failed'&&!this.handlesFailure(n.id));
+    const handled=new Set(nodes.filter(n=>catcher(n)&&this.get(n.id)?.state!=='skipped')
+      .flatMap(n=>(this.incoming.get(n.id)??[]).flatMap(e=>this.causes(e))));
+    const left=nodes.find(n=>this.get(n.id)?.state==='failed'&&!handled.has(n.id));
     if(left)throw new Error(this.get(left.id)!.error);
     const outputs=nodes.filter(n=>(n.type==='output.answer'||n.type==='control.terminate')&&this.get(n.id)?.state==='done');
     if(!outputs.length)throw new Error('실행된 경로에 결과를 전달할 마지막 블록이 없습니다.');
     const values=outputs.map(n=>this.get(n.id)!.values.value);
+    if(this.scope.depth===0){
+      this.s.state.finalFilePaths=[...new Set(values.flatMap(v=>this.s.fileReferences(v).map(ref=>ref.path)))];
+      const formats=new Set(outputs.map(n=>answerFormat(n.type==='output.answer'?n.config.format:undefined)));
+      this.s.state.outputFormat=formats.size===1?[...formats][0]:'text';
+      if(this.s.state.outputFormat==='json')return JSON.stringify(values.length===1?values[0]:values,null,2);
+    }
     return values.length===1?values[0]:values;
   }
 }
 
 export async function executeGraph(graph:Graph,request:EngineRequest,services:EngineServices):Promise<EngineResult> {
-  const s=new Session(request,services);
+  const s=new Session(request,services,graph);
   let status:EngineResult['status']='completed',output='',error:string|undefined;
   try{
     await s.stopCheck();
-    if(request.reply){
-      const id=request.reply.waitId??Object.keys(s.state.waits)[0];
+    for(const reply of request.replies??(request.reply?[request.reply]:[])){
+      const id=reply.waitId??Object.keys(s.state.waits)[0];
       if(!id||!Object.hasOwn(s.state.waits,id))throw new Error('현재 대기 중인 요청을 찾을 수 없습니다.');
       const deadline=s.state.waits[id].expiresAt;
-      if(!deadline || (request.reply.receivedAt ?? Date.now()) < Date.parse(deadline)){
-        s.state.replies[id]={value:request.reply.value,approved:request.reply.approved};
+      if(!deadline || (reply.receivedAt ?? Date.now()) < Date.parse(deadline)){
+        s.state.replies[id]={value:reply.value,approved:reply.approved};
       }
       delete s.state.waits[id];await s.save();
     }
@@ -200,8 +252,13 @@ export async function executeGraph(graph:Graph,request:EngineRequest,services:En
     output=readable(await new Frame(graph,scope,s).run());
     await s.stopCheck();
   }catch(reason){
+    if(!(reason instanceof Suspended)){
+      const receipts=s.state.events.filter(e=>e.kind==='tool'&&object(e.data).write===true)
+        .map(e=>object(e.data));
+      if(receipts.length)output='처리가 확인된 작업\n'+receipts.map(e=>e.tool+' · '+readable(e.result)).join('\n');
+    }
     if(reason instanceof Suspended){status='waiting';}
-    else if(reason instanceof Stopped){status='stopped';s.state.waits={};}
+    else if(reason instanceof Stopped){status='stopped';output=[reason.message,output].filter(Boolean).join('\n\n');s.state.waits={};}
     else {status='failed';error=message(reason);s.state.waits={};}
   }
   await s.save();

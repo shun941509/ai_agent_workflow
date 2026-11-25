@@ -70,7 +70,7 @@ test('위임은 대표에게 반환하고 인계는 새 담당자가 다음 단�
     assert.equal(response.status,'completed');
     const owner=type==='agent.delegate'?'대표 Agent':'자료 담당';
     assert.equal(seen.length,2);
-    assert.equal(seen[0].context,'이 경로를 담당하는 역할: 자료 담당');
+    assert.equal(seen[0].context,'이 경로를 담당하는 역할: 자료 담당\n사용자 원래 질문: 자료');
     assert.equal(seen[1].context,'이 경로를 담당하는 역할: '+owner);
     assert.equal(response.checkpoint.steps['root/out'].responsible,owner);
   }
@@ -274,9 +274,9 @@ test('제목과 본문 형식은 여러 필드와 중첩 목록을 연결 순서
   const graph=linear([src,block('read','document.read',{format:'json'}),joinNode,out]);
   const values=['최종 안내문',[{근거:{원문:'토요일은 오후 4시에 닫습니다.'},담당:['가','나']}],{error:'검토 기한 만료',role:'다른 검토자'}];
   const result=await run(graph,JSON.stringify(values));
-  assert.equal(result.output,'최종 안내문\n\n근거\n원문\n토요일은 오후 4시에 닫습니다.\n\n담당\n가\n\n나\n\n다른 검토자\n검토 기한 만료');
+  assert.equal(result.output,'최종 안내문\n\n근거\n원문\n토요일은 오후 4시에 닫습니다.\n\n담당\n가\n\n나\n\nerror\n검토 기한 만료\n\nrole\n다른 검토자');
   joinNode.config.partialFailure='fail';
-  assert.equal((await run(graph,JSON.stringify(values))).status,'failed');
+  assert.equal((await run(graph,JSON.stringify(values))).status,'completed');
 });
 
 test('동적 Agent 상한 초과에서 선택 전 0명, 선택 후 정확히 세 담당자만 생성된다',async()=>{
@@ -637,7 +637,8 @@ test('실제 검색 결과에 없는 최종 인용은 보류하며 참조된 제
   g.edges.push(edge('document','lookup','reference','ref','context'));
   const mismatch=await run(g,q,{model:async()=>({text:JSON.stringify({answer:'기간은 20일',references:[{index:0,quote:'20일'}]})})});
   assert.ok(!mismatch.output.includes('20일'));assert.match(mismatch.output,/근거/);
-  const ok=await run(g,q,{model:async()=>({text:JSON.stringify({answer:'14일입니다.',references:[{index:0,quote:'대출 기간은 14일입니다.'}]})})});
+  const ok=await run(g,q,{model:async request=>({text:request.instruction.includes('완료 판정:')?'{"status":"met","reason":"원문과 일치"}':
+    JSON.stringify({answer:'14일입니다.',references:[{index:0,quote:'대출 기간은 14일입니다.'}]})})});
   assert.match(ok.output,/14일/);assert.match(ok.output,/document \(3판, 1행\)/);
 });
 

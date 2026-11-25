@@ -63,7 +63,7 @@ function matchingReply(raw: string, id: string) {
 async function readRpcReply(response: Response, id: string) {
   const stream = response.headers
     .get('content-type')
-    ?.includes('text/event-stream');
+    ?.split(';',1)[0].trim().toLowerCase() === 'text/event-stream';
   const reader = response.body?.getReader();
   requireThat(reader, 502, '외부 MCP 응답이 비어 있습니다.');
   const decoder = new TextDecoder();
@@ -140,10 +140,8 @@ async function rpc(
     session: response.headers.get('mcp-session-id') || '',
   };
 }
-export async function externalMcp(
+async function connectExternalMcp(
   payload: Record<string, any>,
-  tool: string,
-  args: Record<string, unknown>,
   test: boolean
 ) {
   const url = test ? payload.testUrl : payload.url;
@@ -173,6 +171,33 @@ export async function externalMcp(
   if (init.session) headers['mcp-session-id'] = init.session;
   headers['mcp-protocol-version'] = init.value.protocolVersion || '2025-03-26';
   await rpc(url, 'notifications/initialized', {}, headers, true);
+  return {url,headers};
+}
+
+export async function externalDefinitions(payload:Record<string,any>, test:boolean) {
+  const {url,headers}=await connectExternalMcp(payload,test);
+  const tools=new Map<string,{description:string;parameters:Record<string,unknown>}>();
+  const cursors=new Set<string>();
+  let cursor:string|undefined;
+  do {
+    const {value}=await rpc(url,'tools/list',cursor?{cursor}:{},headers);
+    requireThat(Array.isArray(value.tools),502,'MCP 도구 목록을 읽을 수 없습니다.');
+    for(const item of value.tools){
+      if(!payload.tools?.includes(item?.name))continue;
+      requireThat(item.inputSchema?.type==='object'&&!tools.has(item.name),502,'MCP 도구 이름과 입력 정의를 확인하세요.');
+      tools.set(item.name,{description:String(item.description||item.name),parameters:item.inputSchema});
+    }
+    cursor=value.nextCursor;
+    if(cursor){
+      requireThat(typeof cursor==='string'&&!cursors.has(cursor)&&cursors.size<100,502,'MCP 도구 목록 페이지를 확인하세요.');
+      cursors.add(cursor);
+    }
+  }while(cursor);
+  return tools;
+}
+
+export async function externalMcp(payload:Record<string,any>,tool:string,args:Record<string,unknown>,test:boolean) {
+  const {url,headers}=await connectExternalMcp(payload,test);
   const call = await rpc(
     url,
     'tools/call',

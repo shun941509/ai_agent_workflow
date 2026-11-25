@@ -59,7 +59,7 @@ try{
     const results=page.getByRole('tabpanel',{name:'실행 결과'});
     await expect(results).toBeVisible();
     await results.getByRole('button',{name:'실행 기록',exact:true}).click();
-    await page.locator('.run-sidebar').getByRole('button',{name:new RegExp(question)}).click();
+    await page.locator('.run-sidebar').getByRole('region',{name:'응답 필요'}).getByRole('button',{name:new RegExp(question)}).click();
   }
   await reopenWait('주말 공지');
   await expect(card.getByRole('textbox',{name:'검토 의견'})).toHaveValue('시각을 확인했습니다.');

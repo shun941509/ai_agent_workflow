@@ -32,9 +32,9 @@ export function resolve(value: unknown, fields: Values): unknown {
   if (Array.isArray(value)) return value.map(v=>resolve(v,fields));
   if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,resolve(v,fields)]));
   if (typeof value !== 'string') return value;
-  const exact = value.match(/^\{\{([\w가-힣.-]+)\}\}$/);
-  if (exact) return at(fields, exact[1]);
-  return value.replace(/\{\{([\w가-힣.-]+)\}\}/g, (_,key:string)=>asText(at(fields,key)));
+  const exact = value.match(/^\{\{([^{}\r\n]+)\}\}$/);
+  if (exact) return at(fields, exact[1].trim());
+  return value.replace(/\{\{([^{}\r\n]+)\}\}/g, (_,key:string)=>asText(at(fields,key.trim())));
 }
 export function integer(value: unknown, fallback:number, min:number, max:number): number {
   const num = Number(value ?? fallback);
@@ -52,10 +52,33 @@ function words(text: string): string[] {
   });
 }
 export interface IndexedPassage { passage:Passage; titleTerms:string[]; bodyTerms:string[] }
+/** Early indexes trimmed lines and numbered re-indexed excerpts from one. Keep the saved edition immutable. */
+export function originalPassageLines(index:IndexedPassage[],documents:Source[]):IndexedPassage[]{
+  const raw=new Map<string,{quote:string;location:string}|null>();
+  const key=(s:Source|Passage,location:string,quote:string)=>JSON.stringify([s.id,s.assetId??null,s.version,s.title,location,quote]);
+  for(const doc of documents){
+    doc.content.split(/\r?\n/).forEach((quote,i)=>{
+      if(!quote.trim())return;
+      const row=(i+1)+'행',location=doc.location??row;
+      if(location===row&&quote===quote.trim()&&documents.length===1)return;
+      for(const lookup of new Set([row,location])){
+        const id=key(doc,lookup,quote.trim()),old=raw.get(id);
+        if(old===undefined)raw.set(id,{quote,location});
+        else if(old&&(old.quote!==quote||old.location!==location))raw.set(id,null);
+      }
+    });
+  }
+  if(!raw.size)return index;
+  return index.map(entry=>{
+    const p=entry.passage,line=raw.get(key(p,p.location,p.quote));
+    return line&&(line.quote!==p.quote||line.location!==p.location)?{...entry,passage:{...p,...line}}:entry;
+  });
+}
 export function buildIndex(documents:Source[]):IndexedPassage[] {
   return documents.flatMap(doc=>doc.content.split(/\r?\n/).flatMap((line,index)=>{
-    const quote=line.trim();if(!quote)return [];
-    const passage={id:doc.id,title:doc.title,version:doc.version,location:String(index+1)+'행',quote,...(doc.assetId?{assetId:doc.assetId}:{})};
+    if(!line.trim())return [];
+    const quote=line;
+    const passage={id:doc.id,title:doc.title,version:doc.version,location:doc.location??String(index+1)+'행',quote,...(doc.assetId?{assetId:doc.assetId}:{})};
     return [{passage,titleTerms:[...new Set(words(doc.title))],bodyTerms:[...new Set(words(quote))]}];
   }));
 }

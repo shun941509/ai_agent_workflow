@@ -1,4 +1,4 @@
-import { useLayoutEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useState } from 'react';
 import { Link2, Plus, Undo2 } from 'lucide-react';
 import type { ReleaseAction } from '../domain/release-decision';
 import { api, finishWrite, pendingWriteKey, StudioApiError } from './client';
@@ -73,6 +73,18 @@ export default function ProjectVersionPanel({
   const [includeEdited, setIncludeEdited] = useState(true);
   const invalidSource = includeEdited && Object.values(sourceOutput?.drafts ?? {}).some(draft=>!draft.text.trim());
   const [selectedVersion, setSelectedVersion] = useState(initial.selectedVersion);
+  const [editionTest,setEditionTest]=useState<{version:number;label:string;test?:TestSources}>();
+  useEffect(()=>{
+    if(!selectedVersion)return;
+    const controller=new AbortController(),version=selectedVersion;
+    api<TestSources|null>('run.lastTestSources',{id:project.id,version},controller.signal).then(test=>{
+      if(controller.signal.aborted)return;
+      const labels:Record<string,string>={completed:'완료',failed:'실패',stopped:'중지',queued:'시작 대기',running:'실행 중',waiting:'응답 대기'};
+      const label=test?[test.caseTitle,labels[test.state??''],dateLabel(test.created)].filter(Boolean).join(' · '):'시험 기록 없음';
+      setEditionTest({version,label,test:test??undefined});
+    }).catch(()=>{if(!controller.signal.aborted)setEditionTest({version,label:'시험 기록을 불러올 수 없습니다.'});});
+    return ()=>controller.abort();
+  },[project.id,selectedVersion]);
   const [selectedArchive, setSelectedArchive] = useState(initial.archives[0]?.revision);
   const [visibility, setVisibility] = useState(initial.visibility);
   const [current,setCurrent] = useState(initial.current);
@@ -177,6 +189,11 @@ export default function ProjectVersionPanel({
           </select>
         </label>
       )}
+      {selectedVersion && <p aria-live="polite">v{selectedVersion}의 최근 시험 · {editionTest?.version===selectedVersion?editionTest.label:'확인 중'}</p>}
+      {editionTest?.version===selectedVersion && editionTest?.test?.question && <details>
+        <summary>v{selectedVersion} 시험 질문과 답변</summary><p>{editionTest.test.question}</p>
+        <p style={{whiteSpace:'pre-wrap'}}>{editionTest.test.answer || editionTest.test.error || '아직 답변이 없습니다.'}</p>
+      </details>}
       {mode === 'versions' && (
         <div className="row">
           <button className="btn" disabled={!selectedVersion || busy}

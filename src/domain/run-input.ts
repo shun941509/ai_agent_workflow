@@ -18,6 +18,15 @@ export function encodeRunQuestion(text:string):string {
     ? JSON.stringify({$studioInput:'question',question:text}) : text;
 }
 
+export function questionText(input:string){
+  const literal=literalRunQuestion(input);
+  if(literal!==undefined)return literal;
+  const attachment=attachmentFrom(input);
+  if(!attachment)return input;
+  const question=JSON.parse(input).question;
+  return typeof question==='string'&&question.trim()?question+' · '+attachment.fileName:attachment.fileName;
+}
+
 export function fileExtensions(accept:unknown):string[] {
   const entries = Array.isArray(accept) ? accept : typeof accept === 'string' ? accept.split(/[,\n]/) : [];
   return [...new Set(entries.filter((item):item is string=>typeof item === 'string')

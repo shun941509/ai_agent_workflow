@@ -1,7 +1,8 @@
 import type { Graph } from './types';
 
 export type SourceSnapshot = Record<string, { title:string; text:string }>;
-export type TestSources = { runId:string; version:number|null; created:string; caseTitle?:string; sources:SourceSnapshot|null };
+export type TestSources = { runId:string; version:number|null; created:string; state?:string; caseTitle?:string; sources:SourceSnapshot|null;
+  question?:string; answer?:string; error?:string };
 export const sourceDraftKey = (path:string[],id:string) => JSON.stringify([...path,id]);
 
 /** Compare the loan rule in the editor with the rule pinned to an earlier test conversation. */

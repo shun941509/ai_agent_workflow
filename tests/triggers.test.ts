@@ -64,6 +64,54 @@ test('지연됐던 일정 하나를 큐에 전달하고 재선점과 중복 실�
   disableTrigger(owner,a.id);
 });
 
+test('37 작업 슬롯이 바쁜 동안에도 예약 시각마다 한 번씩 접수한다',async(t)=>{
+  const base=Date.parse('2028-06-10T00:00:00Z'),owner=account('scheduler-slots');
+  t.mock.timers.enable({apis:['Date','setInterval'],now:base});
+  const {startScheduleClock}=await import('../src/server/triggers');
+  const p=createProject(owner,{graph:line([node('control.trigger','timer',{trigger:'schedule',schedule:'매 1분'}),node('output.answer','end')])});
+  const version=pub(owner,p,'private'),rule=enableTrigger(owner,{id:p.id,node:'timer',version,input:'정시 보고'});
+  const stop=startScheduleClock();
+  try{
+    // No workOne call is available to drain these jobs.
+    t.mock.timers.tick(120000);
+    const instants=()=>all<{at:string}>("SELECT json_extract(o.data,'$.scheduledAt') AS at FROM run_origins o JOIN runs r ON r.id=o.run WHERE r.owner=? ORDER BY at",owner.id).map(x=>x.at);
+    assert.deepEqual(instants(),[new Date(base+60000).toISOString(),new Date(base+120000).toISOString()]);
+    t.mock.timers.tick(400);assert.equal(instants().length,2);
+  }finally{stop();disableTrigger(owner,rule.id);while(await workOne()){}}
+});
+
+test('38 게시 버전을 바꾸고 다시 복구해도 예약은 소유자가 재개할 때까지 멈춘다',()=>{
+  const base=Date.parse('2028-06-11T00:00:00Z'),owner=account('schedule-republish');
+  const p=createProject(owner,{graph:line([node('control.trigger','t',{trigger:'schedule',schedule:'매 1분'}),node('output.answer','end')])});
+  const version=pub(owner,p,'private'),rule=enableTrigger(owner,{id:p.id,node:'t',version,input:'정시 보고'},base);
+  pub(owner,p,'private');
+  publish(owner,{id:p.id,version,visibility:'private'});
+  const paused=triggerList(owner,p.id).registrations[0];
+  assert.equal(paused.enabled,false);assert.equal(paused.nextAt,null);
+  const preview=triggerList(owner,p.id).triggers[0].resumeAt;
+  assert.ok(preview&&Date.parse(preview)>Date.now());
+  assert.equal(dispatchDue(base+120000),false);
+  const resumed=enableTrigger(owner,{id:p.id,node:'t',version,input:'재개한 보고'},base+120000);
+  assert.equal(resumed.nextAt,new Date(base+180000).toISOString());
+  disableTrigger(owner,rule.id);
+});
+
+test('39 잘못된 일자를 거절하고 윤일과 시간대 경계는 보존한다',()=>{
+  for(const value of ['2027-02-29T15:00Z','2028-02-30T09:00+09:00','2027-04-31T01:00-06:00']){
+    assert.throws(()=>nextTime(value,0),/일정/);
+  }
+  assert.equal(nextTime('2028-02-29T01:00+09:00',0),Date.parse('2028-02-28T16:00Z'));
+});
+
+test('40 공백이 있는 이벤트 이름은 게시 등록부터 실행까지 같은 이름으로 처리한다',async()=>{
+  const owner=account('event-whitespace'),p=createProject(owner,{graph:line([node('control.trigger','t',{trigger:'event',event:'  book.arrived  '}),node('output.answer','end')])});
+  const version=pub(owner,p,'private'),rule=enableTrigger(owner,{id:p.id,node:'t',version,input:'새 자료'});
+  assert.equal(triggerList(owner,p.id).triggers[0].setting,'book.arrived');
+  const id=acceptEvent(rule.id,rule.secret!,{eventId:'first'}).runId;
+  while(runGet(owner,id).state==='queued')await workOne();
+  assert.equal(runGet(owner,id).output,'새 자료');disableTrigger(owner,rule.id);
+});
+
 test('하위 Workflow는 고정된 판을 사용하고 공개되지 않은 판과 권한 철회 후 재개 및 순환 참조를 차단한다',async()=>{
   const owner=account('workflow-owner'),other=account('workflow-reader'),guest=legacyGuestSession().user;
   const child=createProject(owner,{graph:line([node('input.user_request','start'),node('input.form','wait',{prompt:'최종 내용'}),node('output.answer','out')])});

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type 
 import type { EngineEvent, Prompt } from '../engine/types';
 import type { Graph } from '../domain/types';
 import {beginnerRuleSource} from '../domain/source-preview';
-import {runInputLimit,attachmentError,attachmentFrom,fileExtensions,encodeRunQuestion,literalRunQuestion,type Attachment,type FileExample} from '../domain/run-input';
+import {runInputLimit,attachmentError,attachmentFrom,fileExtensions,encodeRunQuestion,literalRunQuestion,questionText,type Attachment,type FileExample} from '../domain/run-input';
 import RunFileReply, {attachmentSizeMessage,ExampleFileButtons,readInputFile} from './RunFileReply';
 import './run-panel.css';
 import TriggerPane from './TriggerPane';
@@ -12,11 +12,13 @@ import {toolName} from './tool-name';
 import {useConversationComposer} from './use-conversation-composer';
 import {clearReplyDraft,useReplyDraft} from './use-reply-draft';
 import {intentHash, StudioApiError} from './client';
+import {FormattedAnswer} from './FormattedAnswer';
 
 type RunState = 'queued' | 'running' | 'waiting' | 'completed' | 'failed' | 'stopped';
 type Run = {
   id:string;conversation:string;state:RunState;input:string;output:string;error?:string;
   prompt?:Prompt|null;events?:EngineEvent[];operations?:{id:string;tool:string;status:string;result?:unknown}[];
+  prompts?:Prompt[];files?:{path:string;fileName:string;content:string}[];outputFormat?:string;
   mode:'test'|'live';version?:number;created:string;updated:string;runNumber:number;
   usedEditions:{title:string;version:number}[];
   testCase?:{caseId:string|null;title:string;expected:string;fixture?:unknown};
@@ -28,6 +30,7 @@ type Version={number:number;title:string;created:string};
 export type RunProject = {id:string;title:string;mine:boolean;publicVersion?:number|null;releaseExercise?:object;shareGeneration?:string;savedVersions?:Version[]};
 type EditorDraft = {
   graph:Graph;active:boolean;save:()=>Promise<boolean>;
+  getDraftRevision:()=>number|undefined;
   issue?:string;onInspectIssues:()=>void;sourceChoice?:number;
 };
 type Props = {
@@ -52,13 +55,6 @@ function parseFixture(text:string):Record<string,unknown>{
     if(value && typeof value==='object' && !Array.isArray(value))return value;
   }catch{}
   throw Error('시험 초기 데이터는 JSON 객체 형식으로 작성하세요.');
-}
-function questionText(input:string){
-  const literal=literalRunQuestion(input);
-  if(literal!==undefined)return literal;
-  if(!input.trimStart().startsWith('{'))return input;
-  try{const obj=JSON.parse(input);if(typeof obj?.fileName==='string'&&typeof obj?.content==='string'&&typeof obj?.question==='string')return obj.question+' · '+obj.fileName;}catch{}
-  return input;
 }
 function EditionSummary({run}:{run:Run}){
   if(!run.usedEditions?.length)return null;
@@ -126,11 +122,7 @@ function Operations({run}:{run:Run}){
     <details key={op.id}><summary>{toolName(op.tool)} · {({confirmed:'처리 확인',unknown:'결과 미확인',rejected:'거절됨'}[op.status]||op.status)}</summary><pre>{show(op.result??'처리 결과 확인 중')}</pre></details>)}</section>;
 }
 function Files({run}:{run:Run}){
-  const files=(run.events||[]).flatMap(event=>{
-    const data=event.data as {value?:{fileName?:unknown;content?:unknown;format?:unknown}}|undefined;
-    return event.kind==='result'&&typeof data?.value?.fileName==='string'&&typeof data.value.content==='string'&&typeof data.value.format==='string'
-      ?[{id:event.id,name:data.value.fileName,content:data.value.content}]:[];
-  });
+  const files=(run.files??[]).map(file=>({id:file.path,name:file.fileName,content:file.content}));
   if(!files.length)return null;
   return <div className="run-row">{files.filter((f,i)=>files.findIndex(t=>t.name===f.name&&t.content===f.content)===i).map(f=><button key={f.id}
     onClick={()=>{const url=URL.createObjectURL(new Blob([f.content],{type:'application/octet-stream'}));const a=document.createElement('a');a.download=f.name.replace(/[\\/]/g,'_');a.href=url;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}}>
@@ -203,7 +195,7 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
   const versions=savedVersions && (savedVersions[0]?.number??0)>(loadedVersions[0]?.number??0)
     ? savedVersions : loadedVersions;
   const [conversation,setConversation]=useState(initialConversation||'');
-  const {typedInput,attachment,setInput,setAttachment,enter,readDraft}=useConversationComposer(
+  const {typedInput,attachment,setInput,setAttachment,enter,readDraft,failedQuestions,rememberSubmission}=useConversationComposer(
     !editorDraft,viewerId?'studio.chat-draft.'+viewerId+'.'+project.id+'.':undefined,initialConversation||'new/'+initialMode);
   const [fileExamples,setFileExamples]=useState<FileExample[]>([]);
   const [accept,setAccept]=useState<string|null|undefined>(undefined);
@@ -367,7 +359,7 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
     setNewAnswer('');setAnswerOffscreen(false);
     if(conversation!==run.conversation){resetPicker();draftEdits.current++;}
     keep(record,true);
-    setJump(run.id);setSelectedHistory(false);setSending(null);setTestedDraft(null);setPair([]);
+    setJump(run.id);setSelectedHistory(false);setSending(null);setTestedDraft(null);setPair(ids=>ids.includes(run.id)?ids:[]);
     setContinueWithOriginal(null);
     if(embedded && conversation!==run.conversation)clearCase();
   }
@@ -433,8 +425,9 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
     setNewAnswer('');setAnswerOffscreen(false);
   }
   const pendingTurn=chatTurns.find(r=>active(r)||r.state==='waiting');
-  const pollIds=[...new Set([...(active(current)&&current?[current.id]:[]),...chatTurns.filter(active).map(r=>r.id),...pair.filter(id=>
-    active(history.find(r=>r.id===id)??null))])].sort().join('|');
+  const pollIds=[...new Set([...((active(current)||current?.state==='waiting')&&current?[current.id]:[]),...chatTurns.filter(active).map(r=>r.id),...pair.filter(id=>{
+    const item=history.find(r=>r.id===id);return item&&(active(item)||item.state==='waiting');
+  })])].sort().join('|');
   useEffect(()=>{
     if(sharingRevoked || !pollIds)return;
     let alive=true, timer:ReturnType<typeof setTimeout>;
@@ -519,8 +512,13 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
   }
   function reply(turn:Run,value:string,approved?:boolean){
     void action(async()=>{
-      const result=await base('run.reply',{runId:turn.id,waitId:turn.prompt!.id,value,approved});
-      clearReplyDraft(waitDraftKey(turn));keep(result,true);
+      try{
+        const result=await base('run.reply',{runId:turn.id,waitId:turn.prompt!.id,value,approved});
+        clearReplyDraft(waitDraftKey(turn));keep(result,true);
+      }catch(err){
+        if(err instanceof StudioApiError&&err.status===409)await load(turn.id,false);
+        throw err;
+      }
     });
   }
   async function stop(turn:Run){
@@ -544,17 +542,17 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
   const encodedInput=attachment?JSON.stringify({...attachment,question:input.trim()||attachment.fileName}):encodeRunQuestion(input.trim());
   const oversized=encodedInput.length>runInputLimit;
   const sizeError=attachmentSizeMessage;
-  const visibleExamples=embedded&&mode==='test'&&typeof accept==='string'?fileExamples:[];
+  const visibleExamples=embedded&&mode==='test'?fileExamples:[];
   const storedCase=cases.find(c=>c.id===selectedCase);
   const caseInput=encodedInput || (conversation?caseQuestion.current:'');
   const editedCase=storedCase && (caseTitle!==storedCase.title || expected!==storedCase.expected ||
     fixture!==show(storedCase.fixture??{}) || (conversation?caseQuestion.current:encodedInput)!==storedCase.input);
-  const start=async(options:{retry?:Run;compare?:boolean;question?:string;caseSource?:'edited'|'saved'}={})=>{
+  const start=async(options:{retry?:Run;retest?:Run;compare?:boolean;question?:string;caseSource?:'edited'|'saved'}={})=>{
     const generation=contextGeneration.current;
     const revision=draftEdits.current;
-    const startingCase=mode==='test'&&!options.retry&&(!nextConversation||options.compare||options.caseSource);
+    const startingCase=mode==='test'&&!options.retry&&!options.retest&&(!nextConversation||options.compare||options.caseSource);
     const saved=startingCase&&storedCase&&(options.caseSource==='saved'||(!options.caseSource&&!editedCase))?storedCase:undefined;
-    const q=(options.retry?.input??saved?.input??options.question??(options.caseSource||options.compare?caseInput:encodedInput)).trim();
+    const q=(options.retest?.input??options.retry?.input??saved?.input??options.question??(options.caseSource||options.compare?caseInput:encodedInput)).trim();
     if(!q)throw Error('질문을 입력하세요.');
     if(q.length>runInputLimit)throw Error(sizeError);
     const args:Record<string,unknown>={input:q,mode:options.retry?.mode||mode};
@@ -566,14 +564,17 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
       }
       if(!conversation)caseQuestion.current=encodedInput;
     }
-    if(options.retry){args.retryOf=options.retry.id;if(options.retry.version)args.version=options.retry.version;}
+    if(options.retest){delete args.input;args.caseFromRun=options.retest.id;args.mode='test';}
+    else if(options.retry){args.retryOf=options.retry.id;if(options.retry.version)args.version=options.retry.version;}
     else if(version && mode==='test')args.version=Number(version);
-    if(nextConversation&&!options.compare&&!options.retry&&!options.caseSource)args.conversation=nextConversation;
+    if(nextConversation&&!options.compare&&!options.retry&&!options.retest&&!options.caseSource)args.conversation=nextConversation;
     const startsDraft=mode==='test'&&!args.version&&!args.conversation&&!options.retry;
     if(editorDraft && (startsDraft || (options.compare && compareWith==='draft'))){
       if(editorDraft.issue)throw Error(editorDraft.issue);
       if(!(await editorDraft.save()))throw Error('편집 내용을 저장한 후 다시 시험하세요.');
     }
+    const draftRevision=editorDraft?.getDraftRevision();
+    if(startsDraft && draftRevision!==undefined)args.draftRevision=draftRevision;
     const shareScope=project.shareGeneration ? project.shareGeneration+'.' : '';
     const slot='studio.pending-run.'+project.id+'.'+shareScope+await intentHash([args,options.compare?compareWith:'']);
     let requestKey=pendingKeys.current.get(slot);
@@ -591,7 +592,8 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
     if(options.compare){
       setComparisonExpected(first.testCase?.expected??'');
       setPair([first.id]);
-      const second=await base('run.start',{mode:'test',caseFromRun:first.id,requestKey:requestKey+'-comparison',version:compareWith==='draft'?undefined:Number(compareWith)}) as Run;
+      const second=await base('run.start',{mode:'test',caseFromRun:first.id,requestKey:requestKey+'-comparison',version:compareWith==='draft'?undefined:Number(compareWith),
+        ...(compareWith==='draft'&&{draftRevision})}) as Run;
       keep(second);
       if(contextGeneration.current===generation)setPair([first.id,second.id]);
       if(revision===draftEdits.current){setInput(undefined);clearAttachment();}
@@ -602,16 +604,18 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
     const question=previous??encodedInput;
     const revision=draftEdits.current,generation=contextGeneration.current;
     setSending({question,failed:false});
+    rememberSubmission(question,true);
     if(previous===undefined){setInput('');clearAttachment();}
     try {
       await start({question});
       if(contextGeneration.current!==generation)return;
+      rememberSubmission(question,false);
       setSending(null);
       if(previous===undefined && revision===draftEdits.current)setInput(undefined);
     } catch(err) {
       if(contextGeneration.current!==generation)return;
       if(previous===undefined && revision===draftEdits.current) {
-        setInput(input);setAttachment(attachment);setSending(null);
+        setInput(input);setAttachment(attachment);rememberSubmission(question,false);setSending(null);
       } else setSending({question,failed:true});
       throw err;
     }
@@ -679,6 +683,7 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
   }
   const historyContents=<>
       <button className="run-new" disabled={runActionsDisabled||fileLoading} onClick={newConversation}>＋ 새 대화</button>
+    {history.some(r=>r.state==='waiting'&&r.prompt)&&<section aria-label="응답 필요"><h4>응답 필요</h4>{history.filter(r=>r.state==='waiting'&&r.prompt).map(historyRecord)}</section>}
     {history.length===0?<p>아직 실행한 질문이 없습니다.</p>:embedded?history.map(historyRecord):conversations.map(group=>
       <div className="run-conversation" key={group.id}>
         <button type="button" className={'run-history '+(group.id===conversation?'selected':'')} aria-current={group.id===conversation?'true':undefined}
@@ -756,15 +761,18 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
               <div className="run-answer-meta"><strong>{embedded?'답변':project.title}</strong><span>{states[turn.state]}</span>
                 {selected&&(active(turn)||turn.state==='waiting')&&<button disabled={busy} onClick={()=>void action(()=>stop(turn))}>실행 중지</button>}</div>
               {active(turn)&&!sharingRevoked&&<p className="run-note">실행 경로를 업데이트하고 있습니다.</p>}
-              {turn.output&&<div className="run-output">{turn.output}</div>}{turn.error&&<p className="run-error">{turn.error}</p>}
+              {turn.output&&<FormattedAnswer text={turn.output} format={turn.outputFormat}/>}{turn.error&&<p className="run-error">{turn.error}</p>}
               {embedded&&<EditionSummary run={turn}/>}
               <CaseEvidence run={turn}/>
               {selected?<>
-                {turn.state==='waiting'&&turn.prompt?.kind==='file'&&<RunFileReply key={turn.prompt.id} draftKey={waitDraftKey(turn)} prompt={turn.prompt} examples={visibleExamples} disabled={runActionsDisabled}
-                  send={value=>reply(turn,value)}/>}
-                {turn.state==='waiting'&&turn.prompt&&turn.prompt.kind!=='file'&&<PromptReply key={turn.prompt.id} draftKey={waitDraftKey(turn)} prompt={turn.prompt} disabled={runActionsDisabled}
-                  send={(value,approved)=>reply(turn,value,approved)}/>}
+                {turn.state==='waiting'&&(turn.prompts?.length?turn.prompts:turn.prompt?[turn.prompt]:[]).map(prompt=>{
+                  const request={...turn,prompt};
+                  return prompt.kind==='file'?<RunFileReply key={prompt.id} draftKey={waitDraftKey(request)} prompt={prompt} examples={visibleExamples} disabled={runActionsDisabled}
+                    send={value=>reply(request,value)}/>:<PromptReply key={prompt.id} draftKey={waitDraftKey(request)} prompt={prompt} disabled={runActionsDisabled}
+                    send={(value,approved)=>reply(request,value,approved)}/>;
+                })}
                 {(turn.state==='stopped'||turn.state==='failed')&&<button disabled={runActionsDisabled} onClick={()=>void action(()=>start({retry:turn}))}>같은 입력으로 새 실행</button>}
+                {embedded&&turn.mode==='test'&&!active(turn)&&turn.state!=='waiting'&&<button disabled={runActionsDisabled} onClick={()=>void action(()=>start({retest:turn}))}>같은 질문·첨부·시험 자료로 현재 초안 다시 시험</button>}
                 <Files run={turn}/><Operations run={turn}/>
                 {turn.operations?.some(o=>o.status==='unknown')&&<button disabled={runActionsDisabled} onClick={()=>void action(async()=>{keep(await base('run.receipts',{runId:turn.id}),true);})}>원래 요청의 처리 결과 다시 확인</button>}
                 <Trace run={turn}/>
@@ -773,7 +781,10 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
           </section>;
         })}
         {!draftIssue&&pair.length>0&&<section className="run-comparison"><h3>버전 비교</h3>{comparisonExpected&&<p>기대 결과 · {comparisonExpected}</p>}
-          {pair.map(id=>{const r=history.find(x=>x.id===id);return r&&<article key={id}><b>{r.version?r.version+'판':'초안'} · {states[r.state]}</b><p>{r.output||r.error||'처리 중'}</p></article>;})}</section>}
+          {pair.map(id=>{const r=history.find(x=>x.id===id);return r&&<article key={id}><b>{r.version?r.version+'판':'초안'} · {states[r.state]}</b>
+            {r.state==='waiting'?<ul>{(r.prompts?.length?r.prompts:r.prompt?[r.prompt]:[]).map(prompt=><li key={prompt.id}>{prompt.prompt}
+              {prompt.expiresAt&&<> · 회신 기한 <time dateTime={prompt.expiresAt}>{new Date(prompt.expiresAt).toLocaleString('ko-KR')}</time></>}</li>)}</ul>:<p>{r.output||r.error||states[r.state]}</p>}
+            {r.state==='waiting'&&r.id!==current?.id&&<button type="button" disabled={busy} onClick={()=>void action(()=>openRecord(r))}>이 비교 실행에 회신</button>}</article>;})}</section>}
       </div>
       {completedAnswer&&answerOffscreen&&<div className="run-jump-answer">
         <button type="button" onClick={viewNewAnswer}>새 답변 보기</button>
@@ -787,8 +798,9 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
           </select></label>}
         {!sharingRevoked&&inputSetupError&&<div className="run-reconnect" role="alert"><span>{inputSetupError}</span>
           <button type="button" onClick={()=>setInputSetupAttempt(n=>n+1)}>다시 연결</button></div>}
-        {sending&&<div className="run-submission" role="status"><strong>{sending.failed?'접수를 확인하지 못한 질문':'접수 중인 질문'}</strong>
-          <span>{questionText(sending.question)}</span>{sending.failed&&<button type="button" disabled={sendingBlocked} onClick={()=>void action(()=>submitQuestion(sending.question))}>이 질문 다시 보내기</button>}</div>}
+        {sending&&!sending.failed&&<div className="run-submission" role="status"><strong>접수 중인 질문</strong><span>{questionText(sending.question)}</span></div>}
+        {failedQuestions.filter(q=>sending?.failed||q!==sending?.question).map(q=><div key={q} className="run-submission" role="status"><strong>접수를 확인하지 못한 질문</strong>
+          <span>{questionText(q)}</span><button type="button" disabled={sendingBlocked} onClick={()=>void action(()=>submitQuestion(q))}>이 질문 다시 보내기</button></div>)}
         {embedded&&<label className="run-input-label" htmlFor="editor-run-question">{composingNext?'다음 질문':'시험 질문'}</label>}
         {typeof accept==='string'&&<div><label className="run-file-picker">{attachment?'입력 파일 바꾸기':'입력 파일 첨부'}
           <input ref={fileInput} type="file" accept={accept||undefined} aria-describedby={attachment ? fileStatusId : undefined}

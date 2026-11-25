@@ -1,5 +1,5 @@
 import {
-  byType, canonicalErrorStrategy, createBlock, levels, portsFor, replyDeadlineDefaultMinutes,
+  byType, canonicalErrorStrategy, createBlock, levels, portsFor, replyDeadlineDefaultMinutes,selectionSettings,
   terminalBehavior, terminalBehaviorOptions, type Block, type Edge, type Graph, type TerminalBehavior,
 } from '../../domain/index';
 import { toolName } from '../tool-name';
@@ -34,8 +34,7 @@ export function changeBlockMode(node: Block, type: string): Block {
   const selection = node.type === 'agent.coordinate' || node.type === 'agent.select_candidate';
   if (selection) {
     // Older graphs can carry both field sets. Keep the values the runner uses.
-    const options = node.config.tasks ?? node.config.candidates ?? [];
-    const instruction = node.config.goal ?? node.config.criterion ?? '';
+    const {options,instruction}=selectionSettings(node);
     delete config.tasks;
     delete config.candidates;
     delete config.goal;
@@ -523,8 +522,7 @@ export function graphChanges(before: Graph, after: Graph): string[] {
   const changes: string[] = [];
   const describe = (value: unknown) => {
     if (value === undefined || value === null || value === '') return '비어 있음';
-    const raw = typeof value === 'string' ? value : JSON.stringify(value);
-    return raw.length > 160 ? raw.slice(0, 157) + '…' : raw;
+    return typeof value === 'string' ? value : JSON.stringify(value);
   };
   for (const n of before.nodes)
     if (!after.nodes.some((m) => m.id === n.id)) changes.push('블록 삭제 · ' + n.title);

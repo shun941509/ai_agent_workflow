@@ -1,12 +1,14 @@
 import {workOne} from './runs';
-import {dispatchDue} from './triggers';
+import {startScheduleClock} from './triggers';
 import {purgeExpiredProjects} from './projects';
 import {purgeExpiredAssets} from './asset-trash';
 import {setTimeout as schedule} from 'node:timers';
 import {setTimeout} from 'node:timers/promises';
 let shuttingDown=false;
-process.on('SIGTERM',()=>{shuttingDown=true;});process.on('SIGINT',()=>{shuttingDown=true;});
-async function loop(){while(!shuttingDown){try{dispatchDue();if(!await workOne())await setTimeout(400);}catch(e){console.error('실행기 오류:',e instanceof Error?e.message:'unknown');await setTimeout(1000);}}}
+const stopSchedules=startScheduleClock();
+function shutdown(){shuttingDown=true;stopSchedules();}
+process.on('SIGTERM',shutdown);process.on('SIGINT',shutdown);
+async function loop(){while(!shuttingDown){try{if(!await workOne())await setTimeout(400);}catch(e){console.error('실행기 오류:',e instanceof Error?e.message:'unknown');await setTimeout(1000);}}}
 
 function maintainTrash() {
   if (shuttingDown) return;

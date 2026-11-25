@@ -2,12 +2,13 @@ import { one, set } from './db';
 import { requireThat } from './errors';
 
 export function guestWorkSummary(guest: string) {
-  return one<{ projects: number; assets: number; conversations: number; links: number }>(
+  return one<{ projects: number; assets: number; conversations: number; links: number; examples:number }>(
     `SELECT (SELECT count(*) FROM projects WHERE owner=?) AS projects,
             (SELECT count(*) FROM assets WHERE owner=?) AS assets,
             (SELECT count(*) FROM conversations WHERE owner=?) AS conversations,
-            (SELECT count(*) FROM grants WHERE owner=?) AS links`,
-    guest, guest, guest, guest
+            (SELECT count(*) FROM grants WHERE owner=?) AS links,
+            (SELECT count(*) FROM installed_lesson_materials WHERE owner=?) AS examples`,
+    guest, guest, guest, guest, guest
   )!;
 }
 
@@ -36,6 +37,12 @@ export function importGuestWork(guest: string, member: string) {
          OR (g.kind='asset' AND EXISTS(SELECT 1 FROM active_assets a WHERE a.id=g.target AND a.visibility='link' AND a.token=g.token)))
        ON CONFLICT(owner,kind,target) DO UPDATE SET token=excluded.token`, member, guest);
   set('DELETE FROM grants WHERE owner=?', guest);
+
+  // A receipt with a null asset records an earlier installation that the user removed.
+  set('INSERT OR IGNORE INTO installed_lesson_materials(owner,lesson,asset) SELECT ?,lesson,asset FROM installed_lesson_materials WHERE owner=?', member, guest);
+  set('DELETE FROM installed_lesson_materials WHERE owner=?', guest);
+  set('INSERT OR IGNORE INTO work_document_materials(owner,purpose,asset) SELECT ?,purpose,asset FROM work_document_materials WHERE owner=?', member, guest);
+  set('DELETE FROM work_document_materials WHERE owner=?', guest);
 
   for (const table of ['projects', 'assets', 'cases', 'conversations', 'runs', 'operations', 'automations']) {
     set('UPDATE ' + table + ' SET owner=? WHERE owner=?', member, guest);

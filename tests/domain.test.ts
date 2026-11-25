@@ -83,6 +83,8 @@ test('오류 처리의 새 선택지만 표시하고 기존 전략도 값을 바
   const start=createBlock('input.user_request'), handler=createBlock('error.handle'), answer=createBlock('output.answer');
   const graph:Graph={nodes:[start,handler,answer],edges:[]};
   graph.edges.push(...connectBlocks(graph,start.id,handler.id),...connectBlocks(graph,handler.id,answer.id));
+  const normal=createBlock('output.answer');graph.nodes.push(normal);
+  graph.edges.push(...connectBlocks(graph,start.id,normal.id));
   assert.equal(handler.config.strategy,'continue');
   for (const strategy of ['continue','stop','report','fallback']) {
     handler.config.strategy=strategy;

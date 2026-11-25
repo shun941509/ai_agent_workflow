@@ -37,11 +37,11 @@ test('수정안의 입력별 완료 기준이 편집 가능한 텍스트로 보�
     const input = '녹음기 출시일은 아직 정해지지 않았습니다.';
     const requests: ModelInput[] = [];
     const run = await executeGraph(graph, { runId: 'criteria', input }, {
-      model: async request => { requests.push(request); return { text: '녹음기 · 일정 미확정' }; },
+      model: async request => { requests.push(request); return { text: request.instruction.includes('완료 판정:')?'{"status":"met","reason":"미확정 일정 표시"}':'녹음기 · 일정 미확정' }; },
       tool: async () => { throw new Error('도구를 사용하는 설계가 아닙니다.'); },
     });
     assert.equal(run.status, 'completed');
-    assert.equal(requests.length, 1);
+    assert.equal(requests.length, type==='agent.task'?2:1);
     assert.equal(requests[0].input, input);
     assert.ok(requests[0].instruction.includes(criterion));
     assert.doesNotMatch(requests[0].instruction, /출시일이 있어야 함/);
@@ -160,4 +160,40 @@ test('proposal requests bind their input and charge independent guest quota exac
   } finally {
     globalThis.fetch = fetchBefore;
   }
+});
+
+test('새 Agent의 인사말은 초안 대신 한 번 보충을 요청하고, 답변과 직접 요청은 초안을 받는다', async t => {
+  process.env.STUDIO_DATA_DIR = mkdtempSync(join(tmpdir(), 'studio-agent-intent-'));
+  process.env.OPENAI_API_KEY = 'offline-test-value';
+  process.env.OPENAI_MODEL = 'test-model';
+  const actor = legacyGuestSession().user;
+  const first = {newAgent: true, graph: {nodes: [], edges: []}, prompt: '안녕하세요', requestKey: 'greet'};
+  const task = '회의 메모에서 결정 사항을 뽑아 줘';
+  const graph: Graph = {
+    nodes: [
+      createBlock('input.user_request', {id: 'input'}),
+      createBlock('agent.task', {id: 'extract', config: {goal: task}}),
+      createBlock('output.answer', {id: 'answer'}),
+    ],
+    edges: [],
+  };
+  graph.edges.push(...connectBlocks(graph, 'input', 'extract'), ...connectBlocks(graph, 'extract', 'answer'));
+  const requests: {request: string; clarificationAnswer?: string}[] = [];
+  t.mock.method(globalThis, 'fetch', async (_url: unknown, options: RequestInit) => {
+    const input = JSON.parse(JSON.parse(String(options.body)).input);
+    requests.push(input);
+    return Response.json({output: [{type: 'message', content: [{type: 'output_text', text: JSON.stringify(graph)}]}]});
+  });
+  assert.deepEqual(await propose(actor, first), {clarification: true});
+  assert.deepEqual(await propose(actor, first), {clarification: true});
+  assert.equal(requests.length, 0);
+  const followup = {...first, clarificationAnswer: task, requestKey: 'clarified'};
+  assert.deepEqual(await propose(actor, followup), {graph});
+  assert.deepEqual(await propose(actor, followup), {graph});
+  assert.deepEqual(await propose(actor, {...first, prompt: task, requestKey: 'direct'}), {graph});
+  assert.deepEqual(requests.map(({request, clarificationAnswer}) => [request, clarificationAnswer]), [
+    ['안녕하세요', task],
+    [task, undefined],
+  ]);
+  await assert.rejects(propose(actor, {...followup, clarificationAnswer: '번역해 줘'}), /다른 설계/);
 });

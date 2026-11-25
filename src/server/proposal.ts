@@ -55,6 +55,10 @@ export function reviewProposal(proposed: Graph, before: Graph): Graph {
       if (original && Object.hasOwn(original.config, field))
         config[field] = original.config[field];
     }
+    if(['tool.invoke','error.compensate','approval.action'].includes(node.type)&&!config.tool){
+      const suggested=node.config.tool||original?.config.suggestedTool;
+      if(typeof suggested==='string'&&suggested.trim())config.suggestedTool=suggested;
+    }
     if (original?.config.assetId || original?.config.workflowId)
       config.version = original.config.version;
     if (
@@ -72,6 +76,12 @@ export function reviewProposal(proposed: Graph, before: Graph): Graph {
       config.allowedTools = requested.filter((name: unknown) =>
         existing.has(name)
       );
+      if(node.type==='agent.task'){
+        const needed=[...new Set([...requested,...(Array.isArray(original?.config.requiredTools)?original.config.requiredTools:[])])]
+          .filter(name=>typeof name==='string'&&name.trim()&&!config.allowedTools.includes(name));
+        if(needed.length)config.requiredTools=needed;
+        else delete config.requiredTools;
+      }
     }
     return {
       ...node,
@@ -106,5 +116,5 @@ export function reviewProposal(proposed: Graph, before: Graph): Graph {
       )
     );
   });
-  return { nodes, edges };
+  return { nodes, edges, ...(before.agentScope ? {agentScope:{...before.agentScope}} : {}) };
 }

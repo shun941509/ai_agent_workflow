@@ -33,7 +33,8 @@ import RunPanel from './RunPanel';
 import {useSharedAgentAccess} from './use-shared-agent-access';
 import DynamicLessonSetup from './DynamicLessonSetup';
 import { dynamicLessonChecks } from '../domain/dynamic-lesson-policy';
-import HomeDesignProposal from './HomeDesignProposal';
+import HomeDesignProposal, { proposalPayload } from './HomeDesignProposal';
+import type { DesignProposal } from '../domain/design-proposal';
 import { workDocuments, type WorkDocument, type WorkPurpose } from '../domain/work-documents';
 import ResourceLibrary, { AssetTrash, type AssetItem, type TrashedAsset } from './ResourceLibrary';
 import {visitResource, type ResourceRoute, type ResourceView} from './resource-navigation';
@@ -69,7 +70,7 @@ import { rememberedPosition, rememberWorkspacePosition, trackWorkspacePosition, 
 
 type EditingSession = { project: FullProject; lastFocus?: string };
 type EditorEntryOptions = { initialAction?: 'import'; archivedRevision?: number; issue?: Issue; sharedAsset?: SharedAssetPin; fromGuide?: boolean; guideStep?: number };
-type ProposalTicket = {payload: string; key: string};
+type ProposalTicket = {payload: string; key: string; newAgent?: true};
 type ProposalSurface = 'home' | 'editor' | 'guide';
 type Bootstrap = {
   user: { id: string; login: string };
@@ -225,6 +226,7 @@ export default function Studio({accountId}: {accountId: string}) {
   const [prompt, setPrompt] = useState(''),
     [newTitle, setNewTitle] = useState(''),
     [importFile, setImportFile] = useState<File | null>(null),
+    [missingImport,setMissingImport]=useState<{file:File;missing:string[]}>(),
     [templateTitle, setTemplateTitle] = useState('');
   const creating = useRef(false);
   const [workDesign, setWorkDesign] = useState<{doc:WorkDocument; prompt:string}>();
@@ -270,20 +272,20 @@ export default function Studio({accountId}: {accountId: string}) {
     try { return JSON.parse(sessionStorage.getItem('studio.proposal.' + surface) || 'null') as ProposalTicket | null; }
     catch { return undefined; }
   }
-  async function requestProposal(surface: ProposalSurface, text: string, graph: Graph, signal?: AbortSignal) {
-    const payload = await intentHash([data?.user.id, surface === 'editor' ? selected?.id : null, text.trim(), graph]);
+  async function requestProposal(surface: ProposalSurface, text: string, graph: Graph, signal?: AbortSignal, answer?: string) {
+    const payload = await proposalPayload(data?.user.id, surface === 'editor' ? selected?.id : null, text, graph, answer);
     signal?.throwIfAborted();
     let ticket = proposalTicket(surface);
     const slot = 'studio.proposal.' + surface;
-    if (!ticket || ticket.payload !== payload) {
-      ticket = {payload, key: crypto.randomUUID()};
+    if (!ticket || ticket.payload !== payload || (surface === 'home' && !ticket.newAgent)) {
+      ticket = {payload, key: crypto.randomUUID(), newAgent: surface === 'home' ? true : undefined};
       try { sessionStorage.setItem(slot, JSON.stringify(ticket)); } catch { /* The request can still be retried in this view. */ }
     }
     proposalRequests.current[surface] = ticket;
     try {
-      const result = await api<{graph: Graph}>('propose', {prompt:text, graph, requestKey:ticket.key}, signal);
+      const result = await api<DesignProposal>('propose', {prompt:text, graph, requestKey:ticket.key, newAgent:ticket.newAgent, clarificationAnswer:answer}, signal);
       if (surface === 'editor' && proposalRequests.current[surface] === ticket) finishProposal(surface);
-      return result.graph;
+      return result;
     } catch (error) {
       if (error instanceof StudioApiError && error.status === 503 && proposalRequests.current[surface] === ticket)
         finishProposal(surface);
@@ -900,8 +902,10 @@ export default function Studio({accountId}: {accountId: string}) {
         id: p.id, revision: p.revision, ...target,
       });
       if (route !== routeGeneration.current || p.id !== projectRef.current?.id) return;
-      edit(updated, {archivedRevision:archivedRevision ?? undefined});
-      if (archivedRevision === null) notify('현재 초안이 선택한 내용과 같습니다.');
+      if (archivedRevision === null) {
+        modal('');
+        notify('현재 초안이 선택한 내용과 같습니다.');
+      } else edit(updated, {archivedRevision});
     });
   }
   async function versions(mode: VersionPanelMode) {
@@ -918,7 +922,8 @@ export default function Studio({accountId}: {accountId: string}) {
     if (sharingRow.current?.id === updated.id) {
       setVersionPanel(panel => panel?.listProject?.id === updated.id ? {...panel, listProject:updated} : panel);
     } else if (projectRef.current?.id === updated.id) {
-      choose(updated);
+      const draft=projectRef.current;
+      choose({...draft, publicVersion:updated.publicVersion, visibility:updated.visibility, token:updated.token, releaseExercise:updated.releaseExercise});
     }
     setData(current => current && ({
       ...current,
@@ -1156,10 +1161,15 @@ export default function Studio({accountId}: {accountId: string}) {
           assets={data.assets}
           onRefreshAssets={async () => { await refresh(); }}
           onSave={(graph, title) => save(graph, title, currentSession)}
+          getDraftRevision={()=>currentSession.project.revision}
           onSaveReference={(name, content) => saveReferenceDocument(selected.id, name, content)}
           initialFocus={selected.editorFocus}
           onFocusChange={focus => rememberFocus(currentSession, focus)}
-          onPropose={(text, graph) => requestProposal('editor', text, graph)}
+          onPropose={async (text, graph) => {
+            const result = await requestProposal('editor', text, graph);
+            if ('clarification' in result) throw new Error('바꾸고 싶은 동작을 구체적으로 입력해 주세요.');
+            return result.graph;
+          }}
           onShare={() => void versions('share')}
           onVersions={() => void versions('versions')}
           onHome={() => navigate('home')}
@@ -1450,13 +1460,18 @@ export default function Studio({accountId}: {accountId: string}) {
               onChange={event => setImportFile(event.target.files?.[0] ?? null)}
             />
           </label>
+          {importFile && missingImport?.file===importFile && <p role="alert">이 설계에는 {missingImport.missing.join(', ')} 자료가 필요합니다. 자료를 함께 가져오려면 원본 Agent에서 내 사본 만들기를 사용하세요.</p>}
           {importFile && <button className="btn primary" disabled={busy} onClick={() => void creationAction(async () => {
             const raw = JSON.parse(await importFile.text());
             const graph = raw.graph ?? raw;
             const title = typedTitle || raw.title || importFile.name;
-            await create(graph.nodes?.every((node: any) => node.config && Number.isFinite(node.x))
-              ? {graph, title} : {legacy:raw, title});
-          })}>{namedCreation(typedTitle, '이 설계 가져오기')}</button>}
+            const design=graph.nodes?.every((node: any) => node.config && Number.isFinite(node.x))?{graph,title}:{legacy:raw,title};
+            if(missingImport?.file!==importFile){
+              const missing=await api<string[]>('project.inspectImport',design);
+              if(missing.length){setMissingImport({file:importFile,missing});return;}
+            }
+            await create(design);
+          })}>{missingImport?.file===importFile?'자료 없이 설계 가져오기':namedCreation(typedTitle, '이 설계 가져오기')}</button>}
           <button
             className="plain"
             disabled={busy}
@@ -1487,7 +1502,7 @@ export default function Studio({accountId}: {accountId: string}) {
             onBlank={() => void creationAction(() => create({title:typedTitle || prompt.trim().slice(0, 45) || '새 Agent'}))}
             onTemplates={chooseCreationTemplate}
             createLabel={guideDesign ? '내 Agent로 만들기' : namedCreation(typedTitle, '캔버스에 적용')}
-            onRequest={(text, graph, signal) => requestProposal(designSurface, text, graph, signal)}
+            onRequest={(text, graph, signal, answer) => requestProposal(designSurface, text, graph, signal, answer)}
             onCreate={(graph, issue) => void creationAction(async () => {
               if (guideDesign) {
                 await create({graph, title:guideDesign.doc.title, workDocument:guideDesign.doc.id}, {issue});
@@ -1555,16 +1570,18 @@ export default function Studio({accountId}: {accountId: string}) {
               className="btn"
               disabled={busy || sharingRevoked}
               onClick={() =>
-                void action(async () =>
-                  edit(
-                    await api('project.copy', {
+                void action(async () => {
+                  const slot='studio.copy.'+JSON.stringify([data.user.id,selected.id,selected.publicVersion,selected.shareGeneration]);
+                  const requestKey=pendingWriteKey(slot);
+                  const copy=await api<FullProject>('project.copy', {
                       id: selected.id,
                       token: publicToken,
                       shareGeneration: selected.shareGeneration,
-                      published: true,
-                    })
-                  )
-                )
+                      published: true, version:selected.publicVersion, requestKey,
+                  });
+                  finishWrite(slot,requestKey);
+                  edit(copy);
+                })
               }
             >
               <ClipboardCopy size={16} />내 사본 만들기

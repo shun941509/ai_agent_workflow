@@ -1,9 +1,7 @@
 import assert from 'node:assert/strict';
-import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process';
+import {port,provider,stop} from './library-provider';
 import { randomBytes, randomUUID } from 'node:crypto';
-import { once } from 'node:events';
 import { mkdtempSync } from 'node:fs';
-import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -21,56 +19,6 @@ const { startRun, workOne, runGet, replyRun, stopRun, refreshReceipts } =
   await import('../src/server/runs');
 const { one } = await import('../src/server/db');
 const { library } = await import('../src/server/mcp');
-
-async function port() {
-  const s = createServer();
-  s.listen(0, '127.0.0.1');
-  await once(s, 'listening');
-  const value = s.address();
-  assert.ok(value && typeof value === 'object');
-  const n = value.port;
-  await new Promise<void>((resolve, reject) =>
-    s.close((e) => (e ? reject(e) : resolve()))
-  );
-  return String(n);
-}
-async function stop(child: ChildProcessWithoutNullStreams) {
-  if (child.exitCode !== null || child.signalCode !== null) return;
-  const exit = once(child, 'exit');
-  child.kill();
-  await exit;
-}
-async function provider() {
-  const child = spawn(
-    process.execPath,
-    ['--import', 'tsx', 'src/mcp/server.ts'],
-    { stdio: 'pipe', windowsHide: true, env: process.env }
-  );
-  let resolve!: () => void, reject!: (err: Error) => void;
-  const ready = new Promise<void>((ok, no) => {
-    resolve = ok;
-    reject = no;
-  });
-  const timer = setTimeout(
-    () => reject(new Error('시험 MCP 시작 시간 초과')),
-    10_000
-  );
-  child.stdout.setEncoding('utf8');
-  child.stdout.on('data', (line: string) => {
-    if (line.includes('준비 완료')) resolve();
-  });
-  child.once('error', reject);
-  child.once('exit', (code) => reject(new Error('MCP 종료 ' + code)));
-  try {
-    await ready;
-    return child;
-  } catch (e) {
-    await stop(child);
-    throw e;
-  } finally {
-    clearTimeout(timer);
-  }
-}
 
 test('자료함의 도서관 MCP를 연결하면 실제 도서관의 해당 시험 예약만 조회한다', async () => {
   process.env.STUDIO_MCP_PORT = await port();

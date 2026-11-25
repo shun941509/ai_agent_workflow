@@ -18,8 +18,11 @@ export function nextTime(setting:string,after:number):number|null{
   if(daily){const h=Number(daily[1]),m=Number(daily[2]);requireThat(h<24&&m<60,422,'일정 시각을 확인하세요.');
     const dayStart=Math.floor((after+9*60*minute)/day)*day-9*60*minute;
     const candidate=dayStart+(h*60+m)*minute;return candidate>after?candidate:candidate+day;}
-  const date=Date.parse(setting);
-  requireThat(/^\d{4}-\d\d-\d\dT\d\d:\d\d(?::\d\d(?:\.\d+)?)?(?:Z|[+-]\d\d:\d\d)$/i.test(setting)&&Number.isFinite(date),422,'일정은 매일 09:00, 매 15분 또는 시간대가 있는 ISO 시각을 입력하세요.');
+  const date=Date.parse(setting),localDay=setting.slice(0,10);
+  const calendar=new Date(localDay+'T00:00:00Z');
+  requireThat(/^\d{4}-\d\d-\d\dT\d\d:\d\d(?::\d\d(?:\.\d+)?)?(?:Z|[+-]\d\d:\d\d)$/i.test(setting)&&Number.isFinite(date)
+    && Number.isFinite(calendar.getTime()) && calendar.toISOString().slice(0,10)===localDay && Number(setting.slice(11,13))<24,
+    422,'일정은 매일 09:00, 매 15분 또는 실제 날짜와 시간대가 있는 ISO 시각을 입력하세요.');
   return date>after?date:null;
 }
 function presentation(a:Automation){return {id:a.id,node:a.node,kind:a.kind,setting:a.setting,version:a.version,enabled:Boolean(a.enabled),input:a.input,nextAt:a.next_at?new Date(a.next_at).toISOString():null,note:a.note};}
@@ -27,8 +30,17 @@ function registration(id:string){const a=one<Automation>('SELECT * FROM automati
 export function triggerList(user:User,id:string){
   const p=owned(user,id);
   const nodes=p.public_version?(JSON.parse(getVersion(p.id,p.public_version).graph) as Graph).nodes:[];
-  const triggers=nodes.filter(n=>n.type==='control.trigger'&&['event','schedule'].includes(n.config.trigger)).map(n=>({id:n.id,title:n.title,kind:n.config.trigger,setting:String(n.config[n.config.trigger]||'')}));
-  return {version:p.public_version,triggers,registrations:all<Automation>('SELECT * FROM automations WHERE project=? ORDER BY node',p.id).map(presentation)};
+  const registrations=all<Automation>('SELECT * FROM automations WHERE project=? ORDER BY node',p.id).map(presentation);
+  const triggers=nodes.filter(n=>n.type==='control.trigger'&&['event','schedule'].includes(n.config.trigger)).map(n=>{
+    const kind=n.config.trigger,setting=String(n.config[kind]||'').trim();
+    let resumeAt:string|null=null;
+    if(kind==='schedule'&&registrations.some(a=>a.node===n.id&&!a.enabled&&a.note)){
+      // The new edition may contain an invalid or expired setting. Activation validates it.
+      try{const next=nextTime(setting,Date.now());if(next!==null)resumeAt=new Date(next).toISOString();}catch{}
+    }
+    return {id:n.id,title:n.title,kind,setting,resumeAt};
+  });
+  return {version:p.public_version,triggers,registrations};
 }
 export function enableTrigger(user:User,b:{id:string;node:string;input:string;version:number},at=Date.now()){
   return tx(()=>{const p=owned(user,b.id);
@@ -60,18 +72,33 @@ export function acceptEvent(id:string,secret:string,b:{eventId:string;input?:str
     const r=event(a,b.eventId,b.input);return {runId:r.id};});
 }
 /** Claim a due instant and queue its run in the same transaction; coalesce downtime to one delivery. */
-export function dispatchDue(at=Date.now()):boolean{
+export function dispatchDue(at=Date.now(),startedAt=at):boolean{
   const a=one<Automation>('SELECT * FROM automations WHERE enabled=1 AND next_at<=? ORDER BY next_at LIMIT 1',at);
   if(!a)return false;
   try{return tx(()=>{
     const actual=registration(a.id);if(!actual.enabled||actual.next_at===null||actual.next_at>at)return false;
     const user=current(actual);const instant=new Date(actual.next_at).toISOString();
     enqueueRun(user,{id:actual.project,mode:'live',input:actual.input,requestKey:'schedule:'+digest(JSON.stringify([a.id,actual.version,instant]))},{kind:'schedule',nodeId:actual.node,scheduledAt:instant});
-    const next=nextTime(actual.setting,at);
+    const next=nextTime(actual.setting,Math.max(actual.next_at,startedAt));
     set("UPDATE automations SET next_at=?,enabled=?,note='' WHERE id=?",next,next===null?0:1,a.id);
     return true;
   });}catch(error){
     const message=error instanceof Error?error.message:'자동 시작 오류';
     set("UPDATE automations SET enabled=0,next_at=NULL,note=? WHERE id=? AND next_at=?",message,a.id,a.next_at);return true;
   }
+}
+
+/** Poll independently of model and tool calls occupying both run slots. */
+export function startScheduleClock() {
+  const startedAt=Date.now();
+  function poll(){
+    try{
+      const at=Date.now();
+      // Bound synchronous queue work so run workers keep their turns with many schedules.
+      for(let n=0;n<32&&dispatchDue(at,startedAt);n++){}
+    }catch(error){console.error('예약 접수 오류',error instanceof Error?error.message:'unknown');}
+  }
+  poll();
+  const clock=setInterval(poll,400);
+  return ()=>clearInterval(clock);
 }

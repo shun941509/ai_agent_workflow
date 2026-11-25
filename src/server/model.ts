@@ -1,5 +1,6 @@
 import type { ModelInput, ModelOutput } from '../engine/types';
 import { catalog, type Graph } from '../domain';
+import { isDesignGreeting, type DesignProposal } from '../domain/design-proposal';
 import { digest, key, one, set, tx } from './db';
 import { charge, day, type User } from './auth';
 import { modelGraph, reviewProposal } from './proposal';
@@ -76,6 +77,8 @@ async function response(body: Record<string, unknown>, signal?: AbortSignal) {
   }
   const data = await res.json();
   requireThat(Array.isArray(data.output), 502, '모델 응답을 읽을 수 없습니다.');
+  if((data.status && data.status!=='completed') || data.output.some((part:any)=>part?.status&&part.status!=='completed'))
+    throw new StudioError(502,'모델 응답이 완료되지 않았습니다. 부분 결과로 작업을 완료할 수 없습니다.',content(data.output));
   return data.output as any[];
 }
 function content(parts: any[]) {
@@ -95,8 +98,8 @@ export async function model(req: ModelInput): Promise<ModelOutput> {
   const tools = [...names].map(([name, actual]) => ({
     type: 'function',
     name,
-    description: '허용된 도구 ' + actual,
-    parameters: toolSchemas[actual] ?? {
+    description: req.toolDefinitions?.[actual]?.description || '허용된 도구 ' + actual,
+    parameters: req.toolDefinitions?.[actual]?.parameters ?? toolSchemas[actual] ?? {
       type: 'object',
       properties: {},
       additionalProperties: true,
@@ -143,12 +146,82 @@ export async function model(req: ModelInput): Promise<ModelOutput> {
   requireThat(text, 502, '모델이 답변을 반환하지 않았습니다.');
   return { text };
 }
-export async function propose(user: User, b: any, signal?: AbortSignal) {
+async function generateDesign(
+  prompt: string, before: Graph, newAgent: boolean, clarificationAnswer?: string, signal?: AbortSignal
+): Promise<DesignProposal> {
+  if (newAgent && isDesignGreeting(prompt) && (!clarificationAnswer || isDesignGreeting(clarificationAnswer))) {
+    return {clarification: true};
+  }
+  const describePorts = (ports: (typeof catalog)[number]['inputs']) =>
+    ports.map(({ id, kind, valueType, required }) => ({
+      id,
+      kind,
+      valueType,
+      required,
+    }));
+  const descriptions = catalog.map((b) => ({
+    type: b.type,
+    name: b.name,
+    config: b.fields.map(
+      ({ key, type, required, options, min, max, default: initial }) => ({
+        key,
+        type,
+        required,
+        options: options?.map((o) => o.value),
+        min,
+        max,
+        initial,
+      })
+    ),
+    inputs: describePorts(b.inputs),
+    outputs: describePorts(b.outputs),
+  }));
+  const rules = [
+    '당신은 Workflow Studio의 설계 제안 도우미입니다. 설명 없이 JSON 객체를 반환합니다.',
+    newAgent
+      ? [
+        'request와 보충 설명(clarificationAnswer)이 있으면 함께 읽고, 사용자가 Agent에게 맡기려는 업무를 판단하세요. 요청 속 질문에 직접 답하거나 작업 결과를 미리 작성하지 마세요.',
+        '“회의 메모에서 결정 사항을 뽑아 줘”, “수도 질문에 답해 줘”처럼 처리할 입력과 작업 또는 원하는 산출물을 알 수 있으면 즉시 해당 업무의 {nodes,edges}를 제안하세요. Agent, Workflow, 반복 같은 단어나 세부 설정은 필요하지 않습니다.',
+        '“프랑스의 수도는 어디인가요?”처럼 특정 사실의 답만 묻는 질문을 그 주제의 Agent 제작 요청으로 확대하지 마세요. 이처럼 맡길 업무가 드러나지 않은 단발성 질문, 인사, 막연한 도움 요청에는 {"clarification":true}만 반환하세요. 첫 요청과 보충 설명을 합쳐도 업무가 불분명하면 같은 표시를 반환하세요.',
+      ].join('\n')
+      : '설계는 {nodes,edges}로 반환하세요.',
+    '새 회신 대기 단계는 input.form으로 설계하세요. 회신 기한을 원하는 경우에만 config.replyTimeoutMinutes를 분 단위 양의 정수로 지정하고, 필요한 양식 항목은 config.fields에 함께 설정하세요. 기존 control.wait의 설정과 식별자는 사용자가 변경을 요청한 경우에만 수정하세요.',
+    '답변 전달의 기본 방식은 output.answer입니다. 완료 안내, 실행 중지, 실패 처리를 요청하면 control.terminate에 config.status를 각각 success, cancelled, failed로 지정하고 필요한 안내는 config.message에 담으세요. 오류 처리(error.handle)의 새 strategy는 continue(후속 단계로 계속) 또는 stop(중단)입니다. 변경 요청이 없는 기존 종료 상태와 report/fallback 전략, 연결선은 보존하세요.',
+    '기존 설계를 수정할 때에는 변경 대상 블록의 실행 속성에 요청을 반영하세요. 실행기는 이 설계 대화를 보지 못합니다. 역할 목표(goal), 작업 지시(instruction), 완료 기준(criterion)이 서로 모순되지 않게 필요한 속성을 함께 갱신하세요.',
+    '기존 AI 작업(agent.task, ai.single_task)의 동작을 수정할 때만 config.criterion을 [{"when":"입력에서 확인 가능한 조건","result":"이 경우 내보낼 내용 또는 제외할 항목"}] 배열로 작성하세요. 앱이 이를 편집 가능한 완료 기준으로 저장합니다. 새 요청이 바꾸는 경계 사례를 첫째로, 여전히 적용할 기존 포함·제외 조건을 그 다음으로 작성하세요. goal과 instruction에도 같은 범위를 적용하세요.',
+    '특히 새 요청이 비어 있거나 미확정인 필드에 표시할 값을 정하면, 필드의 상태가 직접 언급된 항목은 기존 필터를 독립적으로 충족하는지와 무관하게 결과에 보존하세요(사용자가 범위를 명시적으로 제한한 경우 그 제한을 따르세요). 기존 분류에 들어간다고 단정할 수 없으면 별도 항목에 원문의 사실과 지정된 표시만 쓰게 하세요. 단순한 추측·관련 없는 언급과 필드가 미확정이라고 명시된 항목의 처리를 구별하세요.',
+    '요청받은 변경과 관련 없는 블록과 연결선은 그대로 복사하세요. 유지할 블록의 식별자·이름·위치 및 연결선의 식별자·포트·이름을 보존하세요.',
+    '예약 조회·생성·취소 등 실제 시스템의 동작이 필요한 설계는 agent.task의 allowedTools에 필요한 도구 이름을 제안하세요. 도서관 예약 도구는 reservations.list, reservations.create, reservations.cancel입니다. 서버가 기존에 허용하지 않은 도구는 제작자가 연결하도록 표시합니다.',
+    '새 단순 Agent는 input.user_request → agent.task → output.answer로 만드세요. nodes 원소는 {id,type,title,x,y,config}, edges 원소는 {id,from,to,kind,out,input,label}. 실행 순서 flow next→in과 값 전달 data value→input은 별도 연결입니다. 제공된 카탈로그의 포트와 설정만 사용하세요. 자료는 reference ref→context. 동적 역할은 허용 템플릿만 사용합니다. 새 외부 자산 식별자, 키나 권한을 지어내지 마세요. 좌표는 (40,100)부터 가로로 260 간격입니다. config에 설정하지 않은 토큰이나 승인값을 만들지 마세요.',
+  ].join('\n');
+  const parts = await response({
+    instructions: rules,
+    input: JSON.stringify({
+      request: prompt,
+      clarificationAnswer,
+      graph: modelGraph(before),
+      registry: descriptions,
+    }),
+    text: { format: { type: 'json_object' } },
+  }, signal);
+  signal?.throwIfAborted();
+  const proposed = JSON.parse(content(parts));
+  if (newAgent && proposed?.clarification === true) return {clarification: true};
+  const graph = reviewProposal(graphShape(proposed), before);
+  requireThat(graph.nodes.length > 0, 422, 'AI 초안에 블록이 없습니다.');
+  return {graph};
+}
+
+export async function propose(user: User, b: any, signal?: AbortSignal): Promise<DesignProposal> {
   signal?.throwIfAborted();
   const prompt = stringArg(b.prompt, '원하는 작업', 12000),
     requestKey = stringArg(b.requestKey, '요청 번호', 160),
     before = graphShape(b.graph);
-  const fingerprint = digest(JSON.stringify([prompt, before])),
+  const newAgent = b.newAgent === true;
+  const clarificationAnswer = newAgent && b.clarificationAnswer !== undefined
+    ? stringArg(b.clarificationAnswer, '보충 설명', 12000)
+    : undefined;
+  const fingerprint = digest(JSON.stringify(newAgent ? [prompt, before, 'newAgent', clarificationAnswer] : [prompt, before])),
     attempt = key();
   const cached = tx(() => {
     const existing = one<{ result: string; created: string }>(
@@ -167,7 +240,7 @@ export async function propose(user: User, b: any, signal?: AbortSignal) {
         409,
         '이 요청 번호는 다른 설계에 사용되었습니다.'
       );
-      if (existing.result) return JSON.parse(existing.result) as Graph;
+      if (existing.result) return JSON.parse(existing.result) as Graph | { clarification: true };
     }
     requireThat(modelReady(), 503, '서버의 모델 설정을 먼저 연결하세요.');
     if (existing) {
@@ -207,60 +280,14 @@ export async function propose(user: User, b: any, signal?: AbortSignal) {
       );
     }
   });
-  if (cached) return { graph: cached };
+  if (cached) return 'clarification' in cached ? cached : {graph: cached};
   try {
-    const describePorts = (ports: (typeof catalog)[number]['inputs']) =>
-      ports.map(({ id, kind, valueType, required }) => ({
-        id,
-        kind,
-        valueType,
-        required,
-      }));
-    const descriptions = catalog.map((b) => ({
-      type: b.type,
-      name: b.name,
-      config: b.fields.map(
-        ({ key, type, required, options, min, max, default: initial }) => ({
-          key,
-          type,
-          required,
-          options: options?.map((o) => o.value),
-          min,
-          max,
-          initial,
-        })
-      ),
-      inputs: describePorts(b.inputs),
-      outputs: describePorts(b.outputs),
-    }));
-    const rules = [
-      '당신은 Workflow Studio의 설계 제안 도우미입니다. 설명 없이 JSON 객체 {nodes,edges}를 반환합니다.',
-      '새 회신 대기 단계는 input.form으로 설계하세요. 회신 기한을 원하는 경우에만 config.replyTimeoutMinutes를 분 단위 양의 정수로 지정하고, 필요한 양식 항목은 config.fields에 함께 설정하세요. 기존 control.wait의 설정과 식별자는 사용자가 변경을 요청한 경우에만 수정하세요.',
-      '답변 전달의 기본 방식은 output.answer입니다. 완료 안내, 실행 중지, 실패 처리를 요청하면 control.terminate에 config.status를 각각 success, cancelled, failed로 지정하고 필요한 안내는 config.message에 담으세요. 오류 처리(error.handle)의 새 strategy는 continue(후속 단계로 계속) 또는 stop(중단)입니다. 변경 요청이 없는 기존 종료 상태와 report/fallback 전략, 연결선은 보존하세요.',
-      '기존 설계를 수정할 때에는 변경 대상 블록의 실행 속성에 요청을 반영하세요. 실행기는 이 설계 대화를 보지 못합니다. 역할 목표(goal), 작업 지시(instruction), 완료 기준(criterion)이 서로 모순되지 않게 필요한 속성을 함께 갱신하세요.',
-      '기존 AI 작업(agent.task, ai.single_task)의 동작을 수정할 때만 config.criterion을 [{"when":"입력에서 확인 가능한 조건","result":"이 경우 내보낼 내용 또는 제외할 항목"}] 배열로 작성하세요. 앱이 이를 편집 가능한 완료 기준으로 저장합니다. 새 요청이 바꾸는 경계 사례를 첫째로, 여전히 적용할 기존 포함·제외 조건을 그 다음으로 작성하세요. goal과 instruction에도 같은 범위를 적용하세요.',
-      '특히 새 요청이 비어 있거나 미확정인 필드에 표시할 값을 정하면, 필드의 상태가 직접 언급된 항목은 기존 필터를 독립적으로 충족하는지와 무관하게 결과에 보존하세요(사용자가 범위를 명시적으로 제한한 경우 그 제한을 따르세요). 기존 분류에 들어간다고 단정할 수 없으면 별도 항목에 원문의 사실과 지정된 표시만 쓰게 하세요. 단순한 추측·관련 없는 언급과 필드가 미확정이라고 명시된 항목의 처리를 구별하세요.',
-      '요청받은 변경과 관련 없는 블록과 연결선은 그대로 복사하세요. 유지할 블록의 식별자·이름·위치 및 연결선의 식별자·포트·이름을 보존하세요.',
-      '새 단순 Agent는 input.user_request → agent.task → output.answer로 만드세요. nodes 원소는 {id,type,title,x,y,config}, edges 원소는 {id,from,to,kind,out,input,label}. 실행 순서 flow next→in과 값 전달 data value→input은 별도 연결입니다. 제공된 카탈로그의 포트와 설정만 사용하세요. 자료는 reference ref→context. 동적 역할은 허용 템플릿만 사용합니다. 새 외부 자산 식별자, 키나 권한을 지어내지 마세요. 좌표는 (40,100)부터 가로로 260 간격입니다. config에 설정하지 않은 토큰이나 승인값을 만들지 마세요.',
-    ].join('\n');
-    const parts = await response({
-      instructions: rules,
-      input: JSON.stringify({
-        request: prompt,
-        graph: modelGraph(before),
-        registry: descriptions,
-      }),
-      text: { format: { type: 'json_object' } },
-    }, signal);
+    const result = await generateDesign(prompt, before, newAgent, clarificationAnswer, signal);
     signal?.throwIfAborted();
-    const graph = reviewProposal(
-      graphShape(JSON.parse(content(parts))),
-      before
-    );
-    requireThat(graph.nodes.length > 0, 422, 'AI 초안에 블록이 없습니다.');
+    requireThat(!clarificationAnswer || !('clarification' in result), 422, '보충 설명에 Agent가 맡을 작업을 구체적으로 적어 주세요.');
     const saved = set(
       'UPDATE proposals SET result=? WHERE owner=? AND id=? AND EXISTS(SELECT 1 FROM proposal_requests WHERE owner=? AND id=? AND attempt=?)',
-      JSON.stringify(graph),
+      JSON.stringify('graph' in result ? result.graph : result),
       user.id,
       requestKey,
       user.id,
@@ -268,7 +295,7 @@ export async function propose(user: User, b: any, signal?: AbortSignal) {
       attempt
     );
     requireThat(saved.changes, 409, '새 요청에서 이 제안을 처리하고 있습니다.');
-    return { graph };
+    return result;
   } catch (e) {
     tx(() => {
       const request = one<{ charge_day: string | null }>(

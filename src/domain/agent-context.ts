@@ -13,6 +13,13 @@ export interface AgentContext {
   activeSkills:AgentSkill[];
 }
 export const emptyAgentContext:AgentContext={goals:[],assignments:[],availableSkills:[],activeSkills:[]};
+export const modelBlocks:ReadonlySet<string>=new Set(['ai.single_task','agent.task','ai.classify','agent.coordinate','agent.select_candidate','quality.evidence','quality.evaluate','context.compress']);
+
+export function childScopeInstructions(graph?:Graph):string[] {
+  if(graph?.agentScope?.mode!=='dedicated')return [];
+  return ['', '하위 Agent의 담당 업무 — '+graph.agentScope.purpose,
+    '위임할 입력이 이 범위에 속하는지 먼저 확인하세요. 범위 밖이면 하위 작업을 중단하고, 섞여 있으면 업무에 해당하는 부분만 전달하세요.'];
+}
 
 export function isDelegatedRole(type:string){
   return type==='agent.delegate'||type==='agent.handoff'||type==='agent.create_dynamic';

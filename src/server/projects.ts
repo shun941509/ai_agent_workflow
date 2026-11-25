@@ -1,14 +1,14 @@
 import {isDeepStrictEqual} from 'node:util';
 import {all,db,digest,one,set,key,now,tx} from './db';
 import {requireThat,stringArg} from './errors';
-import {templates,blankPracticeLessonId,membershipQuestion,emptyGraph,validateGraph,migrateGraph,releaseBaseline,releaseTestCases,type Graph} from '../domain';
+import {templates,blankPracticeLessonId,membershipQuestion,emptyGraph,isAgentScope,validateGraph,migrateGraph,releaseBaseline,releaseTestCases,type Graph} from '../domain';
 import {isIntroExampleAnswer} from '../domain/intro-example-answer';
 import {releaseDecisionLabels,type ReleaseAction,type ReleaseDecision} from '../domain/release-decision';
 import {assetRow,copyAssetInTransaction,grant,pins,visibility,writeAsset,type Visibility} from './assets';
 import type {User} from './auth';
 import {resolveWorkflowRefs} from './workflow-refs';
 import {bindRunAssets} from './run-assets';
-import {prepareKnowledgeCopy,validateKnowledgePublication} from './knowledge';
+import {missingImportedCollections,prepareKnowledgeCopy,validateKnowledgePublication} from './knowledge';
 import {runInputLimit} from '../domain/run-input';
 import {normalizeKnowledgeReferences} from '../domain/knowledge-reference';
 import {isDynamicLessonPolicy} from '../domain/dynamic-lesson-policy';
@@ -72,6 +72,7 @@ export function getVersion(id:string,n:number){const v=one<Version>('SELECT v.* 
 export function graphShape(raw:unknown):Graph{
   let total=0;
   function check(v:any,level:number){requireThat(v&&typeof v==='object'&&Array.isArray(v.nodes)&&Array.isArray(v.edges)&&level<8,400,'올바른 Workflow 구조가 아닙니다.');total+=v.nodes.length;requireThat(total<=500&&v.edges.length<=1500,413,'설계 크기가 한도를 넘었습니다.');
+    requireThat(v.agentScope === undefined || isAgentScope(v.agentScope),400,'Agent의 용도와 담당 업무 설정을 확인하세요.');
     const ids=new Set<string>();for(const n of v.nodes){requireThat(n&&typeof n.id==='string'&&n.id.length<=150&&!ids.has(n.id)&&typeof n.type==='string'&&typeof n.title==='string'&&Number.isFinite(n.x)&&Number.isFinite(n.y)&&n.config&&typeof n.config==='object'&&!Array.isArray(n.config),400,'블록 식별자·위치·속성을 확인하세요.');ids.add(n.id);if(n.graph)check(n.graph,level+1);}
     for(const e of v.edges){requireThat(e&&['flow','data','reference'].includes(e.kind)&&['id','from','to','out','input'].every(k=>typeof e[k]==='string'),400,'연결선 정보를 확인하세요.');}
   }
@@ -265,9 +266,22 @@ function updateDraft(user:User, p:Project, title:string, graph:Graph, revision:n
 }
 export function saveProject(user:User,b:any){return tx(()=>
   updateDraft(user,owned(user,b.id),stringArg(b.title,'Agent 이름',140),graphShape(b.graph),b.revision));}
+export function inspectImportedDesign(user:User,b:any){
+  const projectId=b.id===undefined?'':owned(user,b.id).id,unavailable:string[]=[];
+  const graph=resolveWorkflowRefs(graphShape(b.legacy?migrateGraph(b.legacy):b.graph),user,projectId,{expand:true,onUnavailable:node=>unavailable.push(node.title+' · 하위 Workflow 버전')});
+  return [...unavailable,...missingImportedCollections(graph,projectId,user)];
+}
 export function projectCopy(user:User,b:any){return tx(()=>{
   const p=project(b.id);requireThat(canProject(p,user,b.token,b.shareGeneration),403,'사본을 만들 권한이 없습니다.');
-  const v=p.owner===user.id&&!b.published?null:getVersion(p.id,p.public_version??0);
+  const sourceVersion=p.owner===user.id&&!b.published?null:(b.version??p.public_version);
+  if(b.version!==undefined)requireThat(Number.isSafeInteger(b.version)&&b.version>0&&canReadProjectEdition(p,user,b.version,b.token),409,'본 버전을 복사할 수 없습니다. 현재 게시 버전을 다시 확인하세요.');
+  const requestKey=b.requestKey===undefined?null:stringArg(b.requestKey,'요청 번호',160);
+  const fingerprint=digest(JSON.stringify(['project.copy',p.id,sourceVersion,sourceVersion===null?p.revision:null]));
+  if(requestKey){
+    const previous=one<{project:string;fingerprint:string}>('SELECT project,fingerprint FROM project_creation_requests WHERE owner=? AND request_key=?',user.id,requestKey);
+    if(previous){requireThat(previous.fingerprint===fingerprint,409,'다른 사본에 사용한 요청입니다.');return openProject(user,previous.project);}
+  }
+  const v=p.owner===user.id&&!b.published?null:getVersion(p.id,sourceVersion??0);
   const graph=pins(resolveWorkflowRefs(JSON.parse(v?.graph??p.graph),user,p.id,{expand:true}),user);
   const nodes:Graph['nodes']=[];
   function visit(g:Graph){for(const n of g.nodes){nodes.push(n);if(n.graph)visit(n.graph);}}
@@ -295,7 +309,9 @@ export function projectCopy(user:User,b:any){return tx(()=>{
   // The visit exercise requires two editions and a saved case. A project copy has only the pinned materials.
   const lesson=p.lesson==='library-visit'?undefined:p.lesson;
   const copy=createProject(user,{graph,title:((v?.title??p.title).slice(0,136))+' 사본',lesson});
-  installCollections(copy.id);return copy;
+  installCollections(copy.id);
+  if(requestKey)set('INSERT INTO project_creation_requests(owner,request_key,fingerprint,project) VALUES(?,?,?,?)',user.id,requestKey,fingerprint,copy.id);
+  return copy;
 });
 }
 export function versionList(user:User,id:string){owned(user,id);return all<Pick<Version,'number'|'title'|'created'>>('SELECT number,title,created FROM versions WHERE project=? ORDER BY number DESC',id);}
@@ -345,6 +361,7 @@ function publishInTransaction(user:User,b:any){
     else set('DELETE FROM project_public_releases WHERE project=? AND version=?',p.id,v.number);
   }
   set('UPDATE projects SET visibility=?,token=?,public_version=?,updated=? WHERE id=?',vis,token,v.number,now(),p.id);
+  if(p.public_version!==v.number)set("UPDATE automations SET enabled=0,next_at=NULL,note='게시 버전이 변경되어 예약을 일시 중지했습니다.' WHERE project=? AND kind='schedule' AND enabled=1",p.id);
 }
 export function publish(user:User,b:any){return tx(()=>{publishInTransaction(user,b);return openProject(user,b.id);});}
 export function decideRelease(user:User,b:any){return tx(()=>{

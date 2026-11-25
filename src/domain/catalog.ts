@@ -29,6 +29,12 @@ const assetFields = [
 const agentFields = [
   area('goal','맡길 일',true), area('instruction','작업 지시'), area('criterion','원하는 결과'),
 ];
+export function selectionSettings(node:Block) {
+  const c=node.config;
+  return node.type==='agent.select_candidate'
+    ? {options:c.candidates??c.tasks??[],instruction:c.criterion??c.goal??''}
+    : {options:c.tasks??c.candidates??[],instruction:c.goal??c.criterion??''};
+}
 const agentInputs = [...inputs,context,skill,mcp,question];
 const functionRef = ref('workflow','호출 가능한 Workflow','workflow');
 const entry = (type: string, name: string, description: string, group: Group, level: number,
@@ -55,6 +61,10 @@ export function terminalBehavior(node: Block): TerminalBehavior {
 export function canonicalErrorStrategy(strategy: string): string {
   return strategy === 'report' || strategy === 'fallback' ? 'continue' : strategy;
 }
+export function answerFormat(value:unknown):'text'|'json'|'markdown' {
+  const format=typeof value==='string'?value.trim().toLowerCase():'';
+  return format==='json'||format==='markdown'?format:'text';
+}
 
 export function changesKnowledgeRelease(node: Block): boolean {
   return node.type === 'knowledge.manage' && (node.config.operation === 'publish' || node.config.operation === 'withdraw');
@@ -65,11 +75,12 @@ export const catalog: Definition[] = [
     [area('question','예시 질문')],[],outputs),
   entry('input.form','입력 양식·추가 질문','부족한 정보를 물어보고 같은 실행에서 회신을 받습니다. 필요하면 회신 기한을 정합니다.','input',2,
     [area('prompt','이용자에게 물어볼 내용',true),json('fields','입력 항목',[]),
+      text('historyFields','다음 문답에 남길 회신 항목 (쉼표로 구분, *는 전체)'),
       count('replyTimeoutMinutes','회신 기한(분)',0,0,replyDeadlineMaxMinutes)],[incoming,{...input,required:false}],outputs),
   entry('control.trigger','시작 조건','선택한 시작 조건을 충족하는 실행의 입력을 전달합니다.','input',4,
     [choice('trigger','시작 방식',[['manual','수동'],['schedule','예약'],['event','이벤트']]),text('schedule','실행 일정'),text('event','이벤트 이름')],[],outputs),
   entry('output.answer','답변 전달','결과를 반환하거나 완료 안내, 실행 중지, 실패 처리를 선택합니다.','input',1,
-    [text('format','표시 형식',false,'text')],inputs,[]),
+    [choice('format','표시 형식',[['text','텍스트'],['json','JSON'],['markdown','Markdown']])],inputs,[]),
   entry('control.terminate','종료·중단','지정한 상태와 안내 문구로 종료합니다.','input',2,
     [{key:'status', label:'종료 결과', type:'select', options:terminalBehaviorOptions.filter(option=>option.value!=='answer'), default:'success'},
       text('message','종료 안내')],[incoming,{...input,required:false}],[],'output.answer'),
@@ -108,9 +119,12 @@ export const catalog: Definition[] = [
   entry('connection.mcp','MCP 연결','서버에 등록된 도구 연결을 참조합니다.','resource',3,
     [...assetFields,text('server','MCP 연결 이름')],[],[reference('mcp')], ''),
   entry('file.input','파일 입력','이용자가 입력한 파일과 원문을 받습니다.','file',2,
-    [text('accept','허용 형식',false,'.txt,.md,.json,.csv'),text('fileName','파일 이름'),area('content','시험 파일 내용')],[],outputs),
+    [text('accept','허용 형식',false,'.txt,.md,.json,.csv'),
+      choice('attachmentMode','사용할 파일',[['initial','첫 질문에 첨부한 파일 사용'],['request','이 단계에서 새 파일 요청']]),
+      text('historyFields','다음 문답에 남길 첨부 JSON 항목 (쉼표로 구분, *는 원문)'),
+      text('fileName','파일 이름'),area('content','시험 파일 내용')],[],outputs),
   entry('document.read','문서 내용 읽기','연결된 파일의 본문과 원래 위치를 추출합니다.','file',2,
-    [choice('format','문서 형식',[['auto','자동'],['text','본문'],['json','JSON'],['csv','표']])]),
+    [choice('format','문서 형식',[['auto','자동'],['text','본문'],['json','JSON'],['csv','표']])],inputs,[...outputs,port('lines','원래 행 번호와 본문','data')]),
   entry('knowledge.search','자료 검색','질문과 관련 있는 원문 위치와 발췌를 찾습니다.','file',3,
     [text('query','검색어 또는 질의'),{...choice('matchMode','검색 방식',[['ranked','관련도순'],['literal','검색어가 그대로 있는 원문 행']]),advanced:true},
       text('storeKey','저장한 자료집 이름'),text('version','검색 자료판'),count('topK','최대 결과 수',5,1,30)], [...inputs,context],

@@ -2,7 +2,7 @@ import {NextRequest,NextResponse} from 'next/server';
 import {lookupSession,authenticate,logOut,usage} from '../../../server/auth';
 import {assetList,assetShare,copyAsset,documentPreviews,readLibraryAsset,sharedAssetList,writeAsset} from '../../../server/assets';
 import {deleteAsset,listTrashedAssets,purgeTrashedAssets,restoreAsset} from '../../../server/asset-trash';
-import {assetDeleteImpact,draftArchiveList,projectSharedAccess,publicationState} from '../../../server/projects';
+import {assetDeleteImpact,draftArchiveList,inspectImportedDesign,projectSharedAccess,publicationState} from '../../../server/projects';
 import {openProject,listProjects,listTrashedProjects,createProject,saveProject,deleteProject,restoreProject,purgeTrashedProjects,projectCopy,versionList,snapshot,publish,decideRelease,restore,revoke,caseList,caseSave} from '../../../server/projects';
 import {propose,modelReady} from '../../../server/model';
 import {runGet,runList,startRun,replyRun,stopRun,refreshReceipts,stats,inputFiles,lastTestSources} from '../../../server/runs';
@@ -48,6 +48,7 @@ async function handler(req:NextRequest){
      case 'project.sharedAccess':data=projectSharedAccess(user,b.id,b.token,b.shareGeneration);break;
      case 'project.create':data=createProject(user,b);break;
      case 'project.save':data=saveProject(user,b);break;
+     case 'project.inspectImport':data=inspectImportedDesign(user,b);break;
      case 'project.delete':data=deleteProject(user,b);break;
      case 'project.restore':data=restoreProject(user,b);break;
      case 'project.purge':data=purgeTrashedProjects(user,b);break;
@@ -76,7 +77,7 @@ async function handler(req:NextRequest){
      case 'cases.list':data=caseList(user,b.id);break;
      case 'cases.save':data=caseSave(user,b);break;
      case 'run.inputFiles':data=inputFiles(user,b);break;
-     case 'run.lastTestSources':data=lastTestSources(user,b.id);break;
+     case 'run.lastTestSources':data=lastTestSources(user,b.id,b.version);break;
      case 'run.start':data=startRun(user,b);break;
      case 'trigger.list':data=triggerList(user,b.id);break;
      case 'trigger.enable':data=enableTrigger(user,b);break;

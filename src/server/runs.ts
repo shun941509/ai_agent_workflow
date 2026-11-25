@@ -1,4 +1,5 @@
 import {executeGraph,type EngineCheckpoint,type EngineServices,type EngineRequest,type EngineEvent} from '../engine';
+import {completedRunFiles} from '../engine/legacy-files';
 import {membershipQuestion,type Block,type Graph} from '../domain';
 import {isIntroExampleAnswer} from '../domain/intro-example-answer';
 import {beginnerRuleSource,sourceSnapshot,type TestSources} from '../domain/source-preview';
@@ -10,11 +11,11 @@ import {pins} from './assets';
 import {bindRunAssets} from './run-assets';
 import type {McpPin} from '../domain/mcp-scope';
 import {project,getVersion,owned,canProject,canReadProjectEdition,runnable,stripGraphGrants,type Project} from './projects';
-import {attachmentError,attachmentFrom,fileExtensions,literalRunQuestion,runInputLimit,type FileExample} from '../domain/run-input';
+import {attachmentError,attachmentFrom,fileExtensions,literalRunQuestion,questionText,runInputLimit,type FileExample} from '../domain/run-input';
 import {record} from '../engine/values';
 import {replyFieldError} from '../domain/reply-form';
 import {requireThat,stringArg,StudioError} from './errors';
-import {library,externalMcp} from './mcp';
+import {library,externalMcp,externalDefinitions} from './mcp';
 import {resolveWorkflowRefs} from './workflow-refs';
 import {authorizeKnowledgeHistory,bindKnowledge,publishedSourceIndex} from './knowledge';
 type Row={id:string;conversation:string;owner:string;input:string;state:string;output:string;error:string;checkpoint:string|null;prompt:string|null;retries:string|null;created:string;updated:string;lease:string|null;request_key:string};
@@ -40,11 +41,24 @@ function checkSharedView(p:Project,user:User,view?:SharedView){
 }
 function access(user:User,c:Conv,p=project(c.project)){requireThat(c.owner===user.id&&canReadProjectEdition(p,user,c.version,c.link_token ?? ''),403,'이 대화를 실행할 권한이 없습니다.');
  const graph=pins(resolveWorkflowRefs(JSON.parse(c.graph),user,p.id,{expand:true}),user);
- authorizeKnowledgeHistory(user,c.id,graph,p.id,c.mode==='test'?c.scope:'live');return graph;}
+ if(c.mode==='test')applyFixtureDocuments(graph,runFixture(c.id).documents);
+ authorizeKnowledgeHistory(user,c.id,graph,p.id,c.mode==='test'?c.scope:'live');
+ return graph;}
 function mine(user:User,id:string){const r=row(id);requireThat(r.owner===user.id,403,'본인의 실행만 열 수 있습니다.');return r;}
 type CaseSnapshot={caseId:string|null;title:string;expected:string};
 function runCase(id:string){return one<CaseSnapshot>('SELECT case_id AS caseId,title,expected FROM run_case_snapshots WHERE run=?',id);}
 function runFixture(id:string){return parse(one<{data:string}>('SELECT data FROM run_fixtures WHERE conversation=?',id)?.data??null)??{};}
+function applyFixtureDocuments(graph:Graph,documents:unknown,path:string[]=[]){
+  if(!documents||typeof documents!=='object'||Array.isArray(documents))return;
+  const sources=record(documents);
+  for(const node of graph.nodes){
+    const address=[...path,node.id],doc=sources[JSON.stringify(address)]??sources[node.id];
+    if(node.type==='resource.context'&&typeof doc==='string'){
+      node.config.content=doc;delete node.config.assetId;delete node.config.assetGrant;
+    }
+    if(node.graph)applyFixtureDocuments(node.graph,documents,address);
+  }
+}
 const numberedRuns=`SELECT r.id, row_number() OVER (ORDER BY r.rowid) AS runNumber
   FROM runs r JOIN conversations c ON c.id=r.conversation WHERE r.owner=? AND c.project=?`;
 
@@ -60,10 +74,14 @@ function usedEditions(graph:Graph,events:EngineEvent[]) {
   index(graph.nodes);
   const editions=new Map<string,{title:string;version:number}>();
   for(const event of events){
-    const ref=event.data as {type?:string;version?:unknown}|undefined;
+    const ref=event.data as {type?:string;version?:unknown;assetId?:string|null}|undefined;
     if(event.kind!=='result'||!ref?.version||!['resource.context','instruction.skill','connection.mcp'].includes(ref.type??''))continue;
     const version=Number(ref.version);
     if(!Number.isSafeInteger(version)||version<1)continue;
+    if(Object.hasOwn(ref,'assetId')){
+      if(ref.assetId)editions.set(JSON.stringify([event.title,version]),{title:event.title,version});
+      continue;
+    }
     const candidates=event.path==='root/'+encodeURIComponent(event.nodeId)?graph.nodes:references.get(event.nodeId)??[];
     const matches=candidates.filter(node=>node.id===event.nodeId && node.type===ref.type && node.title===event.title && Number(node.config.version)===version);
     // An inline document or a test fixture can carry a version field from the original block.
@@ -87,12 +105,15 @@ function dto(r:Row,full=true,view?:SharedView,number?:number){const c=conversati
   const snapshot=runCase(r.id);
   const beginnerDraft=full && p.lesson==='beginner' && p.owner===viewer.id && c.mode==='test' && !c.version;
   const fixture=full && (snapshot || beginnerDraft) ? runFixture(c.id) : undefined;
-  const events=readCheckpoint(r.checkpoint)?.events??[];
+  const checkpoint=readCheckpoint(r.checkpoint),events=checkpoint?.events??[];
+  const files=full && r.state==='completed' && checkpoint?completedRunFiles(graph,checkpoint):[];
   return {...summary,input:r.input,output:r.output,error:r.error,prompt:parse(r.prompt),usedEditions:usedEditions(graph,events),
   ...(beginnerDraft && typeof fixture?.documents?.rules!=='string'
     ? {beginnerRule:beginnerRuleSource(graph)} : {}),
   ...(p.lesson==='intro' && p.owner===viewer.id ? {isExampleAnswer:c.mode==='test' && r.state==='completed' &&
     r.input.trim()===membershipQuestion && isIntroExampleAnswer(graph,r.output)} : {}),
+  files,outputFormat:checkpoint?.outputFormat,
+  prompts:r.state==='waiting'?Object.values(checkpoint?.waits??{}):[],
   ...(snapshot?{testCase:full?{...snapshot,fixture}:snapshot}:{}),
   events:full?events:[],operations:full?all<Operation>('SELECT * FROM operations WHERE run=?',r.id).map(o=>({id:o.id,tool:o.tool,status:o.status,result:parse(o.result)})):[]};}
 export function runGet(user:User,id:string,view?:SharedView){return dto(mine(user,id),true,view);}
@@ -101,6 +122,8 @@ function selectedDesign(user:User,p:Project,b:any){
   if(mode==='test')requireThat(p.owner===user.id,403,'사본을 만든 다음 시험할 수 있습니다.');
   const version=mode==='live'?p.public_version:b.version!=null?Number(b.version):null;
   requireThat(mode==='test'||version,409,'먼저 버전을 게시하세요.');
+  if(mode==='test' && version===null && b.draftRevision!==undefined)
+    requireThat(b.draftRevision===p.revision,409,'현재 초안이 다른 화면에서 변경되었습니다. 설계를 다시 열어 확인한 뒤 시험하세요.');
   const graph=resolveWorkflowRefs(JSON.parse(version?getVersion(p.id,version).graph:p.graph),user,p.id,{expand:true});
   return {mode,version,graph} as const;
 }
@@ -117,10 +140,12 @@ export function inputFiles(user:User,b:any){
   function collect(design:Graph,includeExamples:boolean){
     for(const node of design.nodes){
       if(node.type==='file.input'){
-        hasFile=true;
         const accepted=fileExtensions(node.config.accept);
-        if(!accepted.length)unrestricted=true;
-        for(const ext of accepted)formats.add(ext);
+        if(node.config.attachmentMode!=='request'){
+          hasFile=true;
+          if(!accepted.length)unrestricted=true;
+          for(const ext of accepted)formats.add(ext);
+        }
         if(includeExamples && typeof node.config.content==='string' && node.config.content.length){
           examples.push({blockTitle:node.title,fileName:String(node.config.fileName||'예시'+(accepted[0]||'.txt')),content:node.config.content});
         }
@@ -137,20 +162,24 @@ export function runList(user:User,id:string,conversationId?:string,view?:SharedV
   const query=`SELECT r.*, n.runNumber FROM (${numberedRuns}) n JOIN runs r ON r.id=n.id`;
   const rows=conversationId
     ? all<Row & {runNumber:number}>(query+' WHERE r.conversation=? ORDER BY n.runNumber DESC',user.id,id,conversationId)
-    : all<Row & {runNumber:number}>(query+' ORDER BY n.runNumber DESC LIMIT 100',user.id,id);
+    : all<Row & {runNumber:number}>(query+' WHERE r.state=\'waiting\' OR n.runNumber>(SELECT coalesce(max(runNumber),0)-100 FROM ('+numberedRuns+')) ORDER BY n.runNumber DESC',user.id,id,user.id,id);
   return rows.map(r=>dto(r,false,undefined,r.runNumber));
 }
 export function stats(user:User,id:string){owned(user,id);return all('SELECT state,count(*) n FROM runs JOIN conversations c ON c.id=runs.conversation WHERE c.project=? GROUP BY state',id);}
-export function lastTestSources(user:User,id:string):TestSources|null {
+export function lastTestSources(user:User,id:string,version?:number):TestSources|null {
   const p=owned(user,id);
-  const last=one<{runId:string;conversation:string;created:string}>(
-    "SELECT r.id runId,c.id conversation,r.created FROM runs r JOIN conversations c ON c.id=r.conversation WHERE r.owner=? AND c.project=? AND c.mode='test' ORDER BY r.rowid DESC LIMIT 1",user.id,id);
+  if(version!==undefined)getVersion(id,version);
+  const last=one<{runId:string;conversation:string;created:string;state:string}>(
+    "SELECT r.id runId,c.id conversation,r.created,r.state FROM runs r JOIN conversations c ON c.id=r.conversation WHERE r.owner=? AND c.project=? AND c.mode='test'"+
+    (version===undefined?'':' AND c.version=?')+' ORDER BY r.rowid DESC LIMIT 1',user.id,id,...(version===undefined?[]:[version]));
   if(!last)return null;
   const c=conversation(last.conversation);
-  const target={runId:last.runId,version:c.version,created:last.created};
+  const target={runId:last.runId,version:c.version,created:last.created,state:last.state};
   try {
     access(user,c,p);
-    return {...target,caseTitle:runCase(last.runId)?.title,sources:sourceSnapshot(JSON.parse(c.graph))};
+    const r=version===undefined?undefined:row(last.runId);
+    return {...target,caseTitle:runCase(last.runId)?.title,sources:sourceSnapshot(JSON.parse(c.graph)),
+      ...(r?{question:questionText(r.input),answer:r.output,error:r.error}:{})};
   } catch(error) {
     if(!(error instanceof StudioError))throw error;
     return {...target,sources:null};
@@ -208,12 +237,10 @@ export function enqueueRun(user:User,b:any,origin?:EngineRequest['trigger']){
      if(copiedCase){
        const source=mine(user,b.caseFromRun),prior=conversation(source.conversation);
        snapshot=runCase(source.id);
-       requireThat(prior.mode==='test'&&prior.project===p.id&&snapshot,400,'같은 프로젝트의 시험 사례 실행을 선택하세요.');
+       requireThat(prior.mode==='test'&&prior.project===p.id,400,'같은 프로젝트의 시험 실행을 선택하세요.');
        access(user,prior,p);userInput=source.input;fixture=runFixture(prior.id);
      }
-     if(!old && fixture?.documents && typeof fixture.documents==='object'){
-       for(const n of graph.nodes){const doc=fixture.documents[n.id];if(n.type==='resource.context'&&typeof doc==='string'){n.config.content=doc;delete n.config.assetId;}}
-     }
+     if(!old)applyFixtureDocuments(graph,fixture?.documents);
      // Gallery visits and direct links both bind the new conversation to the current publication.
      c={id,owner:user.id,project:p.id,version:ver,graph:JSON.stringify(graph),mode,scope,link_token:p.owner===user.id?null:p.token,created:now()};
      set('INSERT INTO conversations VALUES(?,?,?,?,?,?,?,?,?)',c.id,c.owner,c.project,c.version,c.graph,c.mode,c.scope,c.link_token,c.created);
@@ -230,10 +257,15 @@ export function stopRun(user:User,id:string){const r=mine(user,id);
  if(['queued','running','waiting'].includes(r.state))set("UPDATE runs SET state='stopped',prompt=NULL,lease=NULL,lease_until=0,updated=? WHERE id=? AND state IN ('queued','running','waiting')",now(),id);return dto(row(id));}
 export function replyRun(user:User,b:any){return tx(()=>{const r=mine(user,b.runId),c=conversation(r.conversation),p=project(c.project);
  checkSharedView(p,user,b);access(user,c,p);
- const waitId=stringArg(b.waitId,'대기 번호',1000),prompt=parse(r.prompt);
- const repeated=one('SELECT 1 FROM replies WHERE run=? AND wait_id=?',r.id,waitId);
- if(repeated && !(r.state==='waiting' && prompt?.id===waitId && prompt.fieldError))return dto(r);
- requireThat(r.state==='waiting'&&prompt?.id===waitId,409,'이 승인 또는 질문은 이미 종료되었습니다.');
+ const waitId=stringArg(b.waitId,'대기 번호',1000),checkpoint=readCheckpoint(r.checkpoint);
+ const shown=parse(r.prompt),prompt=checkpoint?.waits[waitId]??(shown?.id===waitId?shown:null);
+ const repeated=one<{data:string}>('SELECT data FROM replies WHERE run=? AND wait_id=?',r.id,waitId);
+ if(repeated && !(r.state==='waiting' && prompt?.id===waitId && prompt.fieldError)){
+   const previous=JSON.parse(repeated.data);
+   requireThat(previous.approved===b.approved && previous.value===(b.value??''),409,'다른 회신이 먼저 접수되었습니다. 실행 상태를 확인하세요.');
+   return dto(r);
+ }
+ requireThat((r.state==='waiting'||r.state==='queued')&&prompt?.id===waitId,409,'이 승인 또는 질문은 이미 종료되었거나 처리 중입니다.');
  const receivedAt=Date.now();
  requireThat(!prompt.expiresAt || receivedAt<Date.parse(prompt.expiresAt),409,'대기 기한이 지났습니다.');
  if(prompt.kind==='approval')requireThat(typeof b.approved==='boolean',400,'승인 또는 거절을 선택하세요.');
@@ -277,10 +309,27 @@ async function execute(id:string,lease:string){
  const graph=access(user,c),assets=bindRunAssets(graph,user);
  const knowledge=bindKnowledge(graph,c.project,user,c.id,c.mode==='test'?c.scope:undefined);
  stripGraphGrants(graph);
- const history=all<{input:string;output:string}>("SELECT input,output FROM runs WHERE conversation=? AND state='completed' AND id!=? ORDER BY created",c.id,id)
-   .flatMap(x=>[{role:'user' as const,content:literalRunQuestion(x.input)??x.input},{role:'assistant' as const,content:x.output}]);
+ const history=all<{input:string;output:string;details:string|null}>("SELECT input,output,json_extract(checkpoint,'$.historyDetails') AS details FROM runs WHERE conversation=? AND state='completed' AND id!=? ORDER BY created",c.id,id)
+   .flatMap(x=>{
+     const file=attachmentFrom(x.input),question=literalRunQuestion(x.input)??(file?String(record(x.input).question??file.fileName):x.input);
+     const details=x.details?Object.values(JSON.parse(x.details)):[];
+     return [{role:'user' as const,content:details.length?question+'\n'+JSON.stringify(details):question},{role:'assistant' as const,content:x.output}];
+   });
  const readOnly=(name:string,pin?:McpPin)=>{const ext=assets.connector(name,pin);return name==='reservations.list'||name==='knowledge.search'||Boolean(ext?.payload.readOnlyTools?.includes(ext.tool));};
+ const definitions=new Map<string,ReturnType<typeof externalDefinitions>>();
  const services:EngineServices={knowledge,sourceIndex:publishedSourceIndex,
+   toolDefinition:async(name,pin)=>{
+     authorizeDispatch();
+     const ext=assets.connector(name,pin);
+     if(!ext)return;
+     if(ext.payload.builtin==='library')return {description:'예약 목록 조회',parameters:{type:'object',properties:{},additionalProperties:false}};
+     const edition=JSON.stringify(pin);
+     let pending=definitions.get(edition);
+     if(!pending){pending=externalDefinitions(ext.payload,c.scope.startsWith('test:'));definitions.set(edition,pending);}
+     const definition=(await pending).get(ext.tool);
+     requireThat(definition,422,'연결한 MCP 서버에서 도구의 인자 정의를 찾을 수 없습니다.');
+     return definition;
+   },
    model:async request=>{authorizeDispatch();return model(request);},isStopped,allowedTools:[...builtin,'knowledge.search',...assets.tools],isReadOnlyTool:readOnly,
    save:async state=>{set("UPDATE runs SET checkpoint=?,updated=? WHERE id=? AND state='running' AND lease=?",JSON.stringify(state),now(),id,lease);},
    asset:async(assetId,version)=>{const {asset,version:n,payload}=assets.read(assetId,version);return {id:assetId,title:asset.name,version:String(n),content:payload.content};},
@@ -325,9 +374,9 @@ async function execute(id:string,lease:string){
     catch(e){if(e instanceof StudioError&&e.status===422)set("UPDATE operations SET status='rejected' WHERE id=?",dispatchId);throw e;}
    }};
  const checkpoint=readCheckpoint(r.checkpoint);
- const pending=all<{data:string}>('SELECT data FROM replies WHERE run=? ORDER BY rowid DESC',id).map(x=>JSON.parse(x.data)).find(x=>checkpoint?.waits[x.waitId]&&!checkpoint?.replies[x.waitId]);
+ const pending=all<{data:string}>('SELECT data FROM replies WHERE run=? ORDER BY rowid',id).map(x=>JSON.parse(x.data)).filter(x=>checkpoint?.waits[x.waitId]&&!checkpoint?.replies[x.waitId]);
  const origin=one<{data:string}>('SELECT data FROM run_origins WHERE run=?',id);
- const req:EngineRequest={runId:id,input:r.input,checkpoint:checkpoint??undefined,reply:pending,history,trigger:origin?JSON.parse(origin.data):undefined};
+ const req:EngineRequest={runId:id,input:r.input,checkpoint:checkpoint??undefined,replies:pending,history,trigger:origin?JSON.parse(origin.data):undefined};
  const result=await executeGraph(graph,req,services);
  set("UPDATE runs SET state=?,output=?,error=?,checkpoint=?,prompt=?,lease=NULL,lease_until=0,updated=? WHERE id=? AND state='running' AND lease=?",result.status,result.output,result.error??'',JSON.stringify(result.checkpoint),result.wait?JSON.stringify(result.wait):null,now(),id,lease);
  }catch(e){set("UPDATE runs SET state='failed',error=?,lease=NULL,lease_until=0,updated=? WHERE id=? AND state='running' AND lease=?",e instanceof Error?e.message:'실행에 실패했습니다.',now(),id,lease);}

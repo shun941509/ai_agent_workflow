@@ -64,6 +64,7 @@ export interface EditorProps {
   sourceOutputRef?: Ref<() => SourceOutput>;
   onAccount: () => void;
   onSave: (graph: Graph, title: string) => Promise<void>;
+  getDraftRevision: () => number|undefined;
   onSaveReference: SaveReferenceDocument;
   onRefreshAssets: () => Promise<void>;
   onPropose: (prompt: string, graph: Graph) => Promise<Graph>;
@@ -88,7 +89,7 @@ export interface EditorProps {
 }
 type Doc = { graph: Graph; title: string };
 type HistoryFocusChange = {path:string[]; before:Selection; after:Selection; undoText:string; redoText:string};
-type HistoryEntry = {doc: Doc; focus?:HistoryFocusChange; keyHold?:symbol};
+type HistoryEntry = {doc: Doc; focus?:HistoryFocusChange; keyHold?:symbol; removedDrafts?:SourceDraft[]};
 const message = (cause: unknown) => (cause instanceof Error ? cause.message : String(cause));
 const fingerprint = (doc: Doc) => JSON.stringify(doc);
 function preservePositions(proposed: Graph, previous: Graph): Graph {
@@ -196,6 +197,7 @@ export default function Editor({
   sourceOutputRef,
   onAccount,
   onSave,
+  getDraftRevision,
   onSaveReference,
   onRefreshAssets,
   onPropose,
@@ -321,6 +323,8 @@ export default function Editor({
   const [importText, setImportText] = useState(''),
     [importError, setImportError] = useState(''),
     [name, setName] = useState('');
+  const [importWarning,setImportWarning]=useState<{text:string;missing:string[]}>();
+  const importCheck=useRef(0);
   const durable = useRef(fingerprint({ graph, title })),
     timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const running = useRef<Promise<boolean> | null>(null),
@@ -383,7 +387,10 @@ export default function Editor({
     const previous = docRef.current;
     if (fingerprint(next) === fingerprint(previous)) return;
     if (!keyHold || past.current.at(-1)?.keyHold !== keyHold || future.current.length) {
-      past.current = [...past.current.slice(-69), {doc:previous, focus, keyHold}];
+      const previousDrafts=retainSourceDrafts(draftRef.current,previous.graph);
+      const nextDrafts=retainSourceDrafts(previousDrafts,next.graph);
+      const removedDrafts=Object.entries(previousDrafts).filter(([key])=>!nextDrafts[key]).map(([,draft])=>draft);
+      past.current = [...past.current.slice(-69), {doc:previous, focus, keyHold,removedDrafts}];
     }
     future.current = [];
     replaceDoc(next);
@@ -493,7 +500,10 @@ export default function Editor({
       target = forward ? past.current : future.current,
       next = source.pop();
     if (!next) return;
-    target.push({doc:docRef.current, focus:next.focus});
+    const currentDrafts=retainSourceDrafts(draftRef.current,docRef.current.graph);
+    const nextDrafts=retainSourceDrafts(currentDrafts,next.doc.graph);
+    target.push({doc:docRef.current, focus:next.focus,removedDrafts:Object.entries(currentDrafts).filter(([key])=>!nextDrafts[key]).map(([,draft])=>draft)});
+    for(const draft of next.removedDrafts??[])storeDraft(sourceDraftKey(draft.path,draft.id),draft);
     replaceDoc(next.doc);
     setSaveState('편집 중');
     if (next.focus) {
@@ -968,28 +978,39 @@ export default function Editor({
     setDialog(null);
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
-  const importGraph = () => {
+  const importGraph = async () => {
+    const check=++importCheck.current;
+    setImportError('');
     try {
       const source = JSON.parse(importText),
         raw = source.graph ?? source;
       if (!Array.isArray(raw.nodes) || !Array.isArray(raw.edges))
         throw Error('블록과 연결선 목록을 포함한 설계 JSON이 필요합니다.');
+      const graph=migrateGraph(raw);
+      if(importWarning?.text!==importText){
+        const missing=await api<string[]>('project.inspectImport',{id:project.id,graph});
+        if(check!==importCheck.current)return;
+        if(missing.length){setImportWarning({text:importText,missing});return;}
+      }
       apply(
-        { graph: migrateGraph(raw), title: typeof source.title === 'string' ? source.title : doc.title },
+        { graph, title: typeof source.title === 'string' ? source.title : doc.title },
         '설계를 가져왔습니다.',
       );
+      setImportWarning(undefined);
       setPath([]);
       setSelection(null);
       setDialog(null);
       setLayoutRev((v) => v + 1);
     } catch (e) {
-      setImportError(message(e));
+      if(check===importCheck.current)setImportError(message(e));
     }
   };
   const openMenuAction = (action: WorkspaceMenuAction) => {
     if (action === 'import') {
+      importCheck.current++;
       setImportText('');
       setImportError('');
+      setImportWarning(undefined);
     }
     setDialog(action);
   };
@@ -1320,7 +1341,7 @@ export default function Editor({
               {runOpened && <div hidden={needsSourceChoice}><RunPanel project={project} api={api} initialInput={lesson?.question}
                 initialPendingRun={resumeRun} onPendingRunChange={setPendingRun}
                 onExampleAnswer={practice === 'example' ? recordExampleAnswer : undefined}
-                editorDraft={{ graph: doc.graph, active: inspectorTab === 'results' && !needsSourceChoice, sourceChoice, save: flush,
+                editorDraft={{ graph: doc.graph, active: inspectorTab === 'results' && !needsSourceChoice, sourceChoice, save: flush,getDraftRevision,
                   issue: issues[0]?.message, onInspectIssues: () => setDialog('issues') }}/></div>}
             </div>
           </div>
@@ -1442,7 +1463,7 @@ export default function Editor({
           </Modal>
         )}
         {dialog === 'import' && (
-          <Modal title="설계 가져오기" onClose={() => setDialog(null)}>
+          <Modal title="설계 가져오기" onClose={() => {importCheck.current++;setImportWarning(undefined);setDialog(null);}}>
             <p>가져온 설계를 적용할 프로젝트는 <strong>{doc.title}</strong>입니다.</p>
             <label className="ws-field">
               <span>설계 JSON 파일</span>
@@ -1451,20 +1472,19 @@ export default function Editor({
                 accept=".json,application/json"
                 onChange={async (e) => {
                   const file = e.target.files?.[0];
-                  if (file) {
-                    if (file.size > 2_000_000) {
-                      setImportError('2MB 이하의 설계를 선택하세요.');
-                      return;
-                    }
-                    setImportText(await file.text());
-                    setImportError('');
-                  }
+                  const check=++importCheck.current;
+                  if(!file)return;
+                  try{
+                    const text=await file.text();
+                    if(check===importCheck.current){setImportText(text);setImportError('');setImportWarning(undefined);}
+                  }catch(error){if(check===importCheck.current)setImportError(message(error));}
                 }}
               />
             </label>
             <button
               className="ws-btn"
               onClick={() => {
+                importCheck.current++;
                 try {
                   const value = localStorage.getItem('library-agent-studio.design.v2');
                   if (!value)
@@ -1482,15 +1502,18 @@ export default function Editor({
             </button>
             <label className="ws-field">
               <span>설계 내용</span>
-              <textarea value={importText} onChange={(e) => setImportText(e.target.value)} rows={6} />
+              <textarea value={importText} onChange={(e) => {importCheck.current++;setImportText(e.target.value);}} rows={6} />
             </label>
             {importError && (
               <p role="alert" className="ws-danger">
                 {importError}
               </p>
             )}
+            {importWarning?.text===importText && <div role="alert">이 프로젝트에서 사용할 수 없는 자료가 있습니다.
+              <ul>{importWarning.missing.map(value=><li key={value}>{value}</li>)}</ul>
+              <p>자료를 포함하려면 원본 Agent에서 내 사본 만들기를 사용하거나 이 프로젝트에서 해당 자료판을 발행하세요.</p></div>}
             <button className="ws-btn ws-primary" disabled={!importText.trim()} onClick={importGraph}>
-              현재 초안에 적용
+              {importWarning?.text===importText?'자료 없이 현재 초안에 적용':'현재 초안에 적용'}
             </button>
           </Modal>
         )}
@@ -1526,7 +1549,7 @@ export default function Editor({
                 <h3>적용할 변경</h3>
                 <ul className="ws-diff">
                   {graphChanges(JSON.parse(proposal.base), proposal.graph).map((t, i) => (
-                    <li key={i}>{t}</li>
+                    <li key={i}>{t.length>320 ? <details><summary>{t.slice(0,140)}… · 전체 변경 보기</summary><p style={{whiteSpace:'pre-wrap'}}>{t}</p></details> : t}</li>
                   ))}
                 </ul>
                 <div className="ws-modal-actions">

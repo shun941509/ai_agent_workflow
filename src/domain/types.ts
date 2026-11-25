@@ -24,7 +24,8 @@ export type Block = {
   config: Record<string, any>; graph?: Graph;
 };
 export type Edge = {id: string; from: string; to: string; kind: EdgeKind; out: string; input: string; label?: string};
-export type Graph = {nodes: Block[]; edges: Edge[]};
+export type AgentScope = {mode: 'dedicated' | 'general'; purpose: string};
+export type Graph = {nodes: Block[]; edges: Edge[]; agentScope?: AgentScope};
 export type Issue = {message: string; nodeId?: string; edgeId?: string; path?: string[]; routeId?: string; fieldKey?: string};
 export type Lesson = {
   id: string; title: string; level: Level; description: string; task: string; question: string;

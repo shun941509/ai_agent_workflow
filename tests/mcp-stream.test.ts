@@ -29,7 +29,7 @@ test('MCP 스트림은 같은 요청의 응답을 찾아 서버가 연결을 닫
       res.writeHead(202).end();
       return;
     }
-    res.writeHead(200, { 'content-type': 'text/event-stream' });
+    res.writeHead(200, { 'content-type': 'Text/Event-Stream; charset=utf-8' });
     const notify = {
       id: 'unrelated',
       jsonrpc: '2.0',

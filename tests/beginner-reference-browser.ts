@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { chromium, expect, type BrowserContext, type Page } from '@playwright/test';
 import type { Graph } from '../src/domain';
 import { executeGraph } from '../src/engine';
+import { completedRunFiles } from '../src/engine/legacy-files';
 import { registerBrowserAccount } from './browser-account';
 
 const baseURL = process.env.STUDIO_TEST_URL;
@@ -45,8 +46,9 @@ async function answerLoanQuestion(page: Page, project: string, expectedLimit: 3 
       tool: async () => { throw Error('초급 실습은 외부 도구를 호출하지 않습니다.'); },
     });
     const now = new Date().toISOString();
+    const files=result.status==='completed'?completedRunFiles(graph,result.checkpoint):[];
     await route.fulfill({json:{data:{id:runId, mode:'test', conversation:runId, input:data.input,
-      state:result.status, output:result.output, events:result.events, error:result.error, created:now, updated:now}}});
+      state:result.status, output:result.output, files, events:result.events, error:result.error, created:now, updated:now}}});
   });
   await page.getByRole('button', {name:'시험 실행', exact:true}).click();
   const panel = page.getByRole('tabpanel', {name:'실행 결과'});

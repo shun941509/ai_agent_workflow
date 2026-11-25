@@ -1,7 +1,7 @@
 import {useCallback, useRef, useState, type SetStateAction} from 'react';
 import {attachmentFrom, type Attachment} from '../domain/run-input';
 
-type Draft = {question?:string;attachment:Attachment|null;updated?:string};
+type Draft = {question?:string;attachment:Attachment|null;updated?:string;failedQuestions?:string[]};
 const emptyDraft:Draft={attachment:null};
 
 // Only the signed-in viewer and this Agent can reopen these tab-local drafts.
@@ -12,13 +12,14 @@ export function useConversationComposer(enabled:boolean,prefix:string|undefined,
     if(retained)return retained;
     if(prefix)try{
       const value=JSON.parse(sessionStorage.getItem(prefix+key)||'null');
-      if(value)return {question:typeof value.question==='string'?value.question:undefined,attachment:attachmentFrom(value.attachment)??null,updated:typeof value.updated==='string'?value.updated:undefined};
+      if(value)return {question:typeof value.question==='string'?value.question:undefined,attachment:attachmentFrom(value.attachment)??null,updated:typeof value.updated==='string'?value.updated:undefined,
+        failedQuestions:Array.isArray(value.failedQuestions)?value.failedQuestions.filter((q:unknown)=>typeof q==='string'):[]};
     }catch{}
     return emptyDraft;
   },[prefix]);
   const write=useCallback((key:string,value:Draft)=>{
     if(!enabled)return;
-    const empty=!value.question && !value.attachment;
+    const empty=!value.question && !value.attachment && !value.failedQuestions?.length;
     if(empty)memory.current.delete(key);else memory.current.set(key,value);
     if(prefix)try{
       if(empty)sessionStorage.removeItem(prefix+key);
@@ -35,6 +36,11 @@ export function useConversationComposer(enabled:boolean,prefix:string|undefined,
     change({question:typeof next==='function'?next(live.current.question):next});
   },[change]);
   const setAttachment=useCallback((attachment:Attachment|null)=>change({attachment}),[change]);
+  const rememberSubmission=useCallback((question:string,retain:boolean)=>{
+    const questions=(live.current.failedQuestions??[]).filter(q=>q!==question);
+    if(retain)questions.push(question);
+    change({failedQuestions:questions});
+  },[change]);
   const enter=useCallback((key:string,promoteNew=false)=>{
     if(!enabled || location.current===key)return;
     const promote=promoteNew && location.current.startsWith('new/');
@@ -42,5 +48,5 @@ export function useConversationComposer(enabled:boolean,prefix:string|undefined,
     if(promote){write(location.current,emptyDraft);write(key,next);}
     location.current=key;live.current=next;setValue(next);
   },[enabled,read,write]);
-  return {typedInput:value.question,attachment:value.attachment,setInput,setAttachment,enter,readDraft:read};
+  return {typedInput:value.question,attachment:value.attachment,setInput,setAttachment,enter,readDraft:read,failedQuestions:value.failedQuestions??[],rememberSubmission};
 }

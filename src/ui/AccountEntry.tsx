@@ -5,7 +5,7 @@ import { api, message } from './client';
 import StudioMark from './StudioMark';
 import './account-entry.css';
 
-type GuestWork = { projects: number; assets: number; conversations: number; links: number };
+type GuestWork = { projects: number; assets: number; conversations: number; links: number; examples:number };
 
 export default function AccountEntry({ returnTo, guestWork }: { returnTo: string; guestWork: GuestWork | null }) {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
@@ -78,7 +78,7 @@ export default function AccountEntry({ returnTo, guestWork }: { returnTo: string
             <fieldset className="account-migration" disabled={busy}>
               <legend>이 브라우저의 이전 게스트 작업</legend>
               <p>Agent {guestWork.projects}개 · 자료 {guestWork.assets}개 · 대화 {guestWork.conversations}개
-                {guestWork.links > 0 && ` · 공유받은 링크 ${guestWork.links}개`} (휴지통 포함)</p>
+                {guestWork.links > 0 && ` · 공유받은 링크 ${guestWork.links}개`}{guestWork.examples>0 && ` · 예제 설치 기록 ${guestWork.examples}개`} (휴지통 포함)</p>
               {signup ? <p>계정을 만들면 이 작업이 새 계정에 보관됩니다.</p> : <>
                 <label><input name="guest-work" type="radio" value="import" checked={choice === 'import'}
                   onChange={() => setChoice('import')} required />계정으로 가져오기</label>

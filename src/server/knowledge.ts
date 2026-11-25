@@ -1,11 +1,11 @@
 import {createBlock,type Block,type Graph} from '../domain';
 import type {KnowledgeCollection,KnowledgeSnapshot,Source} from '../engine';
 import {token} from '../engine/session';
-import {buildIndex,type IndexedPassage} from '../engine/values';
+import {buildIndex,originalPassageLines,type IndexedPassage} from '../engine/values';
 import type {User} from './auth';
 import {pins,readAsset,type Visibility} from './assets';
 import {all,one,set,tx} from './db';
-import {requireThat} from './errors';
+import {requireThat,StudioError} from './errors';
 
 type Collection={project:string;owner:string;scope:string;collection:string;version:string};
 type SourcePin={assetId:string;version:string;assetGrant?:string};
@@ -117,8 +117,23 @@ export function validateKnowledgePublication(graph:Graph,project:string,user:Use
 export function publishedSourceIndex(documents:Source[]):IndexedPassage[]{
   return documents.flatMap(doc=>{
     const stored=one<{entries:string}>('SELECT entries FROM knowledge_document_indexes WHERE digest=?',token(doc));
-    return stored?JSON.parse(stored.entries) as IndexedPassage[]:buildIndex([doc]);
+    return stored?originalPassageLines(JSON.parse(stored.entries),[doc]):buildIndex([doc]);
   });
+}
+
+/** A design JSON carries collection names, while published editions belong to their project. */
+export function missingImportedCollections(graph:Graph,projectId:string,user:User){
+  const missing=new Set<string>();
+  walk(graph,projectId,(node,origin)=>{
+    if(!node.config.storeKey || !['knowledge.search','knowledge.manage'].includes(node.type))return;
+    const name=String(node.config.storeKey),version=String(node.config.version??'');
+    if(!version){missing.add(name+' · 버전 미지정');return;}
+    if(!origin){missing.add(name+' · '+version+'판');return;}
+    const c=collection(origin,'live',name,version);
+    try{authorize(user,c);}
+    catch(error){if(!(error instanceof StudioError))throw error;missing.add(name+' · '+version+'판');}
+  });
+  return [...missing];
 }
 
 /** Materialize searchable editions alongside copied workflows, then install them under the new owner. */
@@ -223,6 +238,14 @@ export function bindKnowledge(graph:Graph,project:string,user:User,conversation:
             const refs=checkPins(user,sourcePins({documents:JSON.parse(value)},attached));
             write(c,part,value);write(c,'sources-'+part,JSON.stringify(refs));
           }else write(c,part,value);
+        }
+        if(value===undefined&&part.startsWith('snapshot:')){
+          const id=part.slice('snapshot:'.length);
+          const source=testScope&&!load(c,part)&&currentRelease()===id?{...c,scope:'live'}:c;
+          const snapshot=requiredSnapshot(source,id),manifest=load(source,'sources:'+id);
+          const refs=checkPins(user,manifest?JSON.parse(manifest):sourcePins(snapshot,attached));
+          for(const ref of refs)set('INSERT OR REPLACE INTO knowledge_source_reads VALUES(?,?,?,?)',conversation,ref.assetId,ref.version,ref.assetGrant??null);
+          return JSON.stringify(snapshot);
         }
         const stored=load(c,part);
         if(stored&&part.startsWith('draft:')){

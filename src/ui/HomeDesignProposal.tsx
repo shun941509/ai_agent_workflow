@@ -3,10 +3,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Workflow } from 'lucide-react';
 import { emptyGraph, validateGraph, type Graph, type Issue } from '../domain';
+import type { DesignProposal } from '../domain/design-proposal';
 import { workDocumentBindings, workDocumentGraph, type WorkDocument } from '../domain/work-documents';
 import { runInputLimit } from '../domain/run-input';
 import { intentHash, message, StudioApiError } from './client';
 import { subgraph } from './editor/graph';
+
+export async function proposalPayload(userId: string | undefined, project: string | null | undefined, prompt: string, graph: Graph, answer?: string) {
+  const initial = await intentHash([userId, project, prompt.trim(), graph]);
+  return answer?.trim() ? intentHash([initial, answer.trim()]) : initial;
+}
 
 type Props = {
   prompt: string;
@@ -20,13 +26,14 @@ type Props = {
   workDocument?: WorkDocument;
   onBlank: () => void;
   onTemplates: () => void;
-  onRequest: (prompt: string, graph: Graph, signal: AbortSignal) => Promise<Graph>;
+  onRequest: (prompt: string, graph: Graph, signal: AbortSignal, answer?: string) => Promise<DesignProposal>;
   onClose: () => void;
 };
 
 export default function HomeDesignProposal({ prompt, onEdit, creating, createLabel, onCreate, onRequest, onClose,
   modelReady, pendingPayload, userId, workDocument, onBlank, onTemplates }: Props) {
   const request = useRef<AbortController | null>(null);
+  const [answer, setAnswer] = useState<string>();
   const [waiting, setWaiting] = useState(false);
   const [draft, setDraft] = useState<Graph | null>(null);
   const [materialInput, setMaterialInput] = useState(workDocument?.sample ?? '');
@@ -47,22 +54,29 @@ export default function HomeDesignProposal({ prompt, onEdit, creating, createLab
     if (!pendingPayload || modelReady) return;
     let active = true;
     const text = prompt.trim();
-    void intentHash([userId, null, text, base]).then(payload => {
+    void proposalPayload(userId, null, text, base, answer).then(payload => {
       if (active) setRecovery(payload === pendingPayload ? {text, payload, userId} : undefined);
     });
     return () => { active = false; };
-  }, [pendingPayload, modelReady, prompt, userId, base]);
+  }, [pendingPayload, modelReady, prompt, userId, base, answer]);
   useEffect(() => { if (draft) actionButton.current?.focus(); }, [draft]);
   useEffect(() => { if (modelUnavailable) blankButton.current?.focus(); }, [modelUnavailable]);
 
   async function propose() {
-    if (!prompt.trim() || request.current) return;
+    if (!prompt.trim() || (answer !== undefined && !answer.trim()) || request.current) return;
     const controller = new AbortController();
     request.current = controller;
     setWaiting(true);
     setError('');
     try {
-      const graph = await onRequest(prompt, base, controller.signal);
+      const proposal = await onRequest(prompt, base, controller.signal, answer?.trim());
+      if (controller.signal.aborted) return;
+      if ('clarification' in proposal) {
+        if (answer !== undefined) throw new Error('맡길 일과 원하는 결과를 구체적으로 입력해 주세요.');
+        setAnswer('');
+        return;
+      }
+      const graph = proposal.graph;
       if (workDocument) {
         const bindings = workDocumentBindings(graph, workDocument);
         if (!bindings) throw new Error('제안에 업무 입력이나 작성 규칙 연결이 빠졌습니다. 요청문을 수정하거나 기본 설계로 시작하세요.');
@@ -98,9 +112,13 @@ export default function HomeDesignProposal({ prompt, onEdit, creating, createLab
   return <>
     <label className="field">맡길 일과 원하는 결과
       <textarea autoFocus disabled={creating || waiting} value={prompt}
-        onChange={event => { onEdit(event.target.value); setDraft(null); setError(''); }}
+        onChange={event => { onEdit(event.target.value); setAnswer(undefined); setDraft(null); setError(''); }}
         placeholder="회의 내용에서 결정 사항과 담당자를 표로 정리해 줘" />
     </label>
+    {answer !== undefined && <label className="field">어떤 Agent를 만들고 싶으세요?
+      <textarea autoFocus value={answer} disabled={creating || waiting}
+        onChange={event => { setAnswer(event.target.value); setDraft(null); setError(''); }} />
+    </label>}
     {workDocument && <label className="field">{workDocument.inputLabel}
       <textarea value={materialInput} rows={workDocument.material.kind === 'document' ? 7 : 4}
         maxLength={runInputLimit} disabled={creating} onChange={event => setMaterialInput(event.target.value)} />
@@ -128,9 +146,9 @@ export default function HomeDesignProposal({ prompt, onEdit, creating, createLab
     {waiting ? <>
       <p role="status">설계 제안을 작성하고 있습니다.</p>
       <button type="button" className="btn" onClick={onClose}>요청 취소하고 닫기</button>
-    </> : (draft || canRequest) && <button ref={actionButton} type="button" className="btn primary" disabled={creating || !prompt.trim() || Boolean(draft && needsMaterial)}
+    </> : (draft || canRequest) && <button ref={actionButton} type="button" className="btn primary" disabled={creating || !prompt.trim() || (answer !== undefined && !answer.trim()) || Boolean(draft && needsMaterial)}
       onClick={() => draft ? createDraft(draft, first) : void propose()}>
-      {creating ? '만드는 중…' : draft ? (first ? '초안으로 열어 수정' : createLabel) : (offline ? '이전 요청 결과 확인' : error ? '같은 요청 다시 시도' : '초안 제안받기')}
+      {creating ? '만드는 중…' : draft ? (first ? '초안으로 열어 수정' : createLabel) : (offline ? '이전 요청 결과 확인' : answer !== undefined ? '답변으로 초안 제안받기' : error ? '같은 요청 다시 시도' : '초안 제안받기')}
     </button>}
     {workDocument && !waiting && !draft && <button ref={blankButton} type="button" className="btn"
       disabled={creating || !prompt.trim() || needsMaterial}
