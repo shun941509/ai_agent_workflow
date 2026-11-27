@@ -51,7 +51,7 @@ export function revealBlock(view: CanvasView, frame: Size, node: Block, captions
 }
 
 // A long connection may span several viewports. Keep its midpoint visible at the user's zoom.
-export function revealArea(view: CanvasView, frame: Size, primary: Box, context: Box[] = [], sideMargin = 12, topMargin = 12): CanvasView {
+export function revealArea(view: CanvasView, frame: Size, primary: Box, context: Box[] = [], sideMargin = 12, topMargin = 12, bottomMargin = 56): CanvasView {
   function shift(axis: 'x' | 'y', length: 'width' | 'height', start: number, end: number) {
     const boxes = [primary, ...context];
     let min = Math.min(...boxes.map(box => box[axis]));
@@ -65,7 +65,7 @@ export function revealArea(view: CanvasView, frame: Size, primary: Box, context:
     return after > end ? end - after : 0;
   }
   const dx = shift('x', 'width', sideMargin, frame.width - sideMargin);
-  const dy = shift('y', 'height', topMargin, frame.height - 56);
+  const dy = shift('y', 'height', topMargin, frame.height - bottomMargin);
   return dx || dy ? {...view, x:view.x + dx, y:view.y + dy} : view;
 }
 
@@ -208,7 +208,7 @@ function expandedRouteRows(node: Block, routes: ReturnType<typeof nodeLayout>['r
   }]));
 }
 
-export function selectedPortDirections(id: string | undefined, groups: EdgeGroup[], lines: ReadonlyMap<string, Wire>, view: CanvasView, frame: Size, nodes: Block[]): DirectionBox[] {
+export function selectedPortDirections(id: string | undefined, groups: EdgeGroup[], lines: ReadonlyMap<string, Wire>, view: CanvasView, frame: Size, nodes: Block[], compactSocketDiameter?: number): DirectionBox[] {
   const node = nodes.find(n => n.id === id);
   if (!node) return [];
   const {zoom} = view;
@@ -239,10 +239,12 @@ export function selectedPortDirections(id: string | undefined, groups: EdgeGroup
   const routes = crowded ? nodeLayout(node).routes.filter(route => connected.has(node.y + route.y)) : [];
   const rows = routes.length ? expandedRouteRows(node, routes, view, frame, nodes, outputWires) : undefined;
   const size = PORT_DIRECTION_SIZE / zoom, gap = portDirectionGap(zoom) / zoom;
+  const outputGap = compactSocketDiameter && !nodeLayout(node).routes.length
+    ? (compactSocketDiameter / 2 + 1) / zoom : gap;
   return visible.map(({x, y, direction, kind}) => {
     const route = direction === 'outgoing' ? rows?.get(y) : undefined;
     return {
-      direction, kind, x:route ? route.bounds.x + 4 / zoom : direction === 'incoming' ? x - gap - size : x + gap,
+      direction, kind, x:route ? route.bounds.x + 4 / zoom : direction === 'incoming' ? x - gap - size : x + outputGap,
       y:route ? route.bounds.y + (route.bounds.height - size) / 2 : y - size / 2,
       width:size, height:size, route,
     };

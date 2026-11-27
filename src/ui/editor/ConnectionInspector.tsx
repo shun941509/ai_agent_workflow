@@ -1,7 +1,7 @@
 import { useId, useLayoutEffect, useRef } from 'react';
 import type { Block, Graph } from '../../domain/types';
 import { Icon } from './Icons';
-import { branchPredicate, edgeLabel, edgeNames, edgePortLabels, titleById, type EdgeGroup } from './graph';
+import { branchPredicate, connectionKindLabels, edgeLabel, edgePortLabels, titleById, type EdgeGroup } from './graph';
 import type { PairEdit } from './use-editor-history';
 import './connection-inspector.css';
 
@@ -46,8 +46,8 @@ export function ConnectionInspector({ graph, group, incoming, onChange, onEdit, 
   return <>
     <p className="ws-connection-route">{sourceName} → {targetName}</p>
     <section className="ws-connection-fact" aria-labelledby={heading + '-flow'}>
-      <h3 id={heading + '-flow'}>실행 조건</h3>
-      {!hasFlow && <p>{conditions.length ? '실행 시점은 다음 진행 연결이 정합니다.' : '이 블록에 연결된 진행선이 없습니다.'}</p>}
+      <h3 id={heading + '-flow'}>{connectionKindLabels.flow}</h3>
+      {!hasFlow && <p>{conditions.length ? '아래 경로로 들어오면 이 블록이 실행됩니다.' : '이 블록의 실행 순서를 정하는 연결이 없습니다.'}</p>}
       {conditions.length > 0 && <ul>{conditions.map(link =>
         <li key={link.id}>
           <b>{titleById(graph, link.from)}</b><span>{link.flowConditions.join(' 또는 ')}</span>
@@ -57,7 +57,7 @@ export function ConnectionInspector({ graph, group, incoming, onChange, onEdit, 
       {hasRouteEditor && <button type="button" className="ws-btn" onClick={() => onEdit('conditions')}>실행 조건 변경</button>}
     </section>
     <section className="ws-connection-fact" aria-labelledby={heading + '-values'}>
-      <h3 id={heading + '-values'}>전달값</h3>
+      <h3 id={heading + '-values'}>{connectionKindLabels.data}</h3>
       {transfers.length > 0 && <ul>{transfers.map(edge => {
         const { output, input } = edgePortLabels(graph, edge);
         return <li key={edge.id}>
@@ -69,12 +69,12 @@ export function ConnectionInspector({ graph, group, incoming, onChange, onEdit, 
       {implicitInput && <p>{target?.type === 'error.handle'
         ? '진행 경로에서 발생한 오류 내용을 입력값으로 받습니다.'
         : '진행 경로의 결과와 오류 내용을 입력값으로 모읍니다.'}</p>}
-      {!transfers.length && !implicitInput && <p>이 연결에 지정한 전달값이 없습니다.</p>}
+      {!transfers.length && !implicitInput && <p>이 연결로 전달할 값이 없습니다.</p>}
     </section>
     <div ref={members}>{group.members.map((edge,index) => <section className="ws-member" key={edge.id} data-member={edge.id}>
       <div className="ws-inline">
-        <strong>{edgeNames[edge.kind]}</strong>
-        {!(hasRouteEditor && edge.kind === 'flow') && <button type="button" className="ws-icon-button ws-danger" aria-label={edgeLabel(graph,edge) + ' · ' + edgeNames[edge.kind] + ' 연결 삭제'}
+        <strong>{connectionKindLabels[edge.kind]}</strong>
+        {!(hasRouteEditor && edge.kind === 'flow') && <button type="button" className="ws-icon-button ws-danger" aria-label={edgeLabel(graph,edge) + ' · ' + connectionKindLabels[edge.kind] + ' 연결 삭제'}
           onClick={() => {
             const neighbor = group.members[index + 1] ?? group.members[index - 1];
             if (!neighbor) { onDeleteGroup(); return; }

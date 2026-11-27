@@ -1,12 +1,16 @@
 import { useLayoutEffect, useRef, type ReactNode, type RefObject } from 'react';
 import { X } from 'lucide-react';
+import { cycleDialogFocus } from './dialog-focus';
 
 export default function StudioDialog({
-  title, onClose, children, wide = false, initialFocus, descriptionId, dismissDisabled = false,
+  title, displayHeading = title, onClose, children, footer, wide = false, size = wide ? 'form' : 'standard', initialFocus, descriptionId, dismissDisabled = false,
 }: {
   title: string;
+  displayHeading?: string;
   onClose: () => void;
   children: ReactNode;
+  footer?: ReactNode;
+  size?: 'confirm' | 'standard' | 'form' | 'settings' | 'workspace';
   wide?: boolean;
   initialFocus?: RefObject<HTMLButtonElement | null>;
   descriptionId?: string;
@@ -26,19 +30,20 @@ export default function StudioDialog({
   }, [initialFocus]);
 
   return (
-    <dialog ref={ref} className={'studio-dialog' + (wide ? ' wide' : '')}
+    <dialog ref={ref} className={'studio-dialog' + (wide ? ' wide' : '')} data-size={size} onKeyDown={cycleDialogFocus}
       onCancel={event => {
         event.preventDefault();
         if (!dismissDisabled) onClose();
       }}
       aria-label={title} aria-describedby={descriptionId}>
       <header>
-        <h2>{title}</h2>
+        <h2>{displayHeading}</h2>
         <button className="icon-btn" type="button" aria-label="닫기" disabled={dismissDisabled} onClick={onClose}>
           <X size={18} />
         </button>
       </header>
       <div className="modal-content">{children}</div>
+      {footer && <footer className="dialog-actions">{footer}</footer>}
     </dialog>
   );
 }

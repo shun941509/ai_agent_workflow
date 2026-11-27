@@ -29,11 +29,16 @@ const assetFields = [
 const agentFields = [
   area('goal','맡길 일',true), area('instruction','작업 지시'), area('criterion','원하는 결과'),
 ];
-export function selectionSettings(node:Block) {
+export function selectionSettings(node:Pick<Block,'type'|'config'>) {
   const c=node.config;
   return node.type==='agent.select_candidate'
     ? {options:c.candidates??c.tasks??[],instruction:c.criterion??c.goal??''}
     : {options:c.tasks??c.candidates??[],instruction:c.goal??c.criterion??''};
+}
+export function canonicalSelectionConfig(type:string, config:Block['config']):Block['config'] {
+  if(type!=='agent.select_candidate'&&type!=='agent.coordinate')return config;
+  const {options,instruction}=selectionSettings({type,config});
+  return type==='agent.select_candidate'?{...config,candidates:options,criterion:instruction}:{...config,tasks:options,goal:instruction};
 }
 const agentInputs = [...inputs,context,skill,mcp,question];
 const functionRef = ref('workflow','호출 가능한 Workflow','workflow');
@@ -89,7 +94,7 @@ export const catalog: Definition[] = [
     [...agentFields,json('allowedTools','허용할 도구',[]),count('maxSteps','최대 판단 횟수',4,1,20)],
     [...agentInputs,functionRef]),
   entry('ai.classify','AI 분류','입력의 의미를 읽어 등록한 범주 중 하나를 고릅니다.','agent',3,
-    [json('categories','분류 범주',['일반','기타'],true),area('instruction','판단 기준')],inputs,[result('other','미분류'),value]),
+    [json('categories','분류 범주',['일반','기타'],true),area('instruction','판단 기준')],inputs,[result('other','미분류'),value,port('category','선택한 범주','data')]),
   entry('agent.team','Agent 팀','팀 내부의 담당자와 협업 경로를 하나의 일로 실행합니다.','agent',4,
     [area('goal','팀이 맡을 일',true),text('responsible','최종 응답 담당',false,'대표 Agent')],[...inputs,skill]),
   entry('agent.coordinate','작업 순서 정하기','허용한 작업 중 목표에 필요한 작업을 골라 순서대로 목록을 반환합니다.','agent',4,
@@ -165,8 +170,9 @@ export const catalog: Definition[] = [
     [text('tool','보상 작업',true),json('args','보상 인자',{})],[...inputs,mcp],outputs,'tool.invoke'),
   entry('data.validate','데이터 검증','입력의 필수 항목과 형식을 검사합니다.','quality',3,
     [json('requiredFields','필수 항목',[],true),json('types','항목별 기대 형식',{})]),
-  entry('quality.evidence','근거·출처 확인','질문의 주장을 실제 원문과 대조해 경로를 정합니다.','quality',3,
-    [area('criterion','근거 충족 기준',false,'질문에 직접 답하는 원문이 있는지 확인합니다.'),
+  entry('quality.evidence','근거·출처 확인','질문에 답하는 인용을 찾고 후보 문구와 일치했는지, 원문까지 대조했는지 표시합니다.','quality',3,
+    [area('criterion','근거 충족 기준',false,'인용한 구절이 질문에 직접 답하는지 확인합니다.'),
+      {key:'requireOriginal', label:'원문 대조 필수', type:'boolean', default:false},
       {key:'includeSourceLines', label:'인용한 원문 행 전체도 반환', type:'boolean', default:false, advanced:true}],
     [incoming,port('input','검색된 구절','data','passages',true),question,context],
     [result('verified','근거 있음'),result('insufficient','근거 부족'),result('conflicting','근거 상충'),value]),

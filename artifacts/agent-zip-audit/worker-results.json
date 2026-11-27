@@ -1,0 +1,670 @@
+{
+  "source": "2718a4304ad5e11fd2a9934030dd5ab5f6f74389bca27a5e22f4bb3d62b4050e",
+  "palette": 32,
+  "types": 41,
+  "workerEntries": 46,
+  "replies": 12,
+  "modelCalls": 26,
+  "downloads": 155,
+  "links": 2683,
+  "preparations": 169,
+  "checks": [
+    {
+      "case": "basic-trigger",
+      "layout": "inline",
+      "modelCalls": 1
+    },
+    {
+      "case": "basic-trigger",
+      "layout": "split",
+      "modelCalls": 1
+    },
+    {
+      "case": "agent-workflow-tool",
+      "layout": "inline",
+      "modelCalls": 3
+    },
+    {
+      "case": "agent-workflow-tool",
+      "layout": "split",
+      "modelCalls": 3
+    },
+    {
+      "case": "classify",
+      "layout": "inline",
+      "modelCalls": 1
+    },
+    {
+      "case": "classify",
+      "layout": "split",
+      "modelCalls": 1
+    },
+    {
+      "case": "condition",
+      "layout": "inline",
+      "modelCalls": 0
+    },
+    {
+      "case": "condition",
+      "layout": "split",
+      "modelCalls": 0
+    },
+    {
+      "case": "file-transform",
+      "layout": "inline",
+      "modelCalls": 0
+    },
+    {
+      "case": "file-transform",
+      "layout": "split",
+      "modelCalls": 0
+    },
+    {
+      "case": "evidence",
+      "layout": "inline",
+      "modelCalls": 1
+    },
+    {
+      "case": "evidence",
+      "layout": "split",
+      "modelCalls": 1
+    },
+    {
+      "case": "knowledge",
+      "layout": "inline",
+      "modelCalls": 0
+    },
+    {
+      "case": "knowledge",
+      "layout": "split",
+      "modelCalls": 0
+    },
+    {
+      "case": "waits",
+      "layout": "inline",
+      "modelCalls": 0
+    },
+    {
+      "case": "waits",
+      "layout": "split",
+      "modelCalls": 0
+    },
+    {
+      "case": "approval",
+      "layout": "inline",
+      "modelCalls": 0
+    },
+    {
+      "case": "approval",
+      "layout": "split",
+      "modelCalls": 0
+    },
+    {
+      "case": "compensate",
+      "layout": "inline",
+      "modelCalls": 0
+    },
+    {
+      "case": "compensate",
+      "layout": "split",
+      "modelCalls": 0
+    },
+    {
+      "case": "errors",
+      "layout": "inline",
+      "modelCalls": 0
+    },
+    {
+      "case": "errors",
+      "layout": "split",
+      "modelCalls": 0
+    },
+    {
+      "case": "privacy",
+      "layout": "inline",
+      "modelCalls": 0
+    },
+    {
+      "case": "privacy",
+      "layout": "split",
+      "modelCalls": 0
+    },
+    {
+      "case": "parallel-team",
+      "layout": "inline",
+      "modelCalls": 2
+    },
+    {
+      "case": "parallel-team",
+      "layout": "split",
+      "modelCalls": 2
+    },
+    {
+      "case": "iterations",
+      "layout": "inline",
+      "modelCalls": 0
+    },
+    {
+      "case": "iterations",
+      "layout": "split",
+      "modelCalls": 0
+    },
+    {
+      "case": "selection",
+      "layout": "inline",
+      "modelCalls": 3
+    },
+    {
+      "case": "selection",
+      "layout": "split",
+      "modelCalls": 3
+    },
+    {
+      "case": "storage",
+      "layout": "inline",
+      "modelCalls": 0
+    },
+    {
+      "case": "storage",
+      "layout": "split",
+      "modelCalls": 0
+    },
+    {
+      "case": "evaluation",
+      "layout": "inline",
+      "modelCalls": 2
+    },
+    {
+      "case": "evaluation",
+      "layout": "split",
+      "modelCalls": 2
+    }
+  ],
+  "blocks": [
+    {
+      "name": "사용자 입력",
+      "type": "input.user_request",
+      "variants": [
+        {
+          "type": "input.user_request",
+          "cases": [
+            "agent-workflow-tool",
+            "classify",
+            "condition",
+            "evidence",
+            "knowledge",
+            "waits",
+            "approval",
+            "compensate",
+            "errors",
+            "privacy",
+            "parallel-team",
+            "iterations",
+            "selection",
+            "storage",
+            "evaluation"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "입력 양식·추가 질문",
+      "type": "input.form",
+      "variants": [
+        {
+          "type": "input.form",
+          "cases": [
+            "waits"
+          ]
+        },
+        {
+          "type": "control.wait",
+          "cases": [
+            "waits"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "시작 조건",
+      "type": "control.trigger",
+      "variants": [
+        {
+          "type": "control.trigger",
+          "cases": [
+            "basic-trigger"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "답변 전달",
+      "type": "output.answer",
+      "variants": [
+        {
+          "type": "output.answer",
+          "cases": [
+            "basic-trigger",
+            "agent-workflow-tool",
+            "classify",
+            "condition",
+            "file-transform",
+            "evidence",
+            "knowledge",
+            "waits",
+            "approval",
+            "compensate",
+            "errors",
+            "privacy",
+            "parallel-team",
+            "iterations",
+            "selection",
+            "storage"
+          ]
+        },
+        {
+          "type": "control.terminate",
+          "cases": [
+            "evaluation"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "AI 작업",
+      "type": "agent.task",
+      "variants": [
+        {
+          "type": "ai.single_task",
+          "cases": [
+            "basic-trigger"
+          ]
+        },
+        {
+          "type": "agent.task",
+          "cases": [
+            "agent-workflow-tool"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "AI 분류",
+      "type": "ai.classify",
+      "variants": [
+        {
+          "type": "ai.classify",
+          "cases": [
+            "classify"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Agent 팀",
+      "type": "agent.team",
+      "variants": [
+        {
+          "type": "agent.team",
+          "cases": [
+            "parallel-team"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "담당자·작업 선택",
+      "type": "agent.select_candidate",
+      "variants": [
+        {
+          "type": "agent.coordinate",
+          "cases": [
+            "selection"
+          ]
+        },
+        {
+          "type": "agent.select_candidate",
+          "cases": [
+            "selection"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Agent에게 작업 전달",
+      "type": "agent.delegate",
+      "variants": [
+        {
+          "type": "agent.delegate",
+          "cases": [
+            "parallel-team"
+          ]
+        },
+        {
+          "type": "agent.handoff",
+          "cases": [
+            "parallel-team"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "필요한 Agent 만들기",
+      "type": "agent.create_dynamic",
+      "variants": [
+        {
+          "type": "agent.create_dynamic",
+          "cases": [
+            "selection"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "도구 사용",
+      "type": "tool.invoke",
+      "variants": [
+        {
+          "type": "tool.invoke",
+          "cases": [
+            "approval",
+            "compensate"
+          ]
+        },
+        {
+          "type": "error.compensate",
+          "cases": [
+            "compensate"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "자료 가져오기",
+      "type": "resource.context",
+      "variants": [
+        {
+          "type": "resource.context",
+          "cases": [
+            "evidence",
+            "knowledge"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "값 변환",
+      "type": "data.transform",
+      "variants": [
+        {
+          "type": "data.transform",
+          "cases": [
+            "file-transform"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "기억 읽기·쓰기",
+      "type": "memory.access",
+      "variants": [
+        {
+          "type": "memory.access",
+          "cases": [
+            "storage"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "파일 입력",
+      "type": "file.input",
+      "variants": [
+        {
+          "type": "file.input",
+          "cases": [
+            "file-transform",
+            "iterations"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "문서 내용 읽기",
+      "type": "document.read",
+      "variants": [
+        {
+          "type": "document.read",
+          "cases": [
+            "file-transform",
+            "iterations"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "자료 검색",
+      "type": "knowledge.search",
+      "variants": [
+        {
+          "type": "knowledge.search",
+          "cases": [
+            "evidence"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "지식 저장소 관리",
+      "type": "knowledge.manage",
+      "variants": [
+        {
+          "type": "knowledge.manage",
+          "cases": [
+            "knowledge"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "파일 만들기",
+      "type": "file.create",
+      "variants": [
+        {
+          "type": "file.create",
+          "cases": [
+            "file-transform"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "조건 분기",
+      "type": "control.branch",
+      "variants": [
+        {
+          "type": "control.branch",
+          "cases": [
+            "condition"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "병렬 작업",
+      "type": "control.parallel",
+      "variants": [
+        {
+          "type": "control.parallel",
+          "cases": [
+            "parallel-team"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "결과 모으기",
+      "type": "control.join",
+      "variants": [
+        {
+          "type": "control.join",
+          "cases": [
+            "parallel-team"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "반복 처리",
+      "type": "control.loop",
+      "variants": [
+        {
+          "type": "control.loop",
+          "cases": [
+            "iterations"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Workflow 재사용",
+      "type": "workflow.call",
+      "variants": [
+        {
+          "type": "workflow.call",
+          "cases": [
+            "iterations"
+          ]
+        },
+        {
+          "type": "workflow.tool",
+          "cases": [
+            "agent-workflow-tool"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "사람 검토",
+      "type": "review.human",
+      "variants": [
+        {
+          "type": "review.human",
+          "cases": [
+            "waits"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "행동 승인",
+      "type": "approval.action",
+      "variants": [
+        {
+          "type": "approval.action",
+          "cases": [
+            "approval"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "민감정보 검사·처리",
+      "type": "safety.redact",
+      "variants": [
+        {
+          "type": "safety.redact",
+          "cases": [
+            "privacy"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "결과 평가",
+      "type": "quality.evaluate",
+      "variants": [
+        {
+          "type": "quality.evaluate",
+          "cases": [
+            "evaluation"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "오류 처리",
+      "type": "error.handle",
+      "variants": [
+        {
+          "type": "error.handle",
+          "cases": [
+            "errors"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "데이터 검증",
+      "type": "data.validate",
+      "variants": [
+        {
+          "type": "data.validate",
+          "cases": [
+            "file-transform"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "근거·출처 확인",
+      "type": "quality.evidence",
+      "variants": [
+        {
+          "type": "quality.evidence",
+          "cases": [
+            "evidence"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "문맥 정리·압축",
+      "type": "context.compress",
+      "variants": [
+        {
+          "type": "context.compress",
+          "cases": [
+            "evaluation"
+          ]
+        }
+      ]
+    }
+  ],
+  "splitExample": {
+    "lesson": "sw-code-review",
+    "title": "개발자와 QA가 코드 변경 함께 검토하기",
+    "file": "step-workflow.zip"
+  },
+  "files": {
+    "basic-trigger.zip": "096f20ccc68728d4d5d7a8ee080058b122f636b15954fe9716d43e2b913956f2",
+    "agent-workflow-tool.zip": "56bf7b834c410932f05a7c5df555b5c743ba25676f2aafae10a3bbcebe320160",
+    "classify.zip": "01b60f1aafbae98142baaa37f6156db5e1ec795050fa949dac817c476e218b14",
+    "condition.zip": "f3e8b7ea015b93356495904710592db36cae6facda6c3b137b64871e1e73e964",
+    "file-transform.zip": "b33cbb32f2fb71168ab72ad9b994d9466d4febee688c01838ddfcad84874b9ff",
+    "evidence.zip": "f7efa0dd08da631d11b624b08f4979bba2cdf233e63a8b11a8c02a6252ca16eb",
+    "knowledge.zip": "b75cb0295655de80998e29202eb71a9e0a06702c1a93143553a0f500a684680f",
+    "waits.zip": "9dbdbf8adbd514bd636af504ed42fe1510b5ba30d11ebc7eb4714ac3d1e7c86c",
+    "approval.zip": "021cbd05e151ab7260515097590ce305efdb5afe408364a4ae53c4a2e938ccfd",
+    "compensate.zip": "05f72a398d2a3db2ca427e92765993c3228fc0a26aaae822be4633437b52e97c",
+    "errors.zip": "16b07663f54702b0d71936202b9202dfeac5a18c681f09ad533189e394c3628f",
+    "privacy.zip": "c1a544ede713c801c9fe39770ba167fe887ac58933e03106a8f2fbe9ba456eb6",
+    "parallel-team.zip": "5df04880499127c5e1e1d8266e7fb2421986f661fff3f9b80bc413f9c5d7792c",
+    "iterations.zip": "53778d9c237df3abb336c1c303e555e9b011673933166335b5c8623795ba58b2",
+    "selection.zip": "58687e5ba1e3ba4b6bd4f14a08bce9bdcfcc7a55f9faac0b24410f13cf499621",
+    "storage.zip": "a32af9c59ebc7047814486d95aa0b8027e6095bedb3210a84e06d6a5c68c4f57",
+    "evaluation.zip": "c1d636be6bf982f642bf880fd2e57ca1c644c068a202ff739ab5bfc86101cde8",
+    "verified-workflows.zip": "60e42dcd6bb594728a137808ce436e2466ae30a5d3b869bced4fe2e5ac22bf3d",
+    "step-workflow.zip": "0ce82d10491cb0d4507e26a5ea58ea09a843db2d3f7fa1a85c2be873bef105c4"
+  }
+}

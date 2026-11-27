@@ -6,7 +6,7 @@ import styles from './MenuReference.module.css';
 const menuGroups: { heading?: string; items: [string, IconName, string][] }[] = [
   {
     items: [
-      [workspaceLabels.home, 'home', '처음에는 도서관 실습을 시작하고, 다음 방문에는 편집하던 설계를 이어갑니다.'],
+      [workspaceLabels.home, 'home', '처음에는 새 Agent를 만들거나 예제로 배울 수 있습니다. 다시 방문하면 마지막으로 편집한 Agent를 이어서 엽니다.'],
       [workspaceLabels.editor, 'workflow', '블록을 배치하고 선을 연결합니다. 블록을 선택해 속성을 고친 뒤 시험 실행에서 답을 확인하세요.'],
       [workspaceLabels.projects, 'folder', '만든 프로젝트를 다시 엽니다. 공유 설정에서 누구에게 어느 판을 보여줄지 정하고, 휴지통에서는 삭제한 프로젝트를 복구합니다.'],
       [workspaceLabels.assets, 'file', 'Agent가 읽을 문서와 지침, 호출할 도구를 등록합니다. 자료의 판을 고른 뒤 내 Workflow에 연결하세요.'],

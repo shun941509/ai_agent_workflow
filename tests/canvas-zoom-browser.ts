@@ -51,6 +51,7 @@ async function verify(width: number) {
     const errors: string[] = [];
     page.on('pageerror',error => errors.push(error.message));
     await page.goto('/?edit=' + project.id);
+    if (mobile) await page.getByRole('button',{name:'캔버스로 보기',exact:true}).click();
     const canvas = page.locator('.ws-canvas');
     const world = canvas.locator('.ws-world');
     const toolbar = canvas.getByRole('group',{name:'캔버스 배율'});
@@ -117,7 +118,7 @@ async function verify(width: number) {
     for (let i=0; i<15; i++) await page.keyboard.press('-');
     await hasZoom(17);
     await expect(button('축소')).toBeDisabled();
-    await button('전체 보기').press('Enter');
+    await button('캔버스에 맞추기').press('Enter');
     await expect(ask).toBeInViewport({ratio:0.999});
     await expect(canvas.locator('[data-canvas-block="reply"]')).toBeInViewport({ratio:0.999});
     await expect(undo).toBeDisabled();
@@ -152,7 +153,7 @@ async function verify(width: number) {
     await expect(apply).toBeFocused();
     await page.keyboard.press('Enter');
     await expect(dialog).toHaveCount(0);
-    await button('전체 보기').press('Enter');
+    await button('캔버스에 맞추기').press('Enter');
     await ask.press('Control+ArrowDown');
     const wire = canvas.locator('[data-canvas-wire]');
     await expect(wire).toBeFocused();
@@ -179,7 +180,8 @@ async function verify(width: number) {
         nodes:[graph.nodes[0],{...graph.nodes[1],x:500_000}],edges:[],
       }});
       await page.goto('/?edit=' + wide.id);
-      const overview = button('전체 보기');
+      await page.getByRole('button',{name:'캔버스로 보기',exact:true}).click();
+      const overview = button('캔버스에 맞추기');
       await overview.press('Enter');
       await expect(reset).toHaveText('<0.1%');
       await expect(button('축소')).toBeDisabled();

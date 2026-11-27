@@ -338,24 +338,12 @@
   fill: #286466;
 }
 .ws-schematic .ws-zoom,
-.ws-schematic .ws-legend,
 .ws-schematic .ws-minimap {
   border-color: #d3dbe4;
   border-radius: 7px;
 }
 .ws-schematic .ws-minimap {
   width: min(14%, 105px);
-}
-.ws-schematic .ws-legend {
-  gap: 9px;
-  padding: 6px 9px;
-  color: #435065;
-  font-size: 11px;
-}
-@container (max-width: 440px) {
-  .ws-schematic .ws-legend {
-    inset: 8px auto auto 8px;
-  }
 }
 .ws-schematic .ws-graph-list {
   background: var(--ws-canvas);
@@ -370,13 +358,6 @@
   margin-top: 2px;
 }
 
-@media (max-width: 580px) {
-  .ws-schematic .ws-legend {
-    gap: 5px;
-    padding: 5px 6px;
-    font-size: 10px;
-  }
-}
 .ws-canvas-jumps {
   position: absolute;
   z-index: 8;

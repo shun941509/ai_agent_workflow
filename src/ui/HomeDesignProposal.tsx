@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Workflow } from 'lucide-react';
 import { emptyGraph, validateGraph, type Graph, type Issue } from '../domain';
 import { newAgentPurpose, type DesignProposal } from '../domain/design-proposal';
@@ -8,6 +8,7 @@ import { workDocumentBindings, workDocumentGraph, type WorkDocument } from '../d
 import { runInputLimit } from '../domain/run-input';
 import { intentHash, message, StudioApiError } from './client';
 import { edgeNames, groupEdges, subgraph } from './editor/graph';
+import { PromptTextarea } from './PromptTextarea';
 
 export async function proposalIntent(userId: string | undefined, projectId: string | null | undefined,
   prompt: string, graph: Graph, answer?: string) {
@@ -56,6 +57,7 @@ export default function HomeDesignProposal({ prompt, onEdit, answer, onAnswer, c
   const [waiting, setWaiting] = useState(false);
   const [draft, setDraft] = useState<Graph | null>(null);
   const answerField = useRef<HTMLTextAreaElement>(null);
+  const formId = useId();
   const base = useMemo(() => {
     if (!workDocument) return emptyGraph();
     // The guide supplies its purpose on creation. Preserve the graph shape of existing proposal receipts.
@@ -141,23 +143,28 @@ export default function HomeDesignProposal({ prompt, onEdit, answer, onAnswer, c
   const needsMaterial = Boolean(workDocument && !material.trim());
   const requestLabel = offline ? '이전 요청 결과 확인' : needsAnswer ? '답변으로 초안 제안받기'
     : error ? '같은 요청 다시 시도' : '초안 제안받기';
+  const answerLabel = workDocument ? workDocument.title + ' 설계에서 무엇을 바꾸고 싶으세요?' : '어떤 Agent를 만들고 싶으세요?';
   return <>
-    <label className="field">맡길 일과 원하는 결과
-      <textarea autoFocus disabled={creating || waiting} value={prompt}
+    <div className="field">
+      <label htmlFor={formId + '-prompt'}>맡길 일과 원하는 결과</label>
+      <PromptTextarea id={formId + '-prompt'} expandLabel="맡길 일과 원하는 결과" autoFocus disabled={creating || waiting} value={prompt}
         onChange={event => { onEdit(event.target.value); setDraft(null); setError(''); }}
         placeholder="회의 내용에서 결정 사항과 담당자를 표로 정리해 줘" />
-    </label>
-    {needsAnswer && <label className="field">{workDocument ? workDocument.title + ' 설계에서 무엇을 바꾸고 싶으세요?' : '어떤 Agent를 만들고 싶으세요?'}
-      <textarea ref={answerField} value={answer ?? ''} disabled={creating || waiting}
+    </div>
+    {needsAnswer && <div className="field">
+      <label htmlFor={formId + '-answer'}>{answerLabel}</label>
+      <PromptTextarea id={formId + '-answer'} expandLabel={answerLabel} ref={answerField} value={answer ?? ''} disabled={creating || waiting}
         placeholder={workDocument ? '바꾸고 싶은 입력이나 출력 형식을 적어 주세요' : '회의 메모에서 결정 사항을 뽑아 줘'}
         onChange={event => { onAnswer(event.target.value); setDraft(null); setError(''); }} />
-    </label>}
-    {workDocument && <label className="field">{workDocument.inputLabel}
-      <textarea value={material} rows={workDocument.material.kind === 'document' ? 7 : 4}
+    </div>}
+    {workDocument && <div className="field">
+      <label htmlFor={formId + '-material'}>{workDocument.inputLabel}</label>
+      <PromptTextarea id={formId + '-material'} expandLabel={workDocument.inputLabel} value={material} rows={workDocument.material.kind === 'document' ? 7 : 4}
+        aria-describedby={formId + '-material-hint ' + formId + '-material-edition'}
         maxLength={runInputLimit} disabled={creating} onChange={event => onMaterialEdit?.(event.target.value)} />
-      <small>AI는 설계 요청문과 기본 예시로 초안을 만듭니다. 여기에 입력한 자료는 새 Agent의 입력 블록에 저장됩니다.</small>
-      <small>연결할 자료 · {workDocument.material.name} 1판</small>
-    </label>}
+      <small id={formId + '-material-hint'}>AI는 설계 요청문과 기본 예시로 초안을 만듭니다. 여기에 입력한 자료는 새 Agent의 입력 블록에 저장됩니다.</small>
+      <small id={formId + '-material-edition'}>연결할 자료 · {workDocument.material.name} 1판</small>
+    </div>}
     {error && <p className="modal-error" role="alert">{error}</p>}
     {offline && !workDocument && !draft && !waiting && <div className="proposal-preview">
       <p role="status">AI 설계 제안을 사용하려면 작업실 운영자가 모델을 연결해야 합니다. 직접 설계하거나 템플릿으로 시작할 수 있습니다.</p>

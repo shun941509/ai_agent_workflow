@@ -207,7 +207,8 @@ test('내장·고정판 하위 Agent는 담당 범위를 확인하고 내보낼 
       const restored=migrateGraph(JSON.parse(exported).graph).nodes.find(node=>node.id==='call')?.graph;
       assert.deepEqual(restored?.agentScope,inner.agentScope);
       assert.deepEqual(childScopeInstructions(restored),['','하위 Agent의 담당 업무 — 도서관 대출 안내만 작성합니다.',
-        '위임할 입력이 이 범위에 속하는지 먼저 확인하세요. 범위 밖이면 하위 작업을 중단하고, 섞여 있으면 업무에 해당하는 부분만 전달하세요.']);
+        '위임할 입력이 이 범위에 속하는지 먼저 확인하세요. 범위 밖이면 하위 작업을 중단하고, 섞여 있으면 업무에 해당하는 부분만 전달하세요.',
+        '하위 역할의 주 입력과 참조용 원래 질문에는 이 판정을 거친 요청을 사용하세요.']);
       assert.deepEqual(childScopeInstructions(parent),[]);
       const zip=unzipSync(buildAgentZip({title:'도서관',graph:parent,resources:[],files:[]}));
       const text=Object.entries(zip).filter(([n])=>n.endsWith('.md')).map(([,v])=>strFromU8(v)).join('\n');
@@ -223,6 +224,51 @@ test('인계받은 역할에는 앞 단계가 요약한 입력과 최초 질문�
     return {text:'앞 단계 초안'};
   }});
   assert.equal(r.output,'인계 완료');
+});
+
+test('업무 전용 하위 설계의 위임·인계·내부 단발은 범위 판정 이후의 원래 질문을 사용한다', async()=>{
+  const kept='반납 업무를 요약해 주세요.',excluded='점심도 추천해 주세요.';
+  const single=linear(start,block('ai.single_task','summarize'),end);
+  for(const type of ['agent.delegate','agent.handoff','nested-delegate']){
+    const inner=linear(start,type==='nested-delegate'?block('agent.delegate','assign',{role:'요약'},single):
+      block(type,'assign',{role:'요약'}),end);
+    inner.agentScope={mode:'dedicated',purpose:'반납 업무'};
+    const graph=linear(start,block('agent.delegate','outer',{role:'접수'},inner),end);
+    const seen:string[]=[];
+    const result=await run(graph,kept+' '+excluded,{scopeModel:async()=>({text:JSON.stringify({status:'mixed',excluded:[excluded]})}),
+      model:async req=>{seen.push(JSON.stringify(req));assert.equal(req.input,kept);assert.match(req.context,/사용자 원래 질문: 반납/);return {text:'요약 완료'};}});
+    assert.equal(result.output,'요약 완료',result.error??'');
+    assert.equal(seen.length,1);assert.ok(!seen[0].includes(excluded));
+  }
+  const deterministic=linear(start,block('data.transform','text',{operation:'text'}),end);
+  deterministic.agentScope={mode:'dedicated',purpose:'문장 변환'};
+  assert.deepEqual(childScopeInstructions(deterministic),[]);
+  const result=await run(linear(start,block('workflow.call','child',{},deterministic),end),kept,
+    {scopeModel:async()=>assert.fail('결정적 변환의 범위 판정')});
+  assert.equal(result.output,kept);
+});
+
+test('구형 선택 필드도 설치·검증·실행·단일 및 분할 ZIP에서 같은 후보와 기준을 사용한다',async()=>{
+  for(const type of ['agent.select_candidate','agent.coordinate']){
+    const job=block(type,'choose');
+    job.config=type==='agent.select_candidate'?{tasks:['A','B','C'],goal:'구형 선택 기준'}:{candidates:['A','B','C'],criterion:'구형 선택 기준'};
+    const graph=linear(start,job,end);
+    assert.deepEqual(validateGraph(graph),[]);
+    const migrated=migrateGraph(graph);
+    assert.deepEqual(validateGraph(migrated),[]);
+    const runGraph=await run(migrated,'검토',{model:async q=>{
+      assert.match(q.instruction,/구형 선택 기준/);return {text:'{"choices":["bad","C","C","B"]}'};}});
+    assert.deepEqual(runGraph.checkpoint.steps['root/choose'].values.value,type==='agent.select_candidate'?'C':['C','B']);
+    for(const split of [false,true]){
+      const root=structuredClone(graph);
+      if(split)root.nodes[0].config.question='긴 입력\n'.repeat(205);
+      const files=unzipSync(buildAgentZip({title:'구형 선택',graph:root,resources:[],files:[]}));
+      assert.equal(Boolean(files['workflow/index.md']),split);
+      const output=Object.entries(files).filter(([path])=>path==='AGENTS.md'||path.startsWith('workflow/step-')).map(([,bytes])=>strFromU8(bytes)).join('\n');
+      assert.match(output,/구형 선택 기준/);assert.match(output,/\["A","B","C"\]/);
+      assert.match(output,/유효 후보가 없으면/);
+    }
+  }
 });
 
 test('이름이 다른 고정 Workflow의 같은 블록 ID는 각자의 누적 생성 한도를 사용한다',async()=>{

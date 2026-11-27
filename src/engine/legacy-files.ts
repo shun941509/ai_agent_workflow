@@ -6,7 +6,7 @@ import {at,flattened,object} from './values';
 export function completedRunFiles(graph:Graph,checkpoint:EngineCheckpoint){
   const paths=checkpoint.finalFilePaths??(checkpoint.fileOriginVersion?[]:recoverLegacyFilePaths(graph,checkpoint));
   return paths.flatMap(path=>{
-    const file=attachmentFrom(checkpoint.steps[path]?.values.value);
+    const file=checkpoint.finalFileOverrides?.[path]??attachmentFrom(checkpoint.steps[path]?.values.value);
     return file?[{...file,path}]:[];
   });
 }

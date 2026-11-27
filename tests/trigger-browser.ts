@@ -25,9 +25,63 @@ try{
   await page.getByRole('button',{name:'시험 실행',exact:true}).click({timeout:60000});
   const results=page.getByRole('tabpanel',{name:'실행 결과'});
   await results.getByRole('button',{name:'실행 설정',exact:true}).click();
+  let failedRead='trigger.list';
+  await page.route('**/api/studio',route=>route.request().postDataJSON().action===failedRead
+    ? route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'설정을 읽을 수 없습니다.'})})
+    : route.fallback());
   await page.getByRole('button',{name:'자동 시작',exact:true}).click();
+  await expect(results.getByRole('alert')).toContainText('설정을 읽을 수 없습니다.');
+  failedRead='';await results.getByRole('button',{name:'자동 시작 설정 다시 불러오기'}).press('Enter');
   await page.getByLabel('시작할 때 전달할 입력').fill('도착한 문서');
   await page.getByRole('button',{name:'게시한 버전으로 활성화'}).click();
+  const tokenField=page.getByLabel('이벤트 토큰',{exact:false});
+  const copyToken=page.getByRole('button',{name:'토큰 복사',exact:true});
+  const copySuccess=results.getByText('토큰을 복사했습니다.',{exact:true});
+  const showToken=results.getByRole('button',{name:'토큰 표시',exact:true});
+  type ClipboardTestWindow=Window&{tokenWrite?:{resolve:()=>void;reject:()=>void};manualCopies?:number};
+  await page.evaluate(()=>{
+    const state=window as ClipboardTestWindow;
+    Object.defineProperty(navigator,'clipboard',{configurable:true,value:{
+      writeText(){return new Promise<void>((resolve,reject)=>{state.tokenWrite={resolve,reject};});},
+    }});
+  });
+  const address=await page.getByLabel('이벤트 주소').inputValue();
+  for(const outcome of ['resolve','reject'] as const){
+    const previous=await tokenField.inputValue();
+    await copyToken.click();
+    await page.getByRole('button',{name:'자동 시작 해제'}).click();
+    await page.getByRole('button',{name:'게시한 버전으로 활성화'}).click();
+    await expect(tokenField).toBeVisible();
+    assert.ok(await tokenField.inputValue()!==previous,'재활성화 시 토큰을 교체해야 합니다.');
+    assert.equal(await page.getByLabel('이벤트 주소').inputValue(),address);
+    await page.evaluate(async key=>{
+      (window as ClipboardTestWindow).tokenWrite![key]();
+      await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
+    },outcome);
+    await expect(copySuccess).toHaveCount(0);
+    await expect(showToken).toHaveCount(0);
+    await expect(tokenField).toHaveAttribute('type','password');
+  }
+  await copyToken.click();
+  await page.evaluate(()=>(window as ClipboardTestWindow).tokenWrite!.reject());
+  await expect(showToken).toBeVisible();
+  await expect(tokenField).toHaveAttribute('type','password');
+  await showToken.click();
+  await expect(tokenField).toHaveAttribute('type','text');
+  await expect(tokenField).toBeFocused();
+  assert.ok(await tokenField.evaluate((input:HTMLInputElement)=>input.selectionStart===0&&input.selectionEnd===input.value.length));
+  await tokenField.evaluate(input=>{
+    const state=window as ClipboardTestWindow;
+    state.manualCopies=0;
+    input.addEventListener('copy',event=>{event.preventDefault();state.manualCopies=(state.manualCopies??0)+1;},{once:true});
+  });
+  await tokenField.press('Control+c');
+  assert.equal(await page.evaluate(()=>(window as ClipboardTestWindow).manualCopies),1);
+  await results.getByRole('button',{name:'토큰 숨기기',exact:true}).click();
+  await expect(tokenField).toHaveAttribute('type','password');
+  await copyToken.click();
+  await page.evaluate(()=>(window as ClipboardTestWindow).tokenWrite!.resolve());
+  await expect(copySuccess).toBeVisible();
   const url=await page.getByLabel('이벤트 주소').inputValue(),token=await page.getByLabel('이벤트 토큰',{exact:false}).inputValue();
   assert.ok((await context.request.post(url,{data:{eventId:'untrusted'}})).status()===403);
   for(const attempt of [1,2]){
@@ -77,7 +131,10 @@ try{
   const callerGraph:Graph={nodes:[input,call,{...graph.nodes[1],x:540}],edges:[...graph.edges.map(e=>({...e,id:e.id+'1',to:'call'})),...graph.edges.map(e=>({...e,id:e.id+'2',from:'call'}))]};
   const caller=await api('project.create',{title:'상위 설계',graph:callerGraph});
   await page.goto('/?edit='+caller.id);await page.getByRole('button',{name:'개인 설계 호출 블록 속성',exact:true}).click();
+  failedRead='versions.list';
   await page.getByLabel('호출할 Workflow').selectOption(child.id);
+  await expect(page.getByRole('alert').filter({hasText:'설정을 읽을 수 없습니다.'})).toBeVisible();
+  failedRead='';await page.getByRole('button',{name:'버전 다시 불러오기'}).press('Enter');
   await page.getByLabel('Workflow 버전').selectOption(String(cv.number));
   await expect.poll(async()=>(await api('project.open',{id:caller.id})).graph.nodes[1].config.version).toBe(String(cv.number));
   await page.getByRole('button',{name:'시험 실행',exact:true}).click();

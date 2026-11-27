@@ -214,7 +214,8 @@ test('field binding, route identity, missing data, cycles and nested issues are 
   edge.out='missing';assert.ok(validateGraph(g).some(i=>i.edgeId===edge.id));
   g.edges=g.edges.filter(e=>e!==edge);
   assert.ok(validateGraph(g).some(i=>i.nodeId==='output' && i.message.includes('입력값')));
-  const c=createBlock('ai.classify',{config:{categories:['기타','실패']}});assert.deepEqual(portsFor(c).outputs.filter(p=>p.id.startsWith('category')).map(p=>p.label),['기타','실패']);
+  const c=createBlock('ai.classify',{config:{categories:['기타','실패']}});assert.deepEqual(portsFor(c).outputs.filter(p=>p.kind==='flow'&&p.id.startsWith('category:')).map(p=>p.label),['기타','실패']);
+  assert.ok(portsFor(c).outputs.some(p=>p.id==='category'&&p.kind==='data'));
   const a=createBlock('ai.single_task',{id:'b',config:{goal:'비교'}});g.nodes.push(a);
   g.edges.push({id:'ab',from:'agent',to:'b',kind:'flow',out:'next',input:'in'},{id:'ba',from:'b',to:'agent',kind:'flow',out:'next',input:'in'});
   assert.ok(validateGraph(g).some(i=>i.message.includes('순환')));

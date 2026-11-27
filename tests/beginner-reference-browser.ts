@@ -56,6 +56,13 @@ async function answerLoanQuestion(page: Page, project: string, expectedLimit: 3 
   await panel.getByRole('textbox', {name:'Agent에게 보낼 질문'}).fill(loanQuestion);
   await panel.getByRole('button', {name:'질문 실행', exact:true}).click();
   await expect(panel.locator('.run-output')).toHaveText(expected);
+  const resultFile=panel.getByRole('region',{name:'결과 파일'});
+  const preview=resultFile.locator('summary').filter({hasText:'대출안내.txt'});
+  await preview.focus();
+  await preview.press('Enter');
+  await expect(resultFile.getByLabel('대출안내.txt 내용')).toHaveText(expected);
+  await preview.press('Enter');
+  await expect(resultFile.getByLabel('대출안내.txt 내용')).toHaveCount(0);
   const pending = page.waitForEvent('download');
   await panel.getByRole('button', {name:'대출안내.txt 내려받기', exact:true}).click();
   const file = await pending;
@@ -75,8 +82,9 @@ try {
         await page.getByRole('button', {name:'초급', exact:true}).click();
         await page.getByRole('button', {name:/내 자료로 안내하기/}).click();
         const detail = page.getByRole('dialog');
-        await expect(detail.getByRole('heading', {name:'선택 실습', exact:true})).toBeVisible();
-        await expect(detail).toContainText('이름·자료판 설정');
+        const optional=detail.locator('details').filter({has:page.locator('summary',{hasText:'선택 실습'})});
+        await optional.locator('summary').click();
+        await expect(optional).toContainText('이름·자료판 설정');
         await detail.getByRole('button', {name:'내 사본으로 시작', exact:true}).click();
         await expect(page).toHaveURL(url => url.searchParams.has('edit'));
         return new URL(page.url()).searchParams.get('edit')!;

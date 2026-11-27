@@ -36,9 +36,9 @@
 .option span {
   display: grid;
   place-items: center;
-  min-height: 40px;
+  min-height: 44px;
   padding: 5px 17px;
-  border: 1px solid #a5b9b8;
+  border: 1px solid var(--field-border);
   border-radius: 5px;
   background: white;
   color: var(--ink);
@@ -52,7 +52,7 @@
   font-weight: 750;
 }
 .option input:focus-visible + span {
-  outline: 3px solid #205f8c;
+  outline: 3px solid var(--focus);
   outline-offset: 2px;
 }
 .example {
@@ -87,6 +87,7 @@
 .locate { margin-top: 8px; }
 .locate summary {
   width: fit-content;
+  min-height: 44px;
   padding-block: 9px;
   color: var(--accent);
   cursor: pointer;

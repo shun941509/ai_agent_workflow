@@ -39,7 +39,8 @@ export default function ProjectActionPicker({ action, resourceLabel, onClose, on
   }
 
   return (
-    <StudioDialog title="프로젝트 선택" onClose={onClose} dismissDisabled={opening} descriptionId="project-action-prompt">
+    <StudioDialog title="프로젝트 선택" size="standard" onClose={onClose} dismissDisabled={opening} descriptionId="project-action-prompt"
+      footer={<button type="button" className="btn" disabled={opening} onClick={onClose}>취소</button>}>
       <p id="project-action-prompt">{action === 'connect' ? resourceLabel + '을 연결할 내 Workflow를 선택하세요.' :
         '설계를 가져올 내 프로젝트를 선택하세요.'}</p>
       {error && <p role="alert" className="modal-error">{error}</p>}
@@ -49,9 +50,9 @@ export default function ProjectActionPicker({ action, resourceLabel, onClose, on
       ) : projects.length === 0 ? (
         <p>{action === 'connect' ? '내 Agent에서 프로젝트를 만든 뒤 이 자료를 연결하세요.' : '선택할 프로젝트가 없습니다.'}</p>
       ) : (
-        <div className="project-list">
+        <ul className="project-list project-choice-list" aria-label="선택 가능한 프로젝트">
           {projects.map(project => (
-            <div className="project-item" key={project.id}>
+            <li className="project-item" key={project.id}>
               <button type="button" className="project-row" aria-label={project.title} disabled={opening} onClick={() => void pick(project.id)}>
                 <FolderOpen size={18} aria-hidden="true" />
                 <span className="project-name">
@@ -60,11 +61,10 @@ export default function ProjectActionPicker({ action, resourceLabel, onClose, on
                 </span>
                 <ChevronRight size={16} aria-hidden="true" />
               </button>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
-      <button type="button" className="btn" disabled={opening} onClick={onClose}>취소</button>
     </StudioDialog>
   );
 }

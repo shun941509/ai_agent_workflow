@@ -33,6 +33,65 @@ function link(graph:Graph, from:string, to:string, out:string) {
   const options = connectionOptions(graph,from,to).filter(o => (o.kind === 'flow' && o.out === out) || (o.kind === 'data' && o.input === 'input'));
   graph.edges.push(...connectBlocks(graph,from,to,options));
 }
+async function verifyConnectionChoices(page:Page, context:BrowserContext, mobile:boolean) {
+  if (mobile) await page.setViewportSize({width:320,height:568});
+  const choose=(control:Locator)=>mobile ? control.tap() : control.click();
+  const graph:Graph={nodes:[
+    createBlock('input.user_request',{id:'question'}),
+    createBlock('ai.single_task',{id:'answer'}),
+    createBlock('quality.evidence',{id:'evidence'}),
+  ],edges:[]};
+  const {id}=await api(context,'project.create',{title:'연결할 값 선택',graph});
+  await page.goto('/?edit='+id);
+  const closeInspector=page.getByRole('button',{name:'속성 닫기',exact:true});
+  if (mobile && await closeInspector.isVisible()) await choose(closeInspector);
+  const list=page.getByRole('button',{name:'목록으로 편집',exact:true});
+  if (await list.getAttribute('aria-pressed')!=='true') await choose(list);
+  await choose(page.locator('[data-canvas-block="question"]'));
+  const panel=page.getByRole('tabpanel',{name:'속성',exact:true});
+  await choose(panel.getByRole('button',{name:'연결 추가',exact:true}));
+  const dialog=page.getByRole('dialog',{name:'연결 추가',exact:true});
+  const target=dialog.getByRole('combobox',{name:'도착 블록'});
+  const order=dialog.getByRole('group',{name:'실행 순서',exact:true});
+  const values=dialog.getByRole('group',{name:'전달할 값',exact:true});
+  const inputHint='글을 요약할 때는 원문을 여기에 연결하세요.';
+  const questionHint='검색 후에도 처음 질문을 참고하려면 사용자 입력 블록의 결과를 연결하세요.';
+  await target.selectOption('evidence');
+  await expect(values.getByRole('checkbox',{name:'결과 → 검색된 구절',exact:true})).toHaveAccessibleDescription('');
+  await expect(values.getByText(inputHint,{exact:true})).toHaveCount(0);
+  await target.selectOption('answer');
+  const flow=order.getByRole('checkbox',{name:'작업 후 → 실행 시작',exact:true});
+  const input=values.getByRole('checkbox',{name:'결과 → 입력값',exact:true});
+  const question=values.getByRole('checkbox',{name:'결과 → 원래 질문',exact:true});
+  await expect(flow).toBeChecked();
+  await expect(flow).toHaveAccessibleDescription('');
+  await expect(input).toBeChecked();
+  await expect(question).not.toBeChecked();
+  await expect(input).toHaveAccessibleDescription(inputHint);
+  await expect(question).toHaveAccessibleDescription(questionHint);
+  await expect(values.getByText(inputHint,{exact:true})).toBeVisible();
+  await expect(values.getByText(questionHint,{exact:true})).toBeVisible();
+  await choose(dialog.getByRole('button',{name:'연결 적용'}));
+  const savedMappings=async()=>{
+    const stored:Graph=(await api(context,'project.open',{id})).graph;
+    return stored.edges.map(edge=>[edge.kind,edge.out,edge.input]).sort();
+  };
+  await expect.poll(savedMappings).toEqual([['data','value','input'],['flow','next','in']]);
+  await expect(panel.getByRole('region',{name:'실행 순서',exact:true})).toBeVisible();
+  await expect(panel.getByRole('region',{name:'전달할 값',exact:true})).toContainText('입력값');
+  await choose(panel.getByRole('button',{name:'전달 항목 추가'}));
+  const transfers=page.getByRole('dialog',{name:'전달 항목 추가'});
+  const remaining=transfers.getByRole('group',{name:'전달할 값',exact:true});
+  const original=remaining.getByRole('checkbox',{name:'결과 → 원래 질문',exact:true});
+  await expect(original).toHaveAccessibleDescription(questionHint);
+  await expect(remaining.getByText(questionHint,{exact:true})).toBeVisible();
+  await expect(remaining.getByText(inputHint,{exact:true})).toHaveCount(0);
+  await choose(original);
+  await choose(transfers.getByRole('button',{name:'연결 적용'}));
+  await expect.poll(savedMappings).toEqual([['data','value','input'],['data','value','question'],['flow','next','in']]);
+  await expect(panel.getByRole('region',{name:'전달할 값',exact:true})).toContainText('원래 질문');
+  console.log('PASS '+(mobile?'320px touch':'1440px desktop')+' mapping labels, port examples, and saved execution order and values.');
+}
 async function verify(width:number) {
   const context = await browser.newContext({baseURL,viewport:{width,height:width === 390 ? 844 : 900},isMobile:width === 390,hasTouch:width === 390});
   try {
@@ -75,7 +134,7 @@ async function verify(width:number) {
     await page.keyboard.press('Escape');
     assert.deepEqual((await saved()).edges,original.edges);
 
-    await activate(page,panel.getByRole('button',{name:/입력값.*데이터 연결 삭제/}));
+    await activate(page,panel.getByRole('button',{name:/입력값.*전달할 값 연결 삭제/}));
     await expect(panel.getByRole('textbox',{name:/맞음.*선 설명/})).toBeFocused();
     await activate(page,add);
     const value=transfer.getByRole('checkbox',{name:'결과 → 입력값'});
@@ -133,7 +192,7 @@ async function verify(width:number) {
     await refOption.press('Space');
     await activate(page,apply);
     await expect(panel.getByRole('button',{name:/참고 자료.*참조 연결 삭제/})).toBeVisible();
-    await activate(page,panel.getByRole('button',{name:/원래 질문.*데이터 연결 삭제/}));
+    await activate(page,panel.getByRole('button',{name:/원래 질문.*전달할 값 연결 삭제/}));
     const last=panel.getByRole('button',{name:/참고 자료.*참조 연결 삭제/});
     await expect(last).toBeFocused();
     await page.keyboard.press('Enter');
@@ -164,6 +223,7 @@ async function verify(width:number) {
     await activate(page,applyConditions);
     await expect(wire('classify','answer')).toHaveCount(0);
     await expect(page.locator('[data-canvas-block="answer"]')).toBeFocused();
+    await verifyConnectionChoices(page,context,width === 390);
   } finally { await context.close(); }
 }
 try {

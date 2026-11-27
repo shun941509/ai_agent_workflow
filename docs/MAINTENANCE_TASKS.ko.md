@@ -15,7 +15,21 @@
 
 **Agent ZIP에서 자료나 단계가 빠집니다.** 편집기의 **Agent 내보내기 → ZIP 내려받기**로 받은 파일을 열어 `AGENTS.md`에서 단계별 입력·분기·승인 조건과 자료 경로를 확인하세요. `project.exportPreview`는 현재 캔버스에서 자료의 버전과 사용 위치를 찾습니다. `project.exportAgent`는 다운로드 시 선택한 자료의 권한과 버전을 다시 확인합니다. 선택 자료의 원본 크기 합계는 중복을 제외하고 32 MiB까지입니다. Skill 원문과 부속 파일은 `.agents/skills/<id>/`에 있고, Claude Code는 `.claude/skills/<id>/SKILL.md`에서 원문을 참조합니다. [자료 선택 화면](../src/ui/editor/AgentExportDialog.tsx) · [자료 확인](../src/server/agent-export.ts) · [Skill 경로 생성](../src/server/agent-skill-export.ts) · [ZIP 시험](../tests/agent-zip.test.ts)
 
-**큰 설계에서 특정 단계 찾기.** 내보내기는 먼저 전체 지침의 UTF-8 바이트와 빈 줄을 포함한 줄 수를 계산합니다. 16 KiB 또는 200줄을 초과하면 `AGENTS.md`에 시작점과 분기·승인 안내를 두고, 각 블록의 지침을 `workflow/step-*.md`에 기록합니다. 단계 파일의 실행 경로는 다음 블록으로, 값·자료 연결은 입력을 제공하는 블록으로 이어집니다. 하위 설계는 호출 단계에서 시작 링크를 확인하세요. 연결되지 않은 블록도 `workflow/index.md`에서 찾을 수 있습니다. [분리 기준과 단계 링크](../src/server/agent-instruction-layout.ts)
+**같은 하위 설계를 여러 곳에서 호출합니다.** 각 호출의 저장판이 같으면 ZIP에는 `workflow/edition-*.md` 한 벌이 들어갑니다. 다른 판을 지정하면 별도 지침을 사용합니다. 단계 호출의 결과는 그 호출의 다음 경로로, Agent가 도구로 호출한 결과는 해당 Agent의 다음 판단으로 돌아갑니다. 고유한 단계를 펼쳐도 깊이·크기 한도를 넘는 호출은 **실행 준비**와 README에서 확인하세요. [저장판 확인](../src/server/workflow-refs.ts) · [호출·복귀 시험](../tests/agent-export-shared-editions.test.ts)
+
+**근거 있음 경로에서 어떤 원문을 대조했는지 확인합니다.** **원문 대조 필수** 단계와 원문 근거를 요구하는 동적 배정은 채택한 인용의 판을 먼저 확인합니다. 판이 비어 있으면 **판 번호**에 회신하고, 같은 판의 연결 원문이 없으면 요청받은 파일을 첨부하세요. 같은 실행에서 판·행·인용과 연결 또는 회신 원문 표시를 확인할 수 있습니다. [근거 판정](../src/engine/evidence.ts) · [원문 회신 시험](../tests/evidence-original.test.ts)
+
+자료 검색 결과의 `version`은 원문 판이고, 자료집에서 찾은 결과의 `indexVersion`은 색인 판입니다. 예를 들어 1판 문서를 자료집 7판에 색인하면 두 값은 각각 `"1"`, `"7"`입니다. `assetId`는 자료함에 등록한 원문에 있습니다. 같은 원문에서 같은 행과 인용을 두 번 찾으면 한 후보로 세고, LF·CRLF·CR로 나뉜 행의 번호는 1부터 셉니다. 발행할 때는 색인한 스냅숏의 원문을, 철회할 때는 현재 발행 중인 원문을 확인하세요. [검색·원문 대조 시험](../tests/evidence-original.test.ts) · [원문 선택·발행판 시험](../tests/agent-export-data.test.ts)
+
+**Agent 내보내기**에서 같은 이름의 자료는 체크 항목의 단계 번호로 구분합니다. 같은 프로젝트에서 이름과 상대경로가 고유한 파일을 함께 담으면 `Guide.md`에서 `appendix.md` 같은 문서 링크를 열 수 있습니다. 필요한 링크 대상이 빠졌다면 **실행 준비**에서 사용할 단계와 경로를 확인하세요. 같은 설계를 다시 내보낼 때 Skill의 폴더 이름은 선택을 바꿔도 유지됩니다. [자료 배치와 링크 확인](../src/server/agent-material-files.ts) · [자료 선택·다운로드 시험](../tests/agent-export-browser.ts)
+
+**압축을 푼 뒤 실행을 재개할 때** 대표와 하위 역할이 한 실행 기록에서 모델 호출 수와 동시 실행 자리를 관리하는지 확인하세요. 민감정보를 가리거나 차단했다면 양식·변환으로 저장한 값, 원래 질문과 이전 답변도 처리된 상태로 다음 모델에 전달해야 합니다. [ZIP 한도 시험](../tests/agent-budget-export.test.ts) · [워커의 문답·재개 시험](../tests/model-history-privacy.test.ts)
+
+**초안에서 빠진 단계나 실행 환경 확인하기.** **Agent 내보내기**에서 **실행 준비**를 열고 단계·준비할 내용·이유를 확인하세요. **ZIP 내려받기**로 받은 단일 지침·분할 단계·위임 역할에는 최종 선택에 맞춰 `README.md`의 해당 준비 항목으로 가는 링크가 생깁니다. 준비 항목은 내보낸 설계 안의 단계 위치로 연결하므로 이름이 같은 하위 작업도 구분됩니다. 회신을 기다리는 병렬 경로는 합류 시 대기하고, 준비할 수 없다고 확인된 경우에는 설계한 실패 정책을 따릅니다. [설계·환경 검사](../src/domain/export-design-preparation.ts) · [연결 자료별 준비](../src/domain/export-resource-preparation.ts) · [단계별 준비 시험](../tests/agent-stage-preparation-export.test.ts)
+
+**받은 ZIP에서 만든 결과 파일 찾기.** 후속 단계는 메모리에서 생성한 파일명·형식·본문을 받습니다. 전체 실행이 성공하면 최종 답변에 전달된 생성 파일만 처리된 이름과 본문으로 `outputs/`에 저장합니다. 서로 다른 호출의 파일은 이름이 같아도 각각 저장하며 확장자 앞에 번호를 붙입니다. [결과 저장 지침](../src/server/agent-output-instructions.ts) · [ZIP 지침 시험](../tests/agent-output-export.test.ts) · [구조화 입력과 파일 전달 시험](../tests/structured-file-privacy.test.ts)
+
+**큰 설계에서 특정 단계 찾기.** 내보내기는 먼저 전체 지침의 UTF-8 바이트와 빈 줄을 포함한 줄 수를 계산합니다. 16 KiB 또는 200줄을 초과하면 `AGENTS.md`에 시작점과 분기·승인 안내를 두고, 각 블록의 지침을 `workflow/step-*.md`에 기록합니다. 단계 파일의 실행 경로는 다음 블록으로, 값·자료 연결은 입력을 제공하는 블록으로 이어집니다. 하위 설계는 호출 단계에서 시작 링크를 확인하세요. 연결되지 않은 블록도 `workflow/index.md`에서 찾을 수 있습니다. 한 역할의 원문이 같은 기준을 넘으면 `agents/`의 역할 파일에서 작업 번호를 골라 `workflow/assignment-step-*.md`의 배정을 엽니다. [분리 기준과 단계 링크](../src/server/agent-instruction-layout.ts) · [역할별 배정 문서](../src/server/agent-delegation.ts)
 
 **병렬 역할을 호출하거나 결과를 모을 수 없습니다.** ZIP의 `README.md`에서 역할 이름을 찾아, 해당 도구의 프로젝트 역할 목록에 등록됐는지 확인하세요. Codex는 `.codex/agents/*.toml`, Claude Code는 `.claude/agents/*.md`, OpenCode는 `.opencode/agents/*.md`를 읽습니다. 역할마다 `agents/`의 원문에 입력·자료·Skill과 맡길 일이 있습니다. 같은 팀에서 이름과 자료·도구 범위가 같은 역할을 여러 번 호출하면 작업 번호로 해당 지침을 선택합니다. 합류 단계에서는 시작한 각 호출의 결과나 실패 사유가 도착했는지 확인하고, 연결 순서·합치기 형식·실패 시 처리 설정에 따라 다음 단계로 전달하세요. [역할 원문](../src/server/agent-delegation.ts) · [클라이언트별 등록](../src/server/agent-role-files.ts) · [병렬 및 합류 지침](../src/server/agent-parallel-instructions.ts)
 

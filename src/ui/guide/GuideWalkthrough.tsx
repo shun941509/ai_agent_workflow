@@ -32,6 +32,8 @@ export function GuideWalkthrough({ step, workButton, children }: {
   const latestCopy = useRef(0);
   async function copy(target: CopyTarget, element: HTMLParagraphElement) {
     const request = ++latestCopy.current;
+    const focused = document.activeElement;
+    const { anchorNode, anchorOffset, focusNode, focusOffset } = window.getSelection() ?? {};
     setNotice(undefined);
     let message = target === '작업 지시' ? '작업 지시를 복사했습니다.' : '시험 질문을 복사했습니다.';
     try {
@@ -39,6 +41,9 @@ export function GuideWalkthrough({ step, workButton, children }: {
     } catch {
       if (request !== latestCopy.current || !element.isConnected) return;
       const selection = window.getSelection();
+      if (document.activeElement !== focused || selection?.anchorNode !== anchorNode
+        || selection?.anchorOffset !== anchorOffset || selection?.focusNode !== focusNode
+        || selection?.focusOffset !== focusOffset) return;
       if (selection) {
         const range = document.createRange();
         range.selectNodeContents(element);
@@ -50,14 +55,14 @@ export function GuideWalkthrough({ step, workButton, children }: {
         else message = '문장을 선택했습니다. 기기의 복사 기능을 사용하세요.';
       } else message = '문장을 직접 선택해 복사하세요.';
     }
-    if (request === latestCopy.current) setNotice({target, message});
+    if (request === latestCopy.current && element.isConnected) setNotice({target, message});
   }
 
   if (step.helpId === 'instruction') {
     const [edit, rerun, compare] = step.actions;
     const [instructionImage, resultImage] = step.images;
     return <div className={styles.walkthrough}>
-      <GuideFigure id={instructionImage} />
+      <GuideFigure id={instructionImage} eager />
       <div className={styles.directions}>
         <h3>작업 지시 바꾸기</h3>
         <p>{edit}</p>
@@ -78,9 +83,9 @@ export function GuideWalkthrough({ step, workButton, children }: {
   }
 
   return <div className={styles.walkthrough}>
-    <div className={styles.images}>{step.images.map(id => id === 'source-rule'
+    <div className={styles.images}>{step.images.map((id, index) => id === 'source-rule'
       ? <details className={styles.imageDetail} key={id}><summary>비교할 규정 원문 보기</summary><GuideFigure id={id} /></details>
-      : <GuideFigure id={id} key={id} />)}</div>
+      : <GuideFigure id={id} key={id} eager={index === 0} />)}</div>
     <div className={styles.directions}>
       <h3>따라 하기</h3>
       <ul>{step.actions.map(text => <li key={text}>{text}</li>)}</ul>

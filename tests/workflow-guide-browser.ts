@@ -22,6 +22,72 @@ const optionalId = '신분증 지참은 선택 사항입니다.';
 const citation = '회원증을 처음 만들 때는 신분증을 가져오세요.';
 const changedInstruction = '답을 쓰고 다음 줄에 안내문의 근거 문장을 그대로 인용하세요.';
 
+async function verifyNoviceLanding(page: Page, guide: Locator) {
+  const quick = guide.getByRole('region', {name:'예제를 연 뒤 따라 할 세 단계'});
+  const compare = guide.getByRole('region', {name:'질문을 구체적으로 쓰는 법'});
+  const faq = guide.getByRole('region', {name:'첫 실습에서 자주 묻는 질문'});
+  await expect(guide.getByRole('heading', {name:'내 자료로 질문에 답하는 AI 만들기'})).toBeVisible();
+  await expect(compare.getByRole('group', {name:'넓게 물었을 때'})).toContainText('방문 목적');
+  const specific = compare.getByRole('group', {name:'준비물을 지정했을 때'});
+  await expect(specific).toContainText(question);
+  await expect(specific).toContainText('신분증');
+  await expect(compare).toContainText(citation);
+  const pictures = quick.getByRole('img');
+  await expect(pictures).toHaveCount(3);
+  for (const [index, file] of ['quick-open.webp', 'quick-question.webp', 'quick-answer.webp'].entries()) {
+    const picture = pictures.nth(index);
+    await picture.scrollIntoViewIfNeeded();
+    await expect.poll(() => picture.evaluate((img:HTMLImageElement) =>
+      img.complete && img.naturalWidth > 0 && img.alt.trim().length > 0
+    )).toBe(true);
+    assert.ok((await picture.getAttribute('src'))?.endsWith('/' + file));
+  }
+  const writes: string[] = [];
+  const track = (request: Request) => {
+    if (!request.url().endsWith('/api/studio') || request.method() !== 'POST') return;
+    const {action} = request.postDataJSON();
+    if (action === 'run.start' || action === 'project.create') writes.push(action);
+  };
+  page.on('request', track);
+  try {
+    for (const [index, label] of ['시험 실행 열기', '질문 보내기', '답변 확인하기'].entries()) {
+      await quick.getByRole('link', {name:label, exact:true}).press('Enter');
+      await expect(page).toHaveURL(url => url.searchParams.get('step') === String(index+2));
+      await expect(guide.getByRole('heading', {name:guideSteps[index+1].title})).toBeFocused();
+      await guide.getByRole('navigation', {name:'첫 실습 단계'}).getByRole('button', {name:/준비 확인/}).press('Enter');
+    }
+    for (const [title, action, issue] of [
+      ['질문을 어디에 입력하나요?', '질문 실행 도움말', 'question'],
+      ['답에 나온 준비물을 어떻게 확인하나요?', '자료 원문 도움말', 'source'],
+      ['작업 지시를 바꿨는데 답이 그대로예요.', '지시 변경 도움말', 'instruction'],
+    ]) {
+      const disclosure = faq.locator('summary').filter({hasText:title});
+      await disclosure.press('Enter');
+      await faq.getByRole('button', {name:action}).press('Enter');
+      await expect(page).toHaveURL(url => url.searchParams.get('section') === 'help' && url.searchParams.get('issue') === issue);
+      await expect(page.locator('#guide-help-' + issue)).toBeFocused();
+      await guide.getByRole('navigation', {name:'가이드 메뉴'}).getByRole('link', {name:'처음 시작하기'}).press('Enter');
+    }
+    const uses = guide.getByRole('region', {name:'내 일에 써보기'});
+    await uses.getByRole('button', {name:/회의 메모로 회의록 만들기/}).press('Enter');
+    const meeting = page.getByRole('dialog', {name:'회의록·업무 보고 설계하기'});
+    await expect(meeting.getByRole('textbox', {name:/^회의 메모/})).toHaveValue(workDocuments.find(doc=>doc.id==='meeting-report')!.sample);
+    await page.keyboard.press('Escape');
+    await expect(meeting).toHaveCount(0);
+    await uses.getByRole('button', {name:/내 자료로 안내하기/}).press('Enter');
+    const beginner = page.getByRole('dialog', {name:'내 자료로 안내하기'});
+    await expect(beginner.getByRole('button', {name:'내 사본으로 시작'})).toBeVisible();
+    await expect(page).toHaveURL(url=>url.searchParams.get('lesson')==='beginner');
+    await page.keyboard.press('Escape');
+    await expect(beginner).toHaveCount(0);
+    await page.goBack();
+    await expect(quick).toBeVisible();
+    assert.deepEqual(writes, []);
+  } finally {
+    page.off('request', track);
+  }
+}
+
 async function verifyTemplatePreviews(page: Page, guide: Locator, mobile: boolean) {
   const field = '만들고 싶은 결과';
   const optionCount = templates.length + workDocuments.length + 1; // 할 일 앱 요구사항
@@ -51,7 +117,14 @@ async function verifyTemplatePreviews(page: Page, guide: Locator, mobile: boolea
     } else {
       await expect(options.getByRole('radio')).toHaveCount(optionCount);
       await select(templates[0]);
-      await options.getByRole('radio', { name: templates[0].title, exact: true }).focus();
+      const selected = options.getByRole('radio', { name: templates[0].title, exact: true });
+      await selected.focus();
+      const desktop = page.viewportSize()!;
+      await page.setViewportSize({width:768, height:desktop.height});
+      await expect(list).toBeFocused();
+      await expect(list).toHaveValue(templates[0].id);
+      await page.setViewportSize(desktop);
+      await expect(selected).toBeFocused();
     }
     for (const lesson of templates) {
       const radio = options.getByRole('radio', { name: lesson.title, exact: true });
@@ -97,9 +170,16 @@ async function verifyTemplatePreviews(page: Page, guide: Locator, mobile: boolea
           await enlarge.press('Enter');
           const dialog = page.getByRole('dialog');
           await expect(dialog.getByRole('img')).toHaveAttribute('src', innerSource);
+          const viewport = dialog.getByRole('region', {name:'확대한 실습 화면'});
+          const original = dialog.getByRole('button', {name:'원본 크기로 보기'});
+          if (await original.isVisible()) await original.press('Enter');
+          await viewport.evaluate(el => { el.scrollLeft = el.scrollWidth * .7 - el.clientWidth / 2; });
+          const horizontalCenter = () => viewport.evaluate(el => (el.scrollLeft + el.clientWidth / 2) / el.scrollWidth);
+          const readingPoint = await horizontalCenter();
           await dialog.getByRole('button', { name: '2배로 확대', exact: true }).press('Enter');
           await expect.poll(() => dialog.getByRole('img').evaluate((image: HTMLImageElement) =>
             image.clientWidth / image.naturalWidth)).toBeCloseTo(2, 1);
+          await expect.poll(horizontalCenter).toBeCloseTo(readingPoint, 2);
           await page.keyboard.press('Escape');
           await expect(enlarge).toBeFocused();
         }
@@ -219,6 +299,7 @@ async function exercise(mobile: boolean) {
       return !!img && img.naturalWidth > 0 && img.clientWidth <= element.clientWidth + 1;
     })).toBe(true);
     await capture('landing');
+    await verifyNoviceLanding(page, guide);
     await goToStep('질문 실행');
     await expect(guide.getByRole('heading', { name: guideSteps[2].title })).toBeFocused();
     await expect(guide.getByRole('checkbox')).toHaveCount(0);
@@ -440,6 +521,13 @@ async function exercise(mobile: boolean) {
       await expect(tool).toBeChecked();
       await expect(exampleRegion.getByRole('figure').getByRole('img')).toHaveAccessibleName(/\S/);
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1));
+      await firstTerm.check();
+      const enlarge = exampleRegion.getByRole('button', {name:'도서관 질문의 전체 Workflow 확대'});
+      await enlarge.press('Enter');
+      const zoom = page.getByRole('dialog', {name:'도서관 질문의 전체 Workflow 확대'});
+      await expect.poll(() => zoom.evaluate(el => el.scrollHeight - el.clientHeight)).toBeLessThanOrEqual(1);
+      await page.keyboard.press('Escape');
+      await expect(enlarge).toBeFocused();
       await page.setViewportSize({ width, height: 844 });
     }
     const linkedGallery = guide.getByRole('link', { name: '도서관 방문 준비하기에서 보기', exact: true });
@@ -475,6 +563,7 @@ async function exercise(mobile: boolean) {
     await expect(menuItems).toHaveText(['작업실 홈', 'Workflow 편집기', '내 Agent', '도구 및 자료', '공유 Agent',
       '공유 도구 및 자료', '수준별 템플릿', '설계 가져오기', '가이드']);
     await expect(menus.locator('dd')).toHaveCount(9);
+    await expect(menus.locator('dd').first()).toContainText('새 Agent를 만들거나 예제로');
     for (const description of await menus.locator('dd').all()) {
       await expect(description).toBeVisible();
       await expect(description).toContainText(/\S/);
@@ -550,8 +639,10 @@ async function exercise(mobile: boolean) {
     await expect(reference.getByText('Skill', { exact: true })).toBeVisible();
     await search.fill('일치 항목 없음 확인');
     await expect(reference.getByRole('status')).toContainText('일치하는 항목이 없습니다');
-    await search.fill('');
-    await allLevels.check();
+    await reference.getByRole('button', {name:'검색 조건 초기화'}).press('Enter');
+    await expect(search).toBeFocused();
+    await expect(search).toHaveValue('');
+    await expect(allLevels).toBeChecked();
     await expect(grouped).toHaveText(levels.map(groupTitle));
     if (mobile) {
       await page.setViewportSize({ width: 320, height: 568 });
@@ -729,6 +820,36 @@ async function exercise(mobile: boolean) {
       await expect(copyFeedback).toHaveText([target + ' 복사했습니다.']);
       assert.equal(await page.evaluate(() => navigator.clipboard.readText()), sample);
     }
+    await page.evaluate(`(() => {
+      Object.defineProperty(navigator, 'clipboard', { configurable:true, value:{
+        writeText: () => new Promise((_, reject) => {
+          window.addEventListener('deny-guide-copy', () => reject(new DOMException('Denied', 'NotAllowedError')), { once:true });
+        }),
+      } });
+      document.execCommand = () => false;
+    })()`);
+    const denyCopy = () => page.evaluate(async () => {
+      window.dispatchEvent(new Event('deny-guide-copy'));
+      await Promise.resolve();
+    });
+    const instructionStatus = guide.getByRole('group', { name:'바꿀 작업 지시' }).getByRole('status');
+    const questionSample = guide.getByRole('group', { name:'보낼 질문' }).locator('p');
+    await copyInstruction.press('Enter');
+    await questionSample.evaluate(paragraph => window.getSelection()?.selectAllChildren(paragraph));
+    await denyCopy();
+    assert.equal(await page.evaluate(() => window.getSelection()?.toString().trim()), question);
+    await expect(instructionStatus).toBeEmpty();
+
+    await copyInstruction.press('Enter');
+    await copyQuestion.focus();
+    await denyCopy();
+    await expect(copyQuestion).toBeFocused();
+    await expect(instructionStatus).toBeEmpty();
+
+    await copyInstruction.press('Enter');
+    await denyCopy();
+    await expect(instructionStatus).toContainText('기기의 복사 기능을 사용하세요');
+    assert.equal(await page.evaluate(() => window.getSelection()?.toString().trim()), changedInstruction);
     if (mobile) {
       const controls = [guide.getByRole('button', { name: '도서관 안내 Agent의 작업 지시 확대' }), copyInstruction,
         guide.getByRole('button', { name: '예제 편집기 열기' }), copyQuestion, guide.getByRole('heading', {name: '변경 전후 답변'})];

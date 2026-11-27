@@ -1,9 +1,6 @@
 .currentLesson,
 .blank {
   max-width: 74ch;
-}
-.currentLesson,
-.blank {
   padding-bottom: 22px;
   margin-bottom: 22px;
   border-bottom: 1px solid var(--border);
@@ -14,8 +11,8 @@
 .blank p { margin: 0 0 12px; color: var(--muted); }
 .currentLesson li + li { margin-top: 7px; }
 .disclosure > summary {
-  min-height: 40px;
-  padding: 9px 2px;
+  min-height: 44px;
+  padding: 11px 2px;
   font-weight: 650;
   line-height: 1.5;
   cursor: pointer;
@@ -106,7 +103,7 @@
   min-width: 0;
   min-height: 44px;
   padding: 9px 12px;
-  border: 1px solid #95a9ae;
+  border: 1px solid var(--field-border);
   border-radius: 5px;
   background: white;
   color: var(--ink);
@@ -228,7 +225,7 @@
 }
 .resourceFlow > :first-child,
 .resourceFlow > :last-child { padding: 2px 6px; border: 1px solid var(--border); border-radius: 4px; }
-.resourceFlow > :first-child { background: #edf5f2; }
+.resourceFlow > :first-child { background: var(--tint); }
 .uses { display: inline-flex; color: var(--accent); }
 .srOnly {
   position: absolute;

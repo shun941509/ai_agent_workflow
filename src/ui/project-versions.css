@@ -1,0 +1,19 @@
+.version-panel { container-type: inline-size; display: grid; gap: 16px; min-width: 0; }
+.version-panel > p, .version-panel .vp-section, .version-panel .share-current { overflow-wrap: anywhere; }
+.version-panel .share-current { padding: 12px 16px; gap: 8px; }
+.vp-settings-grid { display: grid; gap: 12px; }
+.vp-section, .vp-decision {
+  display: grid; align-content: start; gap: 12px; min-width: 0;
+  padding: 16px; border: 1px solid var(--border); border-radius: 8px;
+}
+.vp-section > .field, .vp-decision > .field { min-width: 0; }
+.vp-section select, .vp-decision select { width: 100%; min-width: 0; }
+.vp-section > p { color: var(--muted); font-size: .9rem; }
+.vp-address-actions .vp-revoke { color: var(--danger); margin-inline-start: auto; }
+.vp-apply { display: flex; justify-content: end; }
+.vp-decision > button { justify-self: end; }
+.vp-decision textarea { min-height: 5.5rem; }
+.project-choice-list { list-style: none; padding: 0; }
+@container (min-width: 620px) {
+  .vp-settings-grid:has(.vp-audience) { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+}

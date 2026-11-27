@@ -1,0 +1,150 @@
+{
+  "provider": "Local HTTP model fixture (synthetic Responses and Messages); no external model or live credentials",
+  "sample": "Unmodified Studio worker-exported archives",
+  "results": [
+    {
+      "client": "codex",
+      "version": "codex-cli 0.171.0",
+      "runnerNode": "v26.5.0",
+      "artifact": "parallel-team",
+      "sha256": "5df04880499127c5e1e1d8266e7fb2421986f661fff3f9b80bc413f9c5d7792c",
+      "rootLoaded": true,
+      "skillLoaded": null,
+      "rolesRegistered": 2,
+      "roleNames": [
+        "wf-review-4d2bb841d078",
+        "wf-edit-05f1cee04b92"
+      ],
+      "modelRequests": 8,
+      "childFilesRead": 0,
+      "childResultsReturned": 2,
+      "returnedRoles": [
+        "wf-review-4d2bb841d078",
+        "wf-edit-05f1cee04b92"
+      ],
+      "waitCalls": 2,
+      "childSessions": [
+        {
+          "role": "wf-review-4d2bb841d078",
+          "id": "01a218c9-e714-7333-9f2f-c4028572e8d7"
+        },
+        {
+          "role": "wf-edit-05f1cee04b92",
+          "id": "01a218c9-e727-76f2-a195-c8e1778f42ff"
+        }
+      ],
+      "readFailures": [
+        "exec_command failed: CreateProcess { message: \"Rejected(\\\"`\\\\\\\"C:\\\\\\\\\\\\\\\\Program Files\\\\\\\\\\\\\\\\WindowsApps\\\\\\\\\\\\\\\\OpenAI.CodexPrimaryRuntime.v26-1119-907-0_26.1119.907.0_x64__3k8sg7r9htsxt\\\\\\\\\\\\\\\\dependencies\\\\\\\\\\\\\\\\native\\\\\\\\\\\\\\\\powershell\\\\\\\\\\\\\\\\pwsh.exe\\\\\\\" -Command \\\\\\\"Get-Content -Raw -Encoding UTF8 -LiteralPath 'agents/wf-review-4d2bb841d078.md'\\\\\\\"` rejected: blocked by policy\\\")\" }",
+        "exec_command failed: CreateProcess { message: \"Rejected(\\\"`\\\\\\\"C:\\\\\\\\\\\\\\\\Program Files\\\\\\\\\\\\\\\\WindowsApps\\\\\\\\\\\\\\\\OpenAI.CodexPrimaryRuntime.v26-1119-907-0_26.1119.907.0_x64__3k8sg7r9htsxt\\\\\\\\\\\\\\\\dependencies\\\\\\\\\\\\\\\\native\\\\\\\\\\\\\\\\powershell\\\\\\\\\\\\\\\\pwsh.exe\\\\\\\" -Command \\\\\\\"Get-Content -Raw -Encoding UTF8 -LiteralPath 'agents/wf-edit-05f1cee04b92.md'\\\\\\\"` rejected: blocked by policy\\\")\" }"
+      ],
+      "readEnvironment": {
+        "os": "Windows",
+        "sandbox": "read-only",
+        "profile": "isolated trusted temporary project",
+        "action": "Get-Content -Raw -Encoding UTF8 -LiteralPath on each role file",
+        "nativeError": "CreateProcess rejected: blocked by policy",
+        "numericErrorCode": null,
+        "explanation": "The client returned no numeric Windows error. Both named sessions returned separately after their shell reads were declined."
+      },
+      "status": "partial"
+    },
+    {
+      "client": "codex",
+      "version": "codex-cli 0.171.0",
+      "runnerNode": "v26.5.0",
+      "artifact": "agent-workflow-tool",
+      "sha256": "56bf7b834c410932f05a7c5df555b5c743ba25676f2aafae10a3bbcebe320160",
+      "rootLoaded": true,
+      "skillLoaded": true,
+      "rolesRegistered": 0,
+      "modelRequests": 1,
+      "childFilesRead": 0,
+      "childResultsReturned": 0,
+      "roleNames": [],
+      "returnedRoles": [],
+      "status": "passed"
+    },
+    {
+      "client": "claude",
+      "version": "2.1.87 (Claude Code)",
+      "runnerNode": "v24.20.0",
+      "artifact": "parallel-team",
+      "sha256": "5df04880499127c5e1e1d8266e7fb2421986f661fff3f9b80bc413f9c5d7792c",
+      "rootLoaded": true,
+      "skillLoaded": null,
+      "rolesRegistered": 2,
+      "modelRequests": 6,
+      "childFilesRead": 2,
+      "childResultsReturned": 2,
+      "roleNames": [
+        "wf-review-4d2bb841d078",
+        "wf-edit-05f1cee04b92"
+      ],
+      "returnedRoles": [
+        "wf-review-4d2bb841d078",
+        "wf-edit-05f1cee04b92"
+      ],
+      "status": "passed"
+    },
+    {
+      "client": "claude",
+      "version": "2.1.87 (Claude Code)",
+      "runnerNode": "v24.20.0",
+      "artifact": "agent-workflow-tool",
+      "sha256": "56bf7b834c410932f05a7c5df555b5c743ba25676f2aafae10a3bbcebe320160",
+      "rootLoaded": true,
+      "skillLoaded": true,
+      "rolesRegistered": 0,
+      "modelRequests": 1,
+      "childFilesRead": 0,
+      "childResultsReturned": 0,
+      "roleNames": [],
+      "returnedRoles": [],
+      "status": "passed"
+    },
+    {
+      "client": "opencode",
+      "version": "1.19.6",
+      "runnerNode": "v26.5.0",
+      "artifact": "parallel-team",
+      "sha256": "5df04880499127c5e1e1d8266e7fb2421986f661fff3f9b80bc413f9c5d7792c",
+      "rootLoaded": true,
+      "skillLoaded": null,
+      "rolesRegistered": 2,
+      "modelRequests": 7,
+      "childFilesRead": 2,
+      "childResultsReturned": 2,
+      "roleNames": [
+        "wf-review-4d2bb841d078",
+        "wf-edit-05f1cee04b92"
+      ],
+      "returnedRoles": [
+        "wf-review-4d2bb841d078",
+        "wf-edit-05f1cee04b92"
+      ],
+      "status": "passed"
+    },
+    {
+      "client": "opencode",
+      "version": "1.19.6",
+      "runnerNode": "v26.5.0",
+      "artifact": "agent-workflow-tool",
+      "sha256": "56bf7b834c410932f05a7c5df555b5c743ba25676f2aafae10a3bbcebe320160",
+      "rootLoaded": true,
+      "skillLoaded": true,
+      "rolesRegistered": 0,
+      "modelRequests": 2,
+      "childFilesRead": 0,
+      "childResultsReturned": 0,
+      "roleNames": [],
+      "returnedRoles": [],
+      "status": "passed"
+    }
+  ],
+  "runner": "tests/agent-export-native.ts",
+  "notes": [
+    "The title exists in each exported AGENTS.md. A matching reply proves the client passed project instructions to the local model fixture.",
+    "Each native child received its registered role and produced an individually identifiable return value. A file read is counted only after the client supplied its actual assignment text or exact file digest to the fixture.",
+    "The Claude Code CLI reached the localhost Messages fixture with Node 24.20.0. Node 26.5.0 encountered a connection error before sending the model request."
+  ]
+}

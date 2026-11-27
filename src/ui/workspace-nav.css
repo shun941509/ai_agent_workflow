@@ -1,5 +1,5 @@
 :root {
-  --workspace-nav-width: 176px;
+  --workspace-nav-width: 190px;
 }
 
 .workspace-rail {
@@ -13,8 +13,8 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-width: thin;
-  color: #e9eced;
-  background: #1c2430;
+  color: #eef3fb;
+  background: var(--navy);
   font: 15px/1.55 Inter, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   letter-spacing: normal;
 }
@@ -57,7 +57,7 @@ button.workspace-menu-button {
 
 .workspace-rail-links h2 {
   margin: 19px 10px 5px;
-  color: #afbac9;
+  color: #bccadd;
   font-size: 11px;
   font-weight: 560;
   letter-spacing: normal;
@@ -66,7 +66,7 @@ button.workspace-menu-button {
 .workspace-rail-links button {
   display: flex;
   width: 100%;
-  min-height: 38px;
+  min-height: 42px;
   padding: 8px;
   border-radius: 4px;
   color: inherit;
@@ -76,13 +76,13 @@ button.workspace-menu-button {
 .workspace-rail-links button:hover,
 .workspace-rail-account button:hover,
 .workspace-rail .workspace-drawer-close:hover {
-  background: #2c3543;
+  background: #293a50;
   color: #fff;
 }
 
 .workspace-rail-links button[aria-current='page'] {
-  background: #384253;
-  box-shadow: inset 2px 0 #b4c6ff;
+  background: #334862;
+  box-shadow: inset 3px 0 #b4c6ff;
   color: #fff;
   font-weight: 650;
 }
@@ -93,7 +93,7 @@ button.workspace-menu-button {
   gap: 10px;
   margin-top: auto;
   padding: 18px 16px 20px;
-  border-top: 1px solid #39404c;
+  border-top: 1px solid #384858;
 }
 
 .workspace-rail-identity {
@@ -109,7 +109,7 @@ button.workspace-menu-button {
   width: 33px;
   height: 33px;
   border-radius: 50%;
-  background: #384253;
+  background: #334862;
   color: #d0daee;
 }
 
@@ -131,13 +131,16 @@ button.workspace-menu-button {
 
 .workspace-rail-account button {
   justify-self: start;
-  padding: 4px 0;
+  min-height: var(--control-height);
+  margin-inline-start: -8px;
+  padding: 6px 8px;
+  border-radius: var(--control-radius);
   color: #b9c2d0;
   font-size: 12.5px;
 }
 
 .workspace-rail button:focus-visible {
-  outline: 2px solid #b4c6ff;
+  outline: 3px solid #b4c6ff;
   outline-offset: 2px;
 }
 
@@ -145,15 +148,15 @@ button.workspace-menu-button {
   display: none;
   flex: none;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   border-radius: 4px;
-  color: #394654;
+  color: var(--ink);
 }
 
 button.workspace-menu-button:hover {
-  background: #edf0f4;
+  background: var(--tint);
 }
 
 .workspace-drawer {
@@ -167,7 +170,7 @@ button.workspace-menu-button:hover {
   padding: 0;
   overflow: hidden;
   border: 0;
-  background: #1c2430;
+  background: var(--navy);
 }
 
 .workspace-drawer::backdrop {
@@ -200,7 +203,4 @@ button.workspace-menu-button:hover {
     min-height: 44px;
   }
 
-  html:has(.workspace-drawer[open]) {
-    overflow: hidden;
-  }
 }

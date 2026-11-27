@@ -4,6 +4,7 @@ import { useEffect, useEffectEvent, useRef } from 'react';
 import { LogOut, Menu, UserRound, X } from 'lucide-react';
 import { Icon, type IconName } from './editor/Icons';
 import StudioMark from './StudioMark';
+import { cycleDialogFocus } from './dialog-focus';
 import './workspace-nav.css';
 
 export const workspaceLabels = {
@@ -155,10 +156,16 @@ export function WorkspaceNav({
   );
 
   if (!open) {
-    return <aside id={navigationId} className="workspace-rail" inert={inert}>{contents}</aside>;
+    return <>
+      <a className="workspace-skip" href="#workspace-content" inert={inert} onClick={event => {
+        const main = document.getElementById('workspace-content');
+        if (main) { event.preventDefault(); main.focus(); }
+      }}>본문으로 이동</a>
+      <aside id={navigationId} className="workspace-rail" inert={inert}>{contents}</aside>
+    </>;
   }
   return (
-    <dialog ref={drawer} id={navigationId} className="workspace-drawer" aria-label="작업실 메뉴"
+    <dialog ref={drawer} id={navigationId} className="workspace-drawer" aria-label="작업실 메뉴" onKeyDown={cycleDialogFocus}
       onCancel={event => { event.preventDefault(); closeDrawer(); }}
       onClick={event => { if (event.target === event.currentTarget) closeDrawer(); }}>
       <div className="workspace-rail">{contents}</div>

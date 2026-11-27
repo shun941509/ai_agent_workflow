@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 import {optionalLessonMaterials, type MaterialLesson} from '../../domain/optional-lesson-materials';
 import {api, message, StudioApiError} from '../client';
 import {assetNumber, duplicateAssetNames} from '../resource-labels';
@@ -36,13 +36,15 @@ function EditionPreview({item, version, connect}: {item:AssetOption; version:num
   const [error, setError] = useState('');
   const [checking, setChecking] = useState(false);
   const [connectionError, setConnectionError] = useState('');
+  const [attempt, setAttempt] = useState(0);
+  const preview = useRef<HTMLElement>(null);
   useEffect(() => {
     const controller = new AbortController();
     api<ReadEdition>('asset.read', {id:item.id, version}, controller.signal)
       .then(result => { if (!controller.signal.aborted) setDetail(result); })
       .catch(cause => { if (!controller.signal.aborted) setError(message(cause)); });
     return () => controller.abort();
-  }, [item.id, version]);
+  }, [item.id, version, attempt]);
   async function attach() {
     if (!detail || checking) return;
     setChecking(true);
@@ -58,8 +60,15 @@ function EditionPreview({item, version, connect}: {item:AssetOption; version:num
       setChecking(false);
     }
   }
-  return <section className="ws-field ws-picker-preview" aria-label="연결 전 원문">
-    {error ? <small role="alert">{error} 자료를 다시 선택하거나 접근 권한을 확인하세요.</small> : detail ? <>
+  return <section ref={preview} tabIndex={-1} className="ws-field ws-picker-preview" aria-label="연결 전 원문">
+    {error ? <>
+      <small role="alert">{error}</small>
+      <button type="button" className="ws-btn" onClick={() => {
+        preview.current?.focus();
+        setError('');
+        setAttempt(value => value + 1);
+      }}>원문 다시 불러오기</button>
+    </> : detail ? <>
       <strong>{detail.asset.name} · {version}판</strong>
       <div className="ws-picker-text" tabIndex={0}>{detail.payload.content}</div>
       {connectionError && <small role="alert">{connectionError}</small>}

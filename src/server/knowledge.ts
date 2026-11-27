@@ -138,18 +138,37 @@ export function missingImportedCollections(graph:Graph,projectId:string,user:Use
 
 export type ExportCollectionStage='release'|'draft'|'index'|'published-digest';
 
+/** Compare snapshot identities without packaging a superseded draft or an old release's documents. */
+export function exportPublicationStatus(user:User,project:string,name:string,version:string){
+  const c=collection(project,'live',name,version);
+  requireThat(c.owner===user.id,403,'소유자만 발행 상태를 내보낼 수 있습니다.');
+  const indexed=load(c,'index:'+version),released=load(c,'release:'+version);
+  const original=load(c,'published-digest:'+version)||released;
+  if(!indexed)return 'unindexed';
+  if(indexed===released)return 'already-published';
+  return original&&original!==indexed?'different-edition':'publishable';
+}
+
 /** A read-only view of the state needed by this block. Management staging is private to the collection owner. */
-export function exportCollectionSources(user:User,project:string,name:string,version:string,stage:ExportCollectionStage,manage:boolean):Source[]|undefined {
+export function exportCollectionSources(user:User,project:string,name:string,version:string,stage:ExportCollectionStage,manage:boolean) {
   const c=collection(project,'live',name,version);
   if(manage||stage!=='release')requireThat(c.owner===user.id,403,'자료집의 준비·색인·발행 상태는 소유자만 내보낼 수 있습니다.');
   const value=load(c,stage+':'+c.version);
   if(!value)return undefined;
-  if(stage==='release')return requiredSnapshot(c,authorize(user,c)).documents;
+  if(stage==='release')authorize(user,c);
   const draft=stage==='draft';
   const documents:Source[]=draft?JSON.parse(value):requiredSnapshot(c,value).documents;
   const manifest=load(c,draft?'sources-draft:'+c.version:'sources:'+value);
-  checkPins(user,manifest?JSON.parse(manifest):sourcePins({documents},new Map()));
-  return documents;
+  const refs:SourcePin[]=manifest?JSON.parse(manifest):sourcePins({documents},new Map());
+  if(stage!=='release')checkPins(user,refs);
+  const originals=new Map(refs.map(ref=>[JSON.stringify([ref.assetId,ref.version]),ref]));
+  return documents.map(doc=>{
+    if(doc.location!==undefined)return {...doc,candidateOnly:true};
+    if(!doc.assetId)return {...doc,candidateOnly:false};
+    const ref=originals.get(JSON.stringify([doc.assetId,String(doc.version)]));
+    const original=ref && readAsset(user,ref.assetId,ref.version,ref.assetGrant);
+    return {...doc,candidateOnly:!original||original.asset.id!==doc.id||original.payload.content!==doc.content};
+  });
 }
 
 /** Materialize searchable editions alongside copied workflows, then install them under the new owner. */
@@ -237,7 +256,15 @@ export function bindKnowledge(graph:Graph,project:string,user:User,conversation:
         const source=testScope&&load(c,'release:'+c.version)===undefined?{...c,scope:'live'}:c;
         const digest=authorize(user,source);
         set('INSERT OR REPLACE INTO knowledge_reads VALUES(?,?,?,?,?,?)',conversation,source.project,source.scope,source.collection,source.version,digest);
-        return requiredSnapshot(source,digest);
+        const snapshot=requiredSnapshot(source,digest);
+        const originalDocuments=snapshot.documents.filter(doc=>!doc.assetId&&doc.location===undefined);
+        const manifest=load(source,'sources:'+digest);
+        const refs:SourcePin[]=manifest?JSON.parse(manifest):sourcePins(snapshot,new Map());
+        for(const ref of refs){
+          const {asset,version,payload}=readAsset(user,ref.assetId,ref.version,ref.assetGrant);
+          originalDocuments.push({id:asset.id,assetId:asset.id,title:asset.name,version:String(version),content:payload.content});
+        }
+        return {...snapshot,originalDocuments};
       });},
       async stage(key,value){return tx(()=>{
         manage();const head=prefix(c);requireThat(key.startsWith(head),403,'자료집 범위를 확인하세요.');

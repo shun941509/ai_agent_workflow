@@ -1,11 +1,13 @@
 import type { Block, Edge, Graph } from '../domain/types';
 import {answerFormat} from '../domain/catalog';
 import { evaluate, readable } from './operations';
-import { RunAborted, Session, Stopped, Suspended, message, type Scope } from './session';
+import {runConcurrency} from './limits';
+import {referencedRows,uniqueRows} from './evidence';
+import { RunAborted, Session, Stopped, Suspended, message, token, type Scope } from './session';
 import { flattened,integer,isPassage,object } from './values';
-import {literalRunQuestion} from '../domain/run-input';
-import {checkRequestScope,scopedChildInput} from './request-scope';
-import type { EngineRequest, EngineResult, EngineServices, Step, Values } from './types';
+import {attachmentFrom,literalRunQuestion} from '../domain/run-input';
+import {checkRequestScope,scopedChild} from './request-scope';
+import type { EngineRequest, EngineResult, EngineServices, OriginalRow, Step, Values } from './types';
 export type * from './types';
 export { retrieve } from './values';
 
@@ -77,7 +79,7 @@ class Frame {
     }
     return result;
   }
-  private async bindings(node:Block):Promise<Values>{
+  private async bindings(node:Block):Promise<{values:Values;originals:OriginalRow[]}>{
     const inputs:Record<string,unknown[]>=Object.create(null);
     const incoming=this.incoming.get(node.id)||[];
     const failures=new Map<string,{error:string;role:string}>();
@@ -100,6 +102,13 @@ class Frame {
       const step=resources.has(source.type)?await this.ref(source):this.get(source.id);
       if(!step||step.state==='skipped'||(node.type==='control.join'&&step.state==='failed'))continue;
       const value=step.state==='failed'?{error:step.error,role:source.title}:step.values[edge.out];
+      // Old checkpoints saved the grant digest before recording the expression it approved.
+      if(source.type==='approval.action' && step.state==='done' && edge.out==='value'){
+        const id=object(value).approvalId;
+        const grant=this.s.state.memo['approval:'+id];
+        if(grant && typeof grant==='object' && !Object.hasOwn(grant,'template'))
+          Object.assign(grant,{template:token(source.config.args??{})});
+      }
       if(value!==undefined){
         (inputs[edge.input]??=[]).push(value);
         if(edge.input==='input')hasInputValue=true;
@@ -122,10 +131,12 @@ class Frame {
       result.ragInput=sourceTypes.every(type=>['knowledge.search','quality.evidence','control.branch','control.join','control.parallel'].includes(type));
       result.evidence=[...new Map(evidence.flat().map(p=>[JSON.stringify(p),p])).values()];
       const states=incoming.filter(e=>e.kind==='data'&&e.input==='input').map(e=>this.get(e.from)?.evidenceStatus);
-      result.evidenceStatus=states.includes('conflicting')?'conflicting':states.includes('insufficient')?'insufficient':states.includes('verified')?'verified':undefined;
+      result.evidenceStatus=states.includes('conflicting')?'conflicting':states.includes('insufficient')?'insufficient':
+        states.includes('candidate_match')?'candidate_match':states.includes('verified')?'verified':undefined;
     }
+    const rows=incoming.filter(e=>e.kind==='data'&&e.input==='input').flatMap(e=>this.get(e.from)?.originalRows??[]);
     if(incoming.some(e=>e.kind==='data'&&e.input==='input'&&e.out==='value'&&this.get(e.from)?.attachmentInput))result.attachmentInput=true;
-    return result;
+    return {values:result,originals:uniqueRows([...(this.scope.originalRows??[]),...rows])};
   }
   private readiness(node:Block):'run'|'skip'|'pending'{
     if(this.scope.depth===0&&this.s.request.trigger?.nodeId&&entries.has(node.type)&&node.id!==this.s.request.trigger.nodeId)return 'skip';
@@ -148,13 +159,18 @@ class Frame {
     try{
       const fresh=!Object.hasOwn(this.s.state.memo,'budget:steps:'+path);
       this.s.charge('steps',path);
-      const bindings=await this.bindings(node);
+      const {values:bindings,originals:upstream}=await this.bindings(node);
       await this.s.stopCheck();
       if(fresh)this.s.event(node,path,'start',node.title+' 시작',bindings);
       const responsible=this.responsibleFor(node);
-      const step=await evaluate(node,{...this.scope,responsible},bindings,this.s,async(graph,scope)=>{
-        const input=await scopedChildInput(graph,this.s,scope.path,scope.input);
-        return new Frame(graph,{...scope,input},this.s).run();
+      const childRows:OriginalRow[]=[];
+      const step=await evaluate(node,{...this.scope,responsible,originalRows:upstream},bindings,this.s,async(graph,scope)=>{
+        const frame=new Frame(graph,await scopedChild(graph,this.s,scope),this.s);
+        const value=await frame.run();
+        for(const terminal of graph.nodes.filter(n=>n.type==='output.answer'||n.type==='control.terminate')){
+          childRows.push(...frame.get(terminal.id)?.originalRows??[]);
+        }
+        return value;
       });
       await this.s.stopCheck();
       step.responsible=node.type==='agent.handoff'?String(node.config.role):responsible;
@@ -165,6 +181,9 @@ class Frame {
         step.evidence=flattened(checked.passages).filter(isPassage);
         step.evidenceStatus=checked.status as Step['evidenceStatus'];
       }else if(step.evidence)step.evidenceStatus=(step.values.status??bindings.evidenceStatus) as Step['evidenceStatus'];
+      const originals=referencedRows([...upstream,...childRows,...(step.originalRows??[])],step.values.value,step.evidence);
+      if(originals.length)step.originalRows=originals;
+      else delete step.originalRows;
       if(node.type==='file.input'||(bindings.attachmentInput&&['document.read','control.branch','control.parallel'].includes(node.type)))step.attachmentInput=true;
       if(node.type==='file.create'&&step.state==='done'&&step.values.value&&typeof step.values.value==='object')
         this.s.fileOrigins.set(step.values.value,path);
@@ -184,7 +203,7 @@ class Frame {
   }
   async run():Promise<unknown>{
     const nodes=this.graph.nodes.filter(n=>!resources.has(n.type));
-    const limit=integer(this.s.services.limits?.concurrency,4,1,12);
+    const limit=runConcurrency(this.s.services.limits?.concurrency);
     const waiting=new Set<string>();
     while(nodes.some(n=>!this.get(n.id))){
       await this.s.stopCheck();
@@ -225,10 +244,20 @@ class Frame {
     if(!outputs.length)throw new Error('실행된 경로에 결과를 전달할 마지막 블록이 없습니다.');
     const values=outputs.map(n=>this.get(n.id)!.values.value);
     if(this.scope.depth===0){
-      this.s.state.finalFilePaths=[...new Set(values.flatMap(v=>this.s.fileReferences(v).map(ref=>ref.path)))];
+      const paths=new Set(values.flatMap(v=>this.s.fileReferences(v).map(ref=>ref.path)));
+      if(paths.size)this.s.privacy.assertReady();
+      this.s.state.finalFilePaths=[];
+      for(const path of paths){
+        const file=attachmentFrom(this.s.state.steps[path].values.value);
+        if(!file||this.s.privacy.blocksFile(file))continue;
+        this.s.state.finalFilePaths.push(path);
+        const safe=this.s.privacy.value(file);
+        if(safe.fileName!==file.fileName||safe.content!==file.content)(this.s.state.finalFileOverrides??={})[path]=safe;
+      }
       const formats=new Set(outputs.map(n=>answerFormat(n.type==='output.answer'?n.config.format:undefined)));
       this.s.state.outputFormat=formats.size===1?[...formats][0]:'text';
-      if(this.s.state.outputFormat==='json')return JSON.stringify(values.length===1?values[0]:values,null,2);
+      const answer=this.s.privacy.value(values.length===1?values[0]:values);
+      return this.s.state.outputFormat==='json'?JSON.stringify(answer,null,2):answer;
     }
     return values.length===1?values[0]:values;
   }

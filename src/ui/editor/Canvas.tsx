@@ -6,12 +6,13 @@ import { BlockIcon, Icon } from './Icons';
 import { CanvasPortDirections, CanvasRouteDetail, type RouteDestination } from './CanvasPortDirections';
 import { Modal } from './Modal';
 import type { WireChoiceSource } from './use-editor-history';
-import { edgeNames, groupEdges, materialPreview, nodeCaption, nodeSummary, titleById, type EdgeGroup, type Selection } from './graph';
+import { connectionKindLabels, edgeNames, groupEdges, materialPreview, nodeCaption, nodeSummary, titleById, type EdgeGroup, type Selection } from './graph';
+import { overviewRouteHeadroom, overviewTargetLimits } from './node-layout';
 
 import { ROUTE_H, color, extent, fittedView, groupedWireGeometry, nearestWires, nodeLayout, overviewZoom, revealArea, revealBlock, route, selectedPortDirections, wireCaptions, type CanvasView, type Point } from './geometry';
 import './schematic.css';
 
-type Gesture = { kind: 'move' | 'pan' | 'wire'; pointerId: number; capture: HTMLElement; id?: string; outputId?: string; start: Point; origin: Point };
+type Gesture = { kind: 'move' | 'pan' | 'wire'; pointerId: number; capture: HTMLElement; corrected?: boolean; id?: string; outputId?: string; start: Point; origin: Point };
 function touchPair(points: Map<number, Point>) {
   const [first, second] = points.values();
   if (!first || !second) return;
@@ -29,7 +30,7 @@ export type CanvasHandle = {
   revealNode: (id: string) => void;
   focusItem: (selection: Selection) => void;
 };
-const lineNames = { flow: '실행 경로', data: '데이터 전달', reference: '참조' };
+const lineKinds = ['flow', 'data', 'reference'] as const;
 const browseKeys = ['PageUp', 'PageDown', 'Home', 'End'];
 const browseShortcuts = browseKeys.join(' ');
 function composing(event: ReactKeyboard) {
@@ -62,9 +63,10 @@ function itemZoomPoint(item: Element, frame: DOMRect): Point | undefined {
 }
 
 function connectionDescription(group: EdgeGroup) {
-  const kind = group.kind === 'flow' && group.members.some(edge => edge.kind === 'data')
-    ? '진행과 데이터 전달' : lineNames[group.kind];
-  return group.caption && group.caption !== edgeNames[group.kind] ? kind + ' · ' + group.caption : kind;
+  const names = lineKinds.filter(kind => group.members.some(edge => edge.kind === kind))
+    .map(kind => connectionKindLabels[kind]).join(' · ');
+  return group.caption && group.caption !== edgeNames[group.kind] && group.caption !== connectionKindLabels[group.kind]
+    ? names + ' · ' + group.caption : names;
 }
 
 interface Props {
@@ -79,6 +81,7 @@ interface Props {
   materialSources?: Readonly<Record<string, string>>;
   selection: Selection;
   list: boolean;
+  overview: boolean;
   onSelect: (sel: Selection) => void;
   onDeleteBlock: (id: string) => void;
   onMove: (id: string, p: Point, keyHold?: symbol) => void;
@@ -99,6 +102,7 @@ export function Canvas({
   materialSources,
   selection,
   list,
+  overview,
   onSelect,
   onDeleteBlock,
   onMove,
@@ -124,6 +128,11 @@ export function Canvas({
   const [navigationNotice, setNavigationNotice] = useState('');
   const listPosition = useRef<CanvasListPosition>(initialListPosition ?? {scroll:0, selection:null});
   const [view, setView] = useState<CanvasView>(initialReturn?.bookmark?.view ?? { x: 25, y: 25, zoom: 1 });
+  const [highlightKind, setHighlightKind] = useState<EdgeGroup['kind'] | null>(null);
+  const [hoveredTip, setHoveredTip] = useState<string>();
+  const [focusedTip, setFocusedTip] = useState<string>();
+  const tipKey = !list ? hoveredTip ?? focusedTip : undefined;
+  const tipId = labelPrefix + '-wire-tip';
   const [drag, setDrag] = useState<({ id: string } & Point) | null>(null);
   const [wire, setWire] = useState<{ start: Point; end: Point } | null>(null);
   const gesture = useRef<Gesture | null>(null);
@@ -135,24 +144,47 @@ export function Canvas({
   const revealOverviewRows = useRef(false);
   const zoomMode = useRef<'readable' | 'overview' | 'manual'>(initialReturn?.bookmark?.manualZoom
     ? 'manual' : initialReturn?.bookmark?.overview ? 'overview' : 'readable');
+  const editingCamera = useRef<{view:CanvasView; mode:typeof zoomMode.current} | null>(null);
   const lastRevision = useRef(revision);
   const justMoved = useRef(false);
   const heldArrow = useRef<{node:string; key:string; token:symbol} | null>(null);
   const wasEmpty = useRef(!graph.nodes.length);
   const groups = useMemo(() => groupEdges(graph), [graph]);
+  const isMuted = (group: EdgeGroup) => Boolean(highlightKind && !group.members.some(edge => edge.kind === highlightKind));
   const previews = useMemo(() => new Map(graph.nodes.map(node => [node.id, materialPreview(node, materialSources)])), [graph.nodes, materialSources]);
   const nodes = useMemo(() => drag
     ? graph.nodes.map(n => n.id === drag.id ? { ...n, x: drag.x, y: drag.y } : n)
     : graph.nodes, [drag, graph.nodes]);
   const b = useMemo(() => extent(nodes), [nodes]);
+  const compactOverview = overview && view.zoom < 0.75;
+  const targetLimits = useMemo(() => compactOverview ? overviewTargetLimits(nodes, 24.5 / view.zoom + 2) : undefined,
+    [nodes, compactOverview, view.zoom]);
+  const compactSocketDiameter = compactOverview ? Math.min(8, 27 * view.zoom) : undefined;
+  useLayoutEffect(() => {
+    if (!compactOverview || list || !frame.current) return;
+    const labels = frame.current.querySelectorAll<HTMLElement>('[data-single-row]:has(> .ws-port-out) .ws-node-copy');
+    const fitNames = () => {
+      // Measure every name in its normal body first, before widening any labels.
+      for (const label of labels) label.removeAttribute('data-wide-name');
+      const clipped = Array.from(labels).filter(label => {
+        const text = label.firstElementChild;
+        // Ink can extend a few pixels beyond a complete line's layout box.
+        return text && text.scrollHeight - text.clientHeight > parseFloat(getComputedStyle(text).lineHeight) / 2;
+      });
+      for (const label of clipped) label.setAttribute('data-wide-name', '');
+    };
+    fitNames();
+    document.fonts.addEventListener('loadingdone', fitNames);
+    return () => document.fonts.removeEventListener('loadingdone', fitNames);
+  }, [compactOverview, list, graph.nodes, view.zoom]);
   const minZoom = Math.min(0.17, overviewZoom(b, dimension));
   const percent = view.zoom * 100;
   const zoomLabel = percent < 0.1 ? '<0.1%' : (percent < 1 ? Number(percent.toFixed(1)) : Math.round(percent)) + '%';
   const geometry = useMemo(() => groupedWireGeometry(groups, new Map(nodes.map(n => [n.id, n]))), [groups, nodes]);
   const labelFontSize = Math.max(12, 10.5 / view.zoom);
   const selectedNodeId = selection?.kind === 'node' ? selection.id : undefined;
-  const portDirections = useMemo(() => selectedPortDirections(selectedNodeId, groups, geometry, view, dimension, nodes),
-    [selectedNodeId, groups, geometry, view, dimension, nodes]);
+  const portDirections = useMemo(() => selectedPortDirections(selectedNodeId, groups, geometry, view, dimension, nodes, compactSocketDiameter),
+    [selectedNodeId, groups, geometry, view, dimension, nodes, compactSocketDiameter]);
   const activeRouteId = !list && tracedRoute && selectedNodeId === tracedRoute.nodeId &&
     portDirections.some(port => port.route?.id === tracedRoute.outputId) ? tracedRoute.outputId : undefined;
   useEffect(() => {
@@ -317,6 +349,18 @@ export function Canvas({
     zoomMode.current = 'overview';
     fit();
   }, [fit]);
+  useLayoutEffect(() => {
+    if (overview && !editingCamera.current) {
+      editingCamera.current = {view, mode:zoomMode.current};
+      showOverview();
+    } else if (!overview && editingCamera.current) {
+      const editing = editingCamera.current;
+      editingCamera.current = null;
+      zoomMode.current = editing.mode;
+      setView(editing.view);
+      setHighlightKind(null);
+    }
+  }, [overview, showOverview, view]);
   const revealSelection = useCallback(() => {
     const rect = frame.current?.getBoundingClientRect();
     const { node, captions } = focusRef.current;
@@ -339,7 +383,14 @@ export function Canvas({
     const node = focus.node;
     if (!list && routeRows.length && node && rect?.width && rect.height) {
       const available = routeViewport(rect, detailRef.current);
-      setView(current => revealBlock(current, available, node, routeRows));
+      const layout = nodeLayout(node);
+      const block = {x:node.x, y:node.y, width:layout.width, height:layout.height};
+      setView(current => {
+        const withControls = revealBlock(current, available, node, routeRows);
+        // Use the unopened detail pane's allowance first, keeping the scale controls clear.
+        const withScale = revealArea(withControls, rect, block, routeRows, 4, 4);
+        return revealArea(withScale, rect, block, routeRows, 4, 4, 4);
+      });
     }
   }, [view, routeRows, focus.node, list]);
   useLayoutEffect(() => {
@@ -348,7 +399,7 @@ export function Canvas({
     const observer = new ResizeObserver((entries) => {
       const rect = entries[0].contentRect;
       // Opening route details uses part of the stage without changing the user's fit scale.
-      const stageHeight = frame.current?.parentElement?.clientHeight ?? rect.height;
+      const stageHeight = frame.current?.closest<HTMLElement>('.ws-stage')?.clientHeight ?? rect.height;
       const changed =
         Math.abs(previous.width - rect.width) > 80 ||
         Math.abs(previous.height - stageHeight) > 120;
@@ -393,11 +444,13 @@ export function Canvas({
   }, [list, selection]);
   useLayoutEffect(() => {
     if (!initialReturn) return;
-    const target = frame.current?.querySelector<HTMLButtonElement>('[data-canvas-block="' + CSS.escape(initialReturn.id) + '"]');
+    const target = initialReturn.id ? itemElement({kind:'node',id:initialReturn.id}) ?? itemElement({kind:'edge',id:initialReturn.id})
+      : frame.current?.querySelector<HTMLButtonElement>('.ws-canvas-empty button');
     const list = frame.current?.querySelector<HTMLElement>('.ws-graph-list');
-    if (list) list.scrollTop = initialReturn.bookmark?.scroll ?? 0;
+    const scroll = initialReturn.bookmark?.scroll ?? initialListPosition?.scroll;
     target?.focus({preventScroll:true});
-    if (target && list) target.scrollIntoView({block:'nearest'});
+    if (list && scroll !== undefined) list.scrollTop = scroll;
+    else if (target && list) target.scrollIntoView({block:'nearest'});
   }, [initialReturn]);
   useEffect(() => {
     if (lastRevision.current !== revision) showOverview();
@@ -477,6 +530,25 @@ export function Canvas({
     if (event.button !== 0 || list || pinch.current || gesture.current) return;
     event.stopPropagation();
     justMoved.current = false;
+    let capture = event.currentTarget;
+    // Chrome may target a neighbouring button even when the finger is inside
+    // this one's visible box. Preserve native targeting in wire channels and
+    // open space, and use the saved block/port under the finger between cards.
+    if (compactOverview && event.pointerType === 'touch' && node) {
+      const exact = document.elementFromPoint(event.clientX, event.clientY)
+        ?.closest<HTMLButtonElement>('.ws-world .ws-node-body,.ws-world .ws-port-out');
+      if (exact && exact !== capture && frame.current?.contains(exact)) {
+        const hit = nodes.find(item => item.id === exact.closest<HTMLElement>('[data-workflow-node]')?.dataset.workflowNode);
+        if (hit) {
+          node = hit;
+          kind = exact.classList.contains('ws-port-out') ? 'wire' : 'move';
+          output = exact.dataset.outputPort ? nodeLayout(hit).routes.find(route => route.id === exact.dataset.outputPort) : undefined;
+          capture = exact;
+          event.preventDefault();
+          suppressPointerClick.current = true;
+        }
+      }
+    }
     if (kind === 'move' && node) onSelect({ kind: 'node', id: node.id });
     let origin: Point = kind === 'pan' ? view : (node ?? { x: 0, y: 0 });
     if (kind === 'wire' && node) {
@@ -484,8 +556,8 @@ export function Canvas({
       origin = { x: node.x + layout.width, y: node.y + (output?.y ?? layout.portY) };
       setWire({ start: origin, end: relative(event.clientX, event.clientY) });
     }
-    gesture.current = { kind, pointerId:event.pointerId, capture:event.currentTarget, id: node?.id, outputId: output?.id, start: { x: event.clientX, y: event.clientY }, origin };
-    event.currentTarget.setPointerCapture(event.pointerId);
+    gesture.current = { kind, pointerId:event.pointerId, capture, corrected:capture !== event.currentTarget, id: node?.id, outputId: output?.id, start: { x: event.clientX, y: event.clientY }, origin };
+    capture.setPointerCapture(event.pointerId);
   };
   const move = (event: ReactPointer) => {
     const points = touches.current;
@@ -545,6 +617,10 @@ export function Canvas({
         x: Math.round(g.origin.x + (event.clientX - g.start.x) / view.zoom),
         y: Math.round(g.origin.y + (event.clientY - g.start.y) / view.zoom),
       });
+    } else if (g.corrected && g.kind === 'move' && g.id) {
+      activateBlock(g.id);
+      revealSelection();
+      if (window.matchMedia('(max-width:680px)').matches) onInspect(g.capture);
     }
     if (g.kind === 'wire' && g.id) {
       const target = document
@@ -564,6 +640,37 @@ export function Canvas({
     }
   };
   const titleOf = (id: string) => titleById(graph, id);
+  const wireDescription = (group: EdgeGroup) => titleOf(group.from) + ' → ' + titleOf(group.to) + ' · ' + connectionDescription(group);
+  const tipKind = lineKinds.find(kind => kind === tipKey);
+  const tipGroup = tipKey && !tipKind ? groups.find(group => group.id === tipKey) : undefined;
+  const tipText = tipKind ? connectionKindLabels[tipKind] + ' 연결 강조' : tipGroup && wireDescription(tipGroup);
+  function focusTip(key: string) {
+    setHoveredTip(undefined);
+    setFocusedTip(key);
+  }
+  useEffect(() => {
+    if (!tipText) return;
+    const dismiss = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented || frame.current?.closest('[inert]') || document.querySelector('dialog[open], [aria-modal="true"]')) return;
+      event.preventDefault();
+      setHoveredTip(undefined);
+      setFocusedTip(undefined);
+    };
+    document.addEventListener('keydown', dismiss, true);
+    return () => document.removeEventListener('keydown', dismiss, true);
+  }, [tipText]);
+  const overviewIndex = overview ? nodes.findIndex(node => node.id === selectedNodeId) : -1;
+  const readerNode = nodes[overviewIndex];
+  const readerOutputs = readerNode && portsFor(readerNode).outputs.length > 0 ? nodeLayout(readerNode).routes : undefined;
+  const overviewConnections = overview && selectedNodeId
+    ? groups.filter(group => group.from === selectedNodeId || group.to === selectedNodeId)
+    : [];
+  const readerConnection = selectedGroup || overviewConnections[0];
+  let readerDescription = selectedNodeId ? '연결선 없음' : '살펴볼 블록을 선택하세요.';
+  if (readerConnection) {
+    readerDescription = wireDescription(readerConnection);
+    if (overviewConnections.length > 1) readerDescription += ' 외 ' + (overviewConnections.length - 1) + '개';
+  }
   function choiceDescription(group: EdgeGroup) {
     if (!wireSource) return connectionDescription(group);
     const source = nodes.find(node => node.id === group.from);
@@ -737,13 +844,11 @@ export function Canvas({
   }
   function outputButton(node: Block, output?: RouteOutput) {
     const label = titleOf(node.id) + (output ? ' · ' + output.label + ' 경로' : '') + '에서 연결 추가';
-    const layout = nodeLayout(node);
-    const portY = output?.y ?? layout.portY;
     return (
       <button key={output?.id} type="button" className={'ws-port-out' + (output ? ' ws-route-output' : '')}
         data-output-port={output?.id} aria-label={label} title={(output ? output.label + ' · ' : '') + '끌어서 연결 · 클릭해서 대상 선택'}
         data-route-active={activeRouteId && node.id === selectedNodeId && output?.id === activeRouteId || undefined}
-        style={{ top: portY - 1, height: output && ROUTE_H }}
+        style={{ top: output ? `calc(${output.y - 1}px + var(--ws-route-headroom, 0px))` : '50%', height: output && ROUTE_H }}
         onFocus={event => {
           if (event.currentTarget.matches(':focus-visible')) revealOutput(node, output?.id);
         }}
@@ -758,6 +863,10 @@ export function Canvas({
     );
   }
   return (<>
+    <div className="ws-canvas-surface"
+      style={overview && !list && nodes.length ? {
+        '--ws-overview-fit-height': Math.ceil(140 + b.h * overviewZoom(b, {width:dimension.width, height:Infinity})) + 'px',
+      } as CSSProperties : undefined}>
     <div
       ref={frame}
       className={'ws-canvas ws-schematic' + (list ? ' ws-canvas-list' : '')}
@@ -840,9 +949,12 @@ export function Canvas({
         <>
           <div
             className="ws-world"
+            data-compact-overview={compactOverview || undefined}
+            data-scale-ports={overview && !compactOverview && view.zoom < 1 || undefined}
             style={{
               '--ws-trace-ring': (2 / view.zoom) + 'px',
               '--ws-screen-pixel': (1 / view.zoom) + 'px',
+              '--ws-overview-socket': compactSocketDiameter && compactSocketDiameter / view.zoom + 'px',
               transform: 'translate(' + view.x + 'px,' + view.y + 'px) scale(' + view.zoom + ')',
             } as CSSProperties}
           >
@@ -874,7 +986,7 @@ export function Canvas({
                 const selected = selection?.kind === 'edge' && selection.id === g.id;
                 const connected = activeRouteId ? activePaths.has(g.id) :
                   selection?.kind === 'node' && (selection.id === g.from || selection.id === g.to);
-                const description = titleOf(g.from) + ' → ' + titleOf(g.to) + ' · ' + connectionDescription(g);
+                const description = wireDescription(g);
                 const combinedPath = [line.d, ...line.stems].join(' ');
                 return (
                   <g
@@ -884,6 +996,7 @@ export function Canvas({
                     data-canvas-wire={g.id}
                     data-to={g.to}
                     data-kind={g.kind}
+                    data-legend-muted={isMuted(g) || undefined}
                     data-route-muted={activeRouteId && !connected || undefined}
                     data-highlighted={selected || connected}
                     role="button"
@@ -891,7 +1004,14 @@ export function Canvas({
                     aria-keyshortcuts={browseShortcuts}
                     aria-pressed={selected}
                     aria-label={description}
-                    onFocus={event => { if (event.currentTarget.matches(':focus-visible')) revealConnection(event.currentTarget); }}
+                    aria-labelledby={tipKey === g.id ? tipId : undefined}
+                    onFocus={event => {
+                      focusTip(g.id);
+                      if (event.currentTarget.matches(':focus-visible')) revealConnection(event.currentTarget);
+                    }}
+                    onBlur={() => setFocusedTip(undefined)}
+                    onPointerEnter={event => { if (event.pointerType !== 'touch') setHoveredTip(g.id); }}
+                    onPointerLeave={() => setHoveredTip(undefined)}
                     onPointerDown={(e) => e.stopPropagation()}
                     onClick={(e) => {
                       const matrix = e.currentTarget.getScreenCTM();
@@ -910,7 +1030,6 @@ export function Canvas({
                       }
                     }}
                   >
-                    <title>{description}</title>
                     {selected && <path className="ws-wire-glow" d={combinedPath} />}
                     {/* Stroke width alone leaves a horizontal or vertical SVG button with zero-area bounds. */}
                     <circle cx={line.from.x} cy={line.from.y} r={8} fill="none" pointerEvents="none" aria-hidden="true" />
@@ -923,6 +1042,12 @@ export function Canvas({
                         strokeWidth={selected || connected ? 2.5 : 1.7}
                         strokeDasharray={g.kind === 'data' ? '7 4' : g.kind === 'reference' ? '1.5 4' : undefined}
                         strokeLinecap="round" markerEnd={g.to === selectedNodeId ? 'none' : 'url(#ws-arrow-' + g.kind + ')'} />
+                      {overview && g.kind === 'flow' && g.members.some(edge => edge.kind === 'data') &&
+                        <path className="ws-data-companion" d={line.d} transform={'translate(0 ' + 5 / view.zoom + ')'}
+                          fill="none" aria-hidden="true" pointerEvents="none" />}
+                      {overview && g.kind !== 'reference' && g.members.some(edge => edge.kind === 'reference') &&
+                        <path className="ws-reference-companion" d={line.d} transform={'translate(0 ' + -5 / view.zoom + ')'}
+                          fill="none" aria-hidden="true" pointerEvents="none" />}
                     </g>
                     {caption && (
                       <g opacity="0" pointerEvents="none"><g id={labelPrefix + index}>
@@ -946,7 +1071,8 @@ export function Canvas({
                   const traced = activePaths.get(group.id);
                   if (activeRouteId && !traced) return null;
                   const path = traced ?? [line.d, ...line.stems].join(' ');
-                  return <g key={group.id} data-from={group.from} data-to={group.to} stroke={color[group.kind]}>
+                  return <g key={group.id} data-from={group.from} data-to={group.to} stroke={color[group.kind]}
+                    data-legend-muted={isMuted(group) || undefined}>
                     {traced ? <>
                       <path className="ws-route-traced-halo" d={path} />
                       <path className="ws-route-traced-path" data-output-port={activeRouteId} d={path}
@@ -963,6 +1089,9 @@ export function Canvas({
               {/* A visible caption directly identifies its wire, even above a crossing. */}
               {groups.map((g, index) => captions.has(g.id) &&
                 <use key={g.id} href={'#' + labelPrefix + index} className="ws-caption-link"
+                  onPointerEnter={event => { if (event.pointerType !== 'touch') setHoveredTip(g.id); }}
+                  onPointerLeave={() => setHoveredTip(undefined)}
+                  data-legend-muted={isMuted(g) || undefined}
                   opacity={activeRouteId && !activePaths.has(g.id) ? .48 : undefined}
                   aria-hidden="true" onPointerDown={e => e.stopPropagation()} onClick={() => selectWire(g.id)} />)}
               {wire && (
@@ -979,6 +1108,15 @@ export function Canvas({
               const ports = portsFor(n);
               const layout = nodeLayout(n);
               const preview = previews.get(n.id);
+              const limit = targetLimits?.get(n.id);
+              const splitRoutes = compactOverview && layout.routes.length > 0 && (layout.bodyHeight - 1) * view.zoom < 24;
+              const headroom = splitRoutes && targetLimits
+                ? Math.min(overviewRouteHeadroom(n, nodes, targetLimits), Math.max(0, 34 / view.zoom - layout.height)) : 0;
+              const growth = Math.max(0, 38 / view.zoom - layout.height);
+              const above = limit ? Math.min(limit.above, growth - Math.min(growth / 2, limit.below)) : headroom;
+              const below = limit ? Math.min(limit.below, growth - above) : 0;
+              const cardHeight = layout.height + above + below;
+              const overviewFont = compactOverview ? Math.min(32, Math.max(14, 9.3 / view.zoom)) : 0;
               return (
                 <div
                   key={n.id}
@@ -987,15 +1125,23 @@ export function Canvas({
                   data-route-viewed={viewedDestinationId === n.id || undefined}
                   data-front={frontId === n.id || undefined}
                   data-material={n.type === 'resource.context' || undefined}
+                  data-single-row={limit ? true : undefined}
+                  data-split-routes={splitRoutes || undefined}
                   className={
                     'ws-node' + (selection?.kind === 'node' && selection.id === n.id ? ' ws-chosen' : '')
                   }
-                  style={{ left: n.x, top: n.y, width: layout.width, height: layout.height }}
+                  style={{ left: n.x, top: n.y - above, width: layout.width, height: cardHeight,
+                    '--ws-port-axis': layout.portY + above - 1 + 'px',
+                    '--ws-route-headroom': headroom + 'px',
+                    '--ws-overview-font': overviewFont ? overviewFont + 'px' : undefined,
+                    '--ws-title-lines': overviewFont ? Math.max(1, Math.min(4, Math.floor((cardHeight - 2) / overviewFont))) : undefined,
+                    '--ws-name-port-clearance': limit && (limit.namePortOutside ?? limit.maxPortOutside) + 'px',
+                    '--ws-port-clearance': limit && limit.maxPortOutside + 'px' } as CSSProperties}
                 >
                   <button
                     className="ws-node-body"
                     data-canvas-block={n.id}
-                    style={layout.routes.length ? { height: layout.bodyHeight - 1 } : undefined}
+                    style={layout.routes.length && !splitRoutes ? { height: layout.bodyHeight - 1 } : undefined}
                     aria-label={titleOf(n.id) + ' 블록 속성'}
                     aria-keyshortcuts={browseShortcuts}
                     title={n.type === 'resource.context' ? preview || titleOf(n.id) : layout.routes.length ? nodeCaption(n) : nodeSummary(n)}
@@ -1045,7 +1191,7 @@ export function Canvas({
                     </span>
                     {preview && <small className="ws-material-preview">{preview}</small>}
                   </button>
-                  {ports.inputs.length > 0 && <span className="ws-port-in" style={{ top: layout.portY - 1 }} aria-hidden="true" />}
+                  {ports.inputs.length > 0 && <span className="ws-port-in" style={{ top: 'var(--ws-port-axis)' }} aria-hidden="true" />}
                   {layout.routes.length ? layout.routes.map(output => outputButton(n, output)) : ports.outputs.length > 0 && outputButton(n)}
                 </div>
               );
@@ -1092,23 +1238,15 @@ export function Canvas({
               aria-disabled={view.zoom >= maxZoom} onClick={() => changeZoom('in')}>
               <Icon name="plus" />
             </button>
-            <button type="button" aria-label="전체 보기" title="전체 보기" onClick={showOverview}>
+            <button type="button" aria-label="캔버스에 맞추기" title="캔버스에 맞추기" onClick={showOverview}>
               <Icon name="fit" />
             </button>
-          </div>
-          <div className="ws-legend" role="group" aria-label="연결선 종류">
-            {Object.entries(lineNames).map(([kind, title]) => (
-              <span key={kind}>
-                <i className={'ws-swatch ws-' + kind} />
-                {title}
-              </span>
-            ))}
           </div>
         </>
       )}
       {list && graph.nodes.length > 0 && (
         <div ref={listFrame} className="ws-graph-list" onScroll={rememberList}>
-          <h3>블록</h3>
+          <h3>블록 <span>{graph.nodes.length}</span></h3>
           {graph.nodes.map((n) => (
             <button
               key={n.id}
@@ -1125,11 +1263,11 @@ export function Canvas({
               <BlockIcon type={n.type} />
               <span>
                 {titleOf(n.id)}
-                {previews.get(n.id) && <small className="ws-material-preview">{previews.get(n.id)}</small>}
+                <small className="ws-material-preview">{previews.get(n.id) || nodeCaption(n)}</small>
               </span>
             </button>
           ))}
-          <h3>연결선</h3>
+          <h3>연결선 <span>{groups.length}</span></h3>
           {groups.map((g) => (
             <button
               key={g.id}
@@ -1182,6 +1320,45 @@ export function Canvas({
         </div>
       )}
     </div>
+    {!list && nodes.length > 0 && <div className="ws-canvas-key">
+      <div className="ws-legend" role="group" aria-label="연결선 종류">
+        {lineKinds.map(kind => <button type="button" key={kind} aria-label={connectionKindLabels[kind] + ' 강조'}
+          aria-describedby={tipKey === kind ? tipId : undefined} aria-pressed={highlightKind === kind}
+          onPointerEnter={event => { if (event.pointerType !== 'touch') setHoveredTip(kind); }}
+          onPointerLeave={() => setHoveredTip(undefined)} onFocus={() => focusTip(kind)} onBlur={() => setFocusedTip(undefined)}
+          onClick={() => setHighlightKind(current => current === kind ? null : kind)}>
+          <i className={'ws-swatch ws-' + kind} aria-hidden="true" />{connectionKindLabels[kind]}
+        </button>)}
+      </div>
+      {tipText && <span role="tooltip" id={tipId}>{tipText}</span>}
+    </div>}
+    </div>
+    {overview && nodes.length > 0 && <section className="ws-overview-reader" aria-label="연결도 블록 탐색">
+      <div className="ws-overview-reader-head">
+        <label htmlFor={labelPrefix + '-browse'}>살펴볼 블록</label>
+        <span>{overviewIndex >= 0 ? (overviewIndex + 1) + ' / ' + nodes.length : nodes.length + '개 블록'}</span>
+        <button type="button" aria-label="이전 블록" disabled={overviewIndex <= 0}
+          onClick={() => activateBlock(nodes[overviewIndex - 1].id)}><Icon name="back" size={15}/></button>
+        <button type="button" aria-label="다음 블록" disabled={overviewIndex >= nodes.length - 1}
+          onClick={() => activateBlock(nodes[overviewIndex + 1].id)}><Icon name="back" size={15}/></button>
+      </div>
+      <div className="ws-overview-reader-choice">
+        <select id={labelPrefix + '-browse'} value={selectedNodeId ?? ''} onChange={event => activateBlock(event.target.value)}>
+          {!selectedNodeId && <option value="" disabled>{selectedGroup ? '연결선 선택 중' : '블록 선택'}</option>}
+          {nodes.map(node => <option key={node.id} value={node.id}>{titleOf(node.id)}</option>)}
+        </select>
+        <button type="button" className="ws-btn" disabled={!selection} onClick={event => onInspect(event.currentTarget)}>속성 열기</button>
+        {readerNode && readerOutputs && (readerOutputs.length ?
+          <select className="ws-reader-route" aria-label="연결을 추가할 경로" value="" onChange={event => {
+            if (event.target.value) onConnect(readerNode.id, undefined, event.target.value);
+          }}>
+            <option value="" disabled>연결 추가</option>
+            {readerOutputs.map(output => <option key={output.id} value={output.id}>{output.label}</option>)}
+          </select> :
+          <button type="button" className="ws-btn" onClick={() => onConnect(readerNode.id)}>연결 추가</button>)}
+      </div>
+      <p aria-live="polite">{readerDescription}</p>
+    </section>}
     {!list && <CanvasRouteDetail detailRef={detailRef} ports={portDirections} activeRouteId={activeRouteId}
       destinations={destinations} viewedDestinationId={viewedDestinationId} onViewDestination={viewDestination}
       onReturnToRoute={returnToRoute} onLeaveDetail={leaveRouteDetail} />}

@@ -35,21 +35,26 @@ function skillId(name: string, key: string, used: Set<string>) {
   return id;
 }
 
+export function authoredSkillName(text:string) {
+  const name=readSkill(text).fields?.name;
+  return typeof name==='string'&&name.trim()?name:undefined;
+}
+
 /** Convert the pinned Studio Skill files into project-local skills for all three hosts. */
 export function prepareAgentSkills(pkg: ExportPackage): ExportPackage {
   const files = new Map(pkg.files.map(file => [file.path, file.data]));
   const used = new Set<string>();
   const converted = new Map<string, Resource>();
   const skills = pkg.resources.filter(resource => resource.kind === 'skill');
-  // Give included Skills their own name even when an omitted edition has the same title.
-  for (const resource of skills.sort((a, b) => Number(b.included) - Number(a.included))) {
+  // Reserve every edition's name in graph order so a selection change cannot rename a Skill.
+  for (const resource of skills) {
     const main = resource.files[0];
     const original = files.get(main);
     if (resource.included && original === undefined) throw Error('Skill 지침 파일을 찾을 수 없습니다.');
     const text = Buffer.from(original ?? '', 'base64').toString('utf8');
     const {document, fields, body} = readSkill(text);
     const authoredName = fields?.name;
-    const id = skillId(typeof authoredName === 'string' && authoredName.trim() ? authoredName : resource.name, resource.key, used);
+    const id = skillId(resource.skillName || (typeof authoredName === 'string' && authoredName.trim() ? authoredName : resource.name), resource.key, used);
     const directory = '.agents/skills/' + id + '/';
     const canonical = directory + 'SKILL.md';
     const paths = [canonical];

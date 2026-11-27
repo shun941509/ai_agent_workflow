@@ -52,8 +52,8 @@
 }
 .run-editor :is(.run-grid, .run-main) { display: block; overflow: visible; }
 .run-editor .run-editor-tools {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 6px;
   margin: 12px 14px;
 }
@@ -65,6 +65,7 @@
 .run-editor .run-editor-tools button[aria-expanded='true'] {
   color: var(--ws-accent);
   border-color: currentColor;
+  background: var(--tint);
 }
 .run-editor :is(.run-sidebar.show, .run-bar, .run-cases, .trigger-pane) {
   position: static;
@@ -79,8 +80,9 @@
 }
 .run-editor .run-sidebar.show { display: block; max-height: 40vh; overflow: auto; }
 .run-editor :is(.run-bar label, select, input, fieldset, .run-compose small) { min-width: 0; max-width: 100%; }
-.run-editor .run-bar label { display: grid; gap: 2px; width: 100%; }
-.run-editor .run-bar :is(button, label), .run-editor .run-cases { font-size: 12px; }
+.run-editor .run-bar label { display: grid; gap: 4px; width: 100%; }
+.run-editor .run-bar :is(button, label), .run-editor .run-cases { font-size: 13px; }
+.run-editor .run-bar select { width: 100%; max-width: 100%; }
 .run-editor .run-bar button:last-child { margin: 0; }
 .run-editor .run-transcript { padding: 2px 14px 16px; min-height: 0; overflow: visible; }
 .run-editor .run-transcript:empty { display: none; }
@@ -96,7 +98,6 @@
 .run-editor .run-answer-meta { justify-content: space-between; }
 .run-editor .run-answer-meta span { color: var(--ws-accent); }
 .run-editor .run-compose { padding: 0 14px 20px; border: 0; }
-.run-editor .run-input-label { display: block; font-weight: 650; margin-bottom: 5px; }
 .run-editor .run-compose small { flex: 1; }
 .run-editor .run-compose .run-primary { flex: none; }
 .run-editor :is(.run-row, .run-wait, .run-cases, .trigger-pane) { overflow-wrap: anywhere; }

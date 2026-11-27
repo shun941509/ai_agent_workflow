@@ -79,7 +79,8 @@
 .le-editor .le-view-toggle button { display: grid; place-items: center; width: 28px; height: 25px; background: transparent; border: 0; border-radius: 3px; color: #67717a; }
 .le-editor .le-view-toggle button[aria-pressed="true"] { background: #e8ebf1; color: #25354d; }
 .le-canvas-content { flex: 1; min-width: 0; display: flex; align-items: center; padding: 12px clamp(4px, 1vw, 26px) 35px; }
-.le-canvas-footer { margin-top: auto; font-size: 11px; line-height: 1.5; color: #606875; }
+.le-canvas-footer { margin-top: auto; font-size: 11px; line-height: 1.5; }
+.le-canvas-footer, .le-node-list h3 { color: #475364; }
 .le-canvas-footer ul { display: flex; align-items: center; gap: 15px; padding: 7px 10px; background: #fdfefdf2; border: 1px solid var(--le-line); border-radius: 4px; list-style: none; }
 .le-canvas-footer li { display: inline-flex; align-items: center; gap: 5px; }
 .le-canvas-footer i { display: inline-block; width: 16px; border-top: 1.5px solid var(--le-flow); }
@@ -131,14 +132,15 @@
 .le-connections button > svg { margin-left: auto; color: #727b89; }
 .le-description { color: #434e5d; font-size: 14px; line-height: 1.75; }
 .le-filename { display: inline-flex; margin-top: 14px; align-items: center; gap: 5px; color: #6d552e; font-size: 12px; }
-.le-result { position: fixed; inset: 0; margin: auto; padding: 0; width: min(450px, calc(100% - 28px)); max-height: calc(100dvh - 32px); overflow-y: auto; border: 1px solid #d4d9df; border-radius: 10px; background: #fff; color: var(--le-ink); box-shadow: 0 16px 55px #101c3a30; }
+.le-result { position: fixed; inset: 0; margin: auto; padding: 0; width: min(var(--dialog-standard-width), calc(100% - 24px)); max-height: var(--dialog-max-height); overflow-y: auto; overscroll-behavior: contain; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--le-ink); box-shadow: 0 16px 55px #101c3a30; }
 .le-result::backdrop { background: #16203455; }
-.le-result-inner { padding: 24px; }
+.le-result-inner { padding: 0 20px 20px; }
+.le-result-inner .le-dialog-heading { position: sticky; top: 0; z-index: 1; margin-inline: -20px; padding: 10px 20px; background: var(--surface); border-bottom: 1px solid var(--border); }
 .le-dialog-heading, .le-result-answer h3, .le-dialog-heading span, .le-download { display: flex; align-items: center; }
 .le-dialog-heading { align-items: flex-start; justify-content: space-between; border-bottom: 1px solid var(--le-line); padding-bottom: 17px; }
 .le-dialog-heading span { gap: 5px; color: var(--le-accent); font-size: 12px; font-weight: 650; }
 .le-dialog-heading h2 { margin-top: 5px; font-size: 24px; line-height: 1.35; letter-spacing: -.055em; }
-.le-close { display: grid; place-items: center; background: transparent; border: 0; width: 32px; height: 32px; border-radius: 4px; }
+.le-close { display: grid; place-items: center; background: transparent; border: 0; width: var(--control-height); height: var(--control-height); border-radius: var(--control-radius); }
 .le-close:hover { background: #eff1f3; }
 .le-result-question, .le-result-answer { margin-top: 20px; }
 .le-result-question h3 { color: var(--le-muted); margin-bottom: 3px; }
@@ -192,5 +194,5 @@
   .le-list-row .le-icon { width: 26px; height: 26px; }
   .le-canvas-footer { padding-top: 4px; }
   .le-canvas-footer ul { display: none; }
-  .le-result-inner { padding: 19px; }
+  .le-editor .le-run, .le-mobile-tabs button, .le-editor .le-apply, .le-list-row { min-height: var(--control-height); }
 }

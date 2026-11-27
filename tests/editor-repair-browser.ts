@@ -26,7 +26,7 @@ try {
   const route = original.edges.find(e => e.out === 'category:규정')!;
   assert.ok(route);
   await page.goto('/?edit=' + project.id);
-  await button('전체 보기').click();
+  await button('캔버스에 맞추기').click();
   await button('규정과 개인 예약 구분 블록 속성').click();
   await button('규정 이름 변경').click();
   const renamed = page.getByRole('textbox', {name:'새 범주 이름',exact:true});
@@ -70,6 +70,7 @@ try {
     const draft = await api('project.create',{title:'첫 입력 연결', graph:{nodes:[createBlock('output.answer',{id:'answer',title:'질문 돌려주기'})],edges:[]}});
     await page.setViewportSize({width,height:880});
     await page.goto('/?edit=' + draft.id);
+    if (width === 390) await button('캔버스로 보기').click();
     const node = button('질문 돌려주기 블록 속성');
     await node.focus();
     await node.press('Enter');

@@ -57,7 +57,7 @@ async function check(mobile: boolean) {
     const textSize = await selected.locator('strong').evaluate(el =>
       parseFloat(getComputedStyle(el).fontSize) * new DOMMatrix(getComputedStyle(el.closest('.ws-world')!).transform).a);
     assert.ok(textSize >= 12, 'Selected block label must be readable.');
-    await button('전체 보기').click();
+    await button('캔버스에 맞추기').click();
     await expect.poll(scale).toBeLessThan(0.8);
 
     const beginner = await api(context, 'project.create',{lesson:'beginner'});
@@ -125,7 +125,27 @@ async function check(mobile: boolean) {
     const prompt = dialog.getByRole('textbox',{name:'만들거나 바꿀 일'});
     const send = dialog.getByRole('button',{name:/변경 제안.*받기/});
     const apply = dialog.getByRole('button',{name:'캔버스에 적용'});
+    const height = () => prompt.evaluate(el => el.clientHeight);
+    const initialHeight = await height();
+    const longPrompt = Array.from({length:40}, (_, n) => (n+1) + '. 회의 메모에서 담당자와 기한을 정리해 줘').join('\n');
+    await prompt.fill(longPrompt);
+    await expect.poll(height).toBeGreaterThan(initialHeight);
+    const expand = dialog.getByRole('button', {name:'만들거나 바꿀 일 넓게 쓰기'});
+    await expand.click();
+    const writing = page.getByRole('dialog', {name:'만들거나 바꿀 일', exact:true});
+    const expandedField = writing.getByRole('textbox');
+    await expect(expandedField).toBeFocused();
+    await expect(expandedField).toHaveValue(longPrompt);
+    await expandedField.press('Control+End');
+    await expandedField.press('Enter');
+    await page.keyboard.insertText('미정인 날짜는 비워 둬');
+    await expandedField.press('Escape');
+    await expect(writing).toHaveCount(0);
+    await expect(expand).toBeFocused();
+    await expect(prompt).toHaveValue(longPrompt + '\n미정인 날짜는 비워 둬');
+    assert.equal(requests.length, 0);
     await prompt.fill('안녕하세요');
+    await expect.poll(height).toBe(initialHeight);
     await send.click();
     const answer = dialog.getByRole('textbox',{name:'현재 설계에서 무엇을 바꾸고 싶으세요?'});
     await expect(answer).toBeFocused();
@@ -169,6 +189,7 @@ async function check(mobile: boolean) {
     const teams = reviewTeams();
     const nested = await api(context, 'project.create', {title:'내부 설계 변경', graph:teams});
     await page.goto('/?edit=' + nested.id);
+    if (mobile) await button('캔버스로 보기').click();
     await button('첫 검토 팀 블록 속성').press('Enter');
     await button('팀 열기').click();
     const teamHeading = page.getByRole('heading', {name:'첫 검토 팀', exact:true});

@@ -2,7 +2,7 @@
 
 import { useEffect, useLayoutEffect, useRef, useState, type ChangeEvent, type KeyboardEvent, type ReactNode, type RefObject } from 'react';
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate';
-import { Trash2 } from 'lucide-react';
+import { BookOpen, ChevronRight, Database, FileText, FolderSearch, LockKeyhole, Plus, Search, Trash2, Unplug } from 'lucide-react';
 import TrashList, { type TrashEntry } from './TrashList';
 import StudioDialog from './StudioDialog';
 import {intentHash,StudioApiError} from './client';
@@ -12,6 +12,7 @@ import {rememberResourceList,rememberResourceViewport,resourceListKey,resourceLi
 import './ResourceLibrary.css';
 import type {MaterialLesson} from '../domain/optional-lesson-materials';
 import {assetNumber, duplicateAssetNames} from './resource-labels';
+import {useCopyField, type CopyResult} from './use-copy-field';
 
 type Visibility='private'|'link'|'public';
 export interface AssetItem {id:string;name:string;kind:Kind;visibility:Visibility;version:number;mine:boolean;revision?:number;token?:string;publicVersion?:number;releasedVersions?:number[];exampleLesson?:MaterialLesson}
@@ -41,7 +42,11 @@ const kindDescriptions:Record<Kind,string>={
   document:'Agent가 답변의 근거로 읽을 원문',knowledge:'질문에 맞는 원문을 검색할 자료집',
   skill:'작업 방법을 기록한 SKILL.md와 부속 파일',mcp:'허용한 도구를 제공하는 서버 연결',
 };
-const symbols:Record<Kind,string>={document:'▤',knowledge:'▥',skill:'✧',mcp:'⇄'};
+const kindIcons={document:FileText,knowledge:Database,skill:BookOpen,mcp:Unplug};
+function KindIcon({kind}:{kind:Kind}) {
+  const Icon=kindIcons[kind];
+  return <span className={'rl-icon '+kind} aria-hidden="true"><Icon size={19}/></span>;
+}
 const limit=5_000_000;
 function b64(bytes:Uint8Array) {
   if(typeof bytes.toBase64==='function')return bytes.toBase64();
@@ -118,27 +123,35 @@ function previewText(file:FileEntry){
   const data=bytes(file.data);if(data.includes(0))return null;
   try{return new TextDecoder('utf-8',{fatal:true}).decode(data);}catch{return null;}
 }
-function SourcePreview({body,code}:{body:string;code:boolean}){
-  if(!code)return <pre className="rl-source">{body}</pre>;
-  const tokens=body.split(/(\/\/[^\n]*|#[^\n]*|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|\b(?:import|from|const|def|function|return|let|class|if|else|async|await|true|false|None|null)\b)/g);
-  return <pre className="rl-source"><code>{tokens.map((s,i)=>i%2?<span key={i} className={s.startsWith('//')||s.startsWith('#')?'rl-comment':'rl-keyword'}>{s}</span>:s)}</code></pre>;
+function SourcePreview({body,code=false,label='원문 내용'}:{body:string;code?:boolean;label?:string}){
+  const source=useRef<HTMLPreElement>(null);
+  const [scrollable,setScrollable]=useState(false);
+  useLayoutEffect(()=>{
+    const element=source.current!;
+    const measure=()=>setScrollable(element.scrollHeight>element.clientHeight);
+    measure();
+    const observer=new ResizeObserver(measure);
+    observer.observe(element);
+    return ()=>observer.disconnect();
+  },[body]);
+  const tokens=code?body.split(/(\/\/[^\n]*|#[^\n]*|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|\b(?:import|from|const|def|function|return|let|class|if|else|async|await|true|false|None|null)\b)/g):null;
+  return <pre ref={source} className="rl-source" tabIndex={scrollable?0:undefined} role={scrollable?'region':undefined} aria-label={scrollable?label:undefined}>{tokens?
+    <code>{tokens.map((s,i)=>i%2?<span key={i} className={s.startsWith('//')||s.startsWith('#')?'rl-comment':'rl-keyword'}>{s}</span>:s)}</code>:body}</pre>;
 }
 function Field({label,children}:{label:string;children:ReactNode}){return <label className="rl-field"><span>{label}</span>{children}</label>;}
-function ShareAddress({label,url,notify}:{label:string;url:URL;notify:(message:string)=>void}) {
+function ResourceCopyField({label, value, identifierLabel, copy, notify}:{
+  label:string; value:string; identifierLabel?:string; copy:ReturnType<typeof useCopyField>; notify:(message:string)=>void;
+}) {
   const input=useRef<HTMLInputElement>(null);
-  async function copyAddress() {
-    try {
-      await navigator.clipboard.writeText(url.href);
-      notify(label+'를 복사했습니다.');
-    } catch {
-      input.current?.focus();
-      input.current?.select();
-      notify('선택된 주소를 복사하세요.');
-    }
+  function report(result:CopyResult) {
+    if(result==='copied') notify((identifierLabel??label)+'를 복사했습니다.');
+    else if(result==='selected') notify(identifierLabel?'선택된 도구 식별자를 복사하세요.':'선택된 주소를 복사하세요.');
+    else notify(identifierLabel?'도구 식별자를 선택해 복사하세요.':label+' 입력란에서 직접 복사하세요.');
   }
-  return <div className="rl-actions rl-share-address">
-    <Field label={label}><input ref={input} readOnly value={url.href} onFocus={event=>event.currentTarget.select()}/></Field>
-    <button type="button" aria-label={label+' 복사'} onClick={copyAddress}>주소 복사</button>
+  return <div className={identifierLabel?'rl-actions':'rl-actions rl-share-address'}>
+    <Field label={label}><input ref={input} aria-label={identifierLabel} readOnly value={value} onFocus={event=>event.currentTarget.select()}/></Field>
+    <button type="button" aria-label={identifierLabel?undefined:label+' 복사'}
+      onClick={event=>void copy(input.current,event.currentTarget,report)}>{identifierLabel?'식별자 복사':'주소 복사'}</button>
   </div>;
 }
 function message(e:unknown){return e instanceof Error?e.message:'요청을 처리하지 못했습니다.';}
@@ -166,7 +179,7 @@ function ComparisonSide({title,name,kind,payload}:{title:string;name:string;kind
   ]:[];
   return <section><h3>{title}</h3><p>{name}</p>{kind==='mcp'?
     <dl>{fields.map(([label,value])=><div key={label}><dt>{label}</dt><dd>{value||'없음'}</dd></div>)}</dl>:
-    <pre className="rl-source">{payload.content}</pre>}
+    <SourcePreview body={payload.content} label={title+' 원문'}/>}
     {kind==='skill'&&<p>필수 스크립트 · {payload.requiresScripts?'있음':'없음'}</p>}
   </section>;
 }
@@ -198,6 +211,7 @@ export default function ResourceLibrary({assets,onChange,api,initial,initialVers
   const sectionTitle=sharedCatalog?'공유 도구 및 자료':'도구 및 자료';
   const library=useRef<HTMLElement>(null);
   const [mode,setMode]=useState<'list'|'view'|'create'|'edit'|'loading'>(initial?'loading':'list');
+  const heading=useRef<HTMLHeadingElement>(null);
   const [detail,setDetail]=useState<ResourceDetail|null>(null);
   const [kind,setKind]=useState<Kind>('document'),[name,setName]=useState(''),[payload,setPayload]=useState<Payload>(blank('document'));
   const kindDrafts=useRef<Partial<Record<Kind,Payload>>>({});
@@ -206,6 +220,7 @@ export default function ResourceLibrary({assets,onChange,api,initial,initialVers
   const keepEditing=useRef<HTMLButtonElement>(null);
   const lastDraftField=useRef<HTMLElement|null>(null);
   const [busy,setBusy]=useState(false),[err,setErr]=useState(''),[notice,setNotice]=useState('');
+  const copyField=useCopyField(mode==='view'&&!busy?detail:null);
   const [toolsText,setToolsText]=useState(''),[readOnlyText,setReadOnlyText]=useState('');
   const [pendingImport,setPendingImport]=useState<SkillImport|null>(null);
   const [conflictKey,setConflictKey]=useState<string>();
@@ -248,6 +263,9 @@ export default function ResourceLibrary({assets,onChange,api,initial,initialVers
   const localSearch=useRef<HTMLInputElement>(null),cancelButton=useRef<HTMLButtonElement>(null);
   const searchInput=searchRef??localSearch;
   const folderPicker=useRef<HTMLInputElement>(null),mdPicker=useRef<HTMLInputElement>(null),zipPicker=useRef<HTMLInputElement>(null);
+  useLayoutEffect(()=>{
+    if(mode!=='list' && mode!=='loading' && document.activeElement===document.body)heading.current?.focus();
+  },[mode]);
   function filterList(change:Partial<ResourceListPosition>){
     const next={...resourceListPosition(),...change,scrollY:window.scrollY};
     setFilters(next);
@@ -572,6 +590,11 @@ export default function ResourceLibrary({assets,onChange,api,initial,initialVers
   const scoped=assets.filter(a=>scope==='all'||scope==='mine'&&a.mine||scope==='shared'&&!a.mine&&a.visibility==='link'||scope==='public'&&a.visibility==='public');
   const list=scoped.filter(a=>(kindFilter==='all'||a.kind===kindFilter) && a.name.toLocaleLowerCase().includes(query.trim().toLocaleLowerCase()));
   const duplicates=duplicateAssetNames(list);
+  const hasFilters=Boolean(query.trim()||kindFilter!=='all');
+  function resetFilters() {
+    filterList({kind:'all',query:'',focus:'search'});
+    searchInput.current?.focus();
+  }
   function filesView(){
     const files=payload.files?.length?payload.files:editMode&&payload.content?[{path:'SKILL.md',data:''}]:[];
     if(!files.length)return null;
@@ -583,7 +606,7 @@ export default function ResourceLibrary({assets,onChange,api,initial,initialVers
       <div className="rl-filegrid"><ul>{files.map(f=><li key={f.path}><button type="button" aria-pressed={selectedFile===f.path} onClick={()=>setSelectedFile(f.path)}>{f.path}</button></li>)}</ul>
         <div>{currentFile&&<><div className="rl-filetitle"><strong>{currentFile.path}</strong><small>{size.toLocaleString()} B</small>
           <button type="button" onClick={()=>download(currentFile.path.split('/').at(-1)!,editingMain?strToU8(payload.content):bytes(currentFile.data),'application/octet-stream')}>이 파일 내려받기</button></div>
-          {preview===null?<p>다운로드하여 확인할 수 있는 파일입니다.</p>:<SourcePreview body={preview} code={/\.(js|ts|py|sh|ps1|json|ya?ml|tsx)$/i.test(currentFile.path)}/>}</>}</div></div>
+          {preview===null?<p>다운로드하여 확인할 수 있는 파일입니다.</p>:<SourcePreview body={preview} label={currentFile.path+' 내용'} code={/\.(js|ts|py|sh|ps1|json|ya?ml|tsx)$/i.test(currentFile.path)}/>}</>}</div></div>
     </section>;
   }
   const shared=detail?.asset;
@@ -604,39 +627,49 @@ export default function ResourceLibrary({assets,onChange,api,initial,initialVers
     if(control)rememberResourceList({...filters,focus:control.dataset.resourceReturn??'trash',scrollY:window.scrollY});
   }}>
     <header className="rl-header"><div>{mode!=='list'&&<button className="rl-back" type="button" onClick={()=>leave.proceed(toList)}>← {sectionTitle}</button>}
-      <h1>{mode==='list'?sectionTitle:mode==='create'?'새 자료 등록':mode==='edit'?'자료 수정':mode==='loading'?'자료 열기':detail?.asset.name}</h1>
+      <h1 ref={heading} tabIndex={-1}>{mode==='list'?sectionTitle:mode==='create'?'새 자료 등록':mode==='edit'?'자료 수정':mode==='loading'?(err?'자료를 열 수 없습니다':'자료 열기'):detail?.asset.name}</h1>
       {mode==='loading'&&busy&&<p role="status">자료를 불러오는 중입니다.</p>}
       {mode==='list'&&<p>{sharedCatalog?'공유된 판을 골라 내 Workflow에 연결하거나 내 자료에 사본을 만드세요.':'Agent에 연결할 원문, 작업 지침, 지식 저장소와 도구를 관리합니다.'}</p>}</div>
       {!sharedCatalog&&mode==='list'&&<div className="project-folder-actions">{folderLink}
-        <button type="button" className="rl-primary" data-resource-return="create" onClick={()=>start()}>＋ 자료 등록</button></div>}</header>
+        <button type="button" className="rl-primary" data-resource-return="create" onClick={()=>start()}><Plus size={17} aria-hidden="true"/>자료 등록</button></div>}</header>
     {err&&<p className="rl-error" role="alert">{err}</p>}{notice&&<p className="rl-notice" role="status">{notice}</p>}
-    {mode==='list'&&<>
+    {mode==='loading'&&initial&&err&&!busy&&<button type="button" onClick={async()=>{
+      await readDetail(initial,initialVersion,token);
+      requestAnimationFrame(()=>heading.current?.focus());
+    }}>다시 불러오기</button>}
+    {mode==='list'&&<div className="rl-list-surface">
       <div className="rl-scope" role={sharedCatalog?'tablist':'group'} aria-label="자료 범위"
         onKeyDown={sharedCatalog?switchCatalogTab:undefined}>{(sharedCatalog?catalogScopes:libraryScopes).map(([key,label])=>
         <button key={key} data-resource-return={'scope-'+key}
           {...(sharedCatalog?{role:'tab',id:'catalog-scope-'+key,'aria-selected':scope===key,'aria-controls':'catalog-results',tabIndex:scope===key?0:-1}:{'aria-pressed':scope===key})}
           onClick={()=>filterList({scope:key,focus:'scope-'+key})}>{label}</button>)}</div>
       <div {...(sharedCatalog?{id:'catalog-results',role:'tabpanel','aria-labelledby':'catalog-scope-'+scope}:{})}>
-      <div className="rl-filter"><Field label="종류"><select data-resource-return="kind" aria-label="종류" value={kindFilter} onChange={e=>filterList({kind:e.target.value as Kind|'all'})}><option value="all">모든 종류</option>
+      <div className="rl-filter"><label className="rl-field rl-search"><span>검색</span><span className="rl-search-control"><Search size={17} aria-hidden="true"/>
+        <input ref={searchInput} data-resource-return="search" type="search" placeholder="이름으로 찾기" value={query} onChange={e=>filterList({query:e.target.value})}/></span></label>
+        <Field label="종류"><select data-resource-return="kind" aria-label="종류" value={kindFilter} onChange={e=>filterList({kind:e.target.value as Kind|'all'})}><option value="all">모든 종류</option>
         {Object.entries(labels).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></Field>
-        <Field label="검색"><input ref={searchInput} data-resource-return="search" type="search" placeholder="이름으로 찾기" value={query} onChange={e=>filterList({query:e.target.value})}/></Field></div>
-      {list.length?<ul className="rl-assets">{list.map(a=><li key={a.id}><button className="rl-asset-open" data-resource-return={a.id} disabled={busy} onClick={()=>onRoute({id:a.id,edition:String(a.version)})}>
-        <span className={'rl-icon '+a.kind} aria-hidden="true">{symbols[a.kind]}</span><span><strong>{a.name}</strong><small>{labels[a.kind]} · {a.version}판{a.exampleLesson && ' · 실습 예제 (원본 1판)'}{duplicates.has(a.name) && ' · 자료 번호 ' + assetNumber(a.id)}</small></span>
-        <span className="rl-scope-label">{scopes[a.visibility]}</span><span aria-hidden="true">›</span></button>
+        <span className="rl-result-count" role="status">자료 {list.length.toLocaleString()}개</span></div>
+      {list.length?<><div className="rl-column-head" aria-hidden="true"><span>이름</span><span>종류</span><span>자료판</span><span>공유 범위</span></div>
+        <ul className="rl-assets" aria-label="자료 목록">{list.map(a=><li key={a.id}><button className="rl-asset-open" data-resource-return={a.id} disabled={busy} onClick={()=>onRoute({id:a.id,edition:String(a.version)})}>
+        <span className="rl-name"><KindIcon kind={a.kind}/><span><strong>{a.name}</strong>{a.exampleLesson&&<small>실습 예제 (원본 1판)</small>}{duplicates.has(a.name)&&<small>자료 번호 {assetNumber(a.id)}</small>}</span></span>
+        <span className="rl-kind-label">{labels[a.kind]}</span><span className="rl-edition">{a.version}판</span>
+        <span className="rl-scope-label">{scopes[a.visibility]}</span><ChevronRight className="rl-open-arrow" size={16} aria-hidden="true"/></button>
         {!sharedCatalog&&a.mine&&<button type="button" className="rl-delete" aria-label={a.name+' 삭제'} disabled={busy}
-          onClick={event=>askDelete(a,event.currentTarget)}><Trash2 size={16} aria-hidden="true"/>삭제</button>}</li>)}</ul>:
+          onClick={event=>askDelete(a,event.currentTarget)}><Trash2 size={16} aria-hidden="true"/></button>}</li>)}</ul></>:
         sharedCatalog&&!scoped.length?<div className="rl-empty"><h2>{scope==='shared'?'직접 받은 자료가 없습니다':'모두에게 공개된 자료가 없습니다'}</h2>
           {scope==='shared'&&<p>받은 비밀 링크를 열면 이곳에서 자료를 다시 찾을 수 있습니다.</p>}</div>:
-        <div className="rl-empty"><span aria-hidden="true">▤</span><h2>{assets.length?'조건에 맞는 자료가 없습니다':'아직 등록한 자료가 없습니다'}</h2>
-          <p>{assets.length?'범위, 종류 또는 검색어를 바꿔 보세요.':'안내문을 등록하거나 SKILL.md 파일을 가져와 시작하세요.'}</p></div>}
+        <div className="rl-empty"><FolderSearch size={28} aria-hidden="true"/><h2>{assets.length?'조건에 맞는 자료가 없습니다':'아직 등록한 자료가 없습니다'}</h2>
+          <p>{assets.length?'범위, 종류 또는 검색어를 바꿔 보세요.':'안내문을 등록하거나 SKILL.md 파일을 가져와 시작하세요.'}</p>
+          {hasFilters&&<button type="button" onClick={resetFilters}>검색 조건 초기화</button>}</div>}
       </div>
-    </>}
+    </div>}
     {editMode&&<form className="rl-form" inert={busy} onFocusCapture={event=>{
       if(event.target.matches('input:not([hidden]),textarea,select'))lastDraftField.current=event.target;
     }} onSubmit={e=>{e.preventDefault();if(!busy)void (conflictKey?compareLatest():save());}}>
-      {mode==='create'&&<fieldset><legend>자료 종류</legend><div className="rl-kindchoices">{(Object.keys(labels) as Kind[]).map(id=><button type="button" key={id}
+      {mode==='create'&&<fieldset className="rl-kind-field"><legend>자료 종류</legend><div className="rl-kindchoices">{(Object.keys(labels) as Kind[]).map(id=><button type="button" key={id}
         aria-pressed={id===kind} disabled={busy||(id==='mcp'&&isAdmin===false)} onClick={()=>selectKind(id)}>
-        <strong>{symbols[id]} {labels[id]}</strong><small>{kindDescriptions[id]}</small></button>)}</div></fieldset>}
+        <strong><KindIcon kind={id}/>{labels[id]}</strong><small>{id==='mcp'&&isAdmin===false?'관리자만 등록할 수 있습니다.':kindDescriptions[id]}</small></button>)}</div>
+        <p className="rl-selected-help">{kindDescriptions[kind]}{isAdmin===false&&' · MCP 등록은 관리자 전용'}</p></fieldset>}
       <Field label="이름"><input required maxLength={120} value={name} onChange={e=>setName(e.target.value)} placeholder={kind==='skill'?'예: 근거 인용 Skill':'예: 도서관 이용규정'}/></Field>
       {kind==='skill'&&<><fieldset><legend>Skill 가져오기</legend><div className="rl-actions">
         <button type="button" disabled={busy} onClick={()=>mdPicker.current?.click()}>.md 파일</button><button type="button" disabled={busy} onClick={()=>folderPicker.current?.click()}>폴더 선택</button>
@@ -658,59 +691,68 @@ export default function ResourceLibrary({assets,onChange,api,initial,initialVers
         <p role="status">{backupError?'이 탭에서 작성 중인 초안을 먼저 사본으로 저장하세요. 브라우저 임시 보관을 사용할 수 없습니다.':
           '작성한 초안을 유지하고 있습니다. 최신판과 비교하거나 이 초안을 별도 자료로 저장하세요.'}</p>
       </section>}
-      <div className="rl-actions"><button disabled={busy} className="rl-primary" type="submit">{busy?'처리 중…':conflictKey?'최신판과 비교':mode==='edit'?'새 버전 저장':'등록'}</button>
+      <div className="rl-actions rl-save-actions"><button type="button" disabled={busy} onClick={()=>leave.proceed(()=>detail?show(detail):toList())}>취소</button>
         {conflictKey&&<button type="button" disabled={busy} onClick={()=>void save(true)}>내 사본으로 저장</button>}
-        <button type="button" disabled={busy} onClick={()=>leave.proceed(()=>detail?show(detail):toList())}>취소</button></div>
+        <button disabled={busy} className="rl-primary" type="submit">{busy?'처리 중…':conflictKey?'최신판과 비교':mode==='edit'?'새 버전 저장':'등록'}</button></div>
     </form>}
-    {mode==='view'&&detail&&<div className="rl-form"><div className="rl-actions rl-view-actions"><span className={'rl-icon '+kind} aria-hidden="true">{symbols[kind]}</span><strong>{labels[kind]}</strong>
+    {mode==='view'&&detail&&<div className="rl-form rl-detail-layout"><div className="rl-actions rl-view-actions"><KindIcon kind={kind}/><strong>{labels[kind]}</strong>
         <select aria-label="자료 버전" value={detail.version} disabled={busy} onChange={e=>onRoute({id:detail.asset.id,edition:e.target.value,token:token??undefined})}>
           {(canManage?Array.from({length:detail.asset.version},(_,i)=>detail.asset.version-i):detail.asset.releasedVersions??[detail.version]).map(n=><option value={n} key={n}>{n}판{n===detail.asset.publicVersion?' · 게시됨':canManage&&n===detail.asset.version?' · 최신':''}</option>)}</select>
-        <span>{scopes[detail.asset.visibility]}</span></div>
-      {sharedCatalog&&<div className="rl-catalog-use">
-        <div className="rl-actions">
-          {onConnect&&<button type="button" className="rl-primary" disabled={busy} onClick={()=>onConnect(detail.asset,detail.version)}>내 Workflow에 연결</button>}
-          <button type="button" disabled={busy} onClick={()=>void copy()}>내 사본 만들기</button>
         </div>
-        <p>Workflow에 연결하면 선택한 {detail.version}판을 사용합니다. 사본은 내 자료에 독립적으로 보관됩니다.</p>
-      </div>}
+      <section className="rl-document"><h2>{kind==='mcp'?'연결 정보':kind==='skill'?'작업 지침':'원문'}</h2>
       {kind==='mcp'?<><dl className="rl-details">
         <dt>{payload.builtin==='library'?'연결 대상':'서버 주소'}</dt><dd>{payload.builtin==='library'?'작업실 도서관 MCP':payload.url}</dd>
         {canManage&&<><dt>시험 연결</dt><dd>{payload.builtin==='library'?'격리 시험 지원':payload.testUrl||'미등록'}</dd></>}</dl>
         <section><h2>Workflow에 연결할 도구</h2>{payload.tools?.map(tool=>{
           const identifier='mcp.'+detail.asset.id+'.'+tool;
-          return <div className="rl-actions" key={tool}><Field label={tool+' · '+(payload.readOnlyTools?.includes(tool)?'조회 전용':'실행 승인 필요')}>
-            <input aria-label={tool+' 도구 식별자'} value={identifier} readOnly onFocus={e=>e.target.select()}/></Field>
-            <button onClick={async()=>{try{await navigator.clipboard.writeText(identifier);setNotice(tool+' 도구 식별자를 복사했습니다.');}catch{setNotice('도구 식별자를 선택해 복사하세요.');}}}>식별자 복사</button></div>;
+          return <ResourceCopyField key={tool} label={tool+' · '+(payload.readOnlyTools?.includes(tool)?'조회 전용':'실행 승인 필요')}
+            identifierLabel={tool+' 도구 식별자'} value={identifier} copy={copyField} notify={setNotice}/>;
         })}</section></>:
-        <section><h2>{kind==='skill'?'작업 지침':'원문'}</h2><SourcePreview body={payload.content} code={false}/></section>}
-      {kind==='skill'&&<>{payload.requiresScripts&&<p className="rl-error">필수 스크립트 실행 미지원</p>}{filesView()}</>}
+        <SourcePreview body={payload.content} code={false}/>}
+      {kind==='skill'&&payload.requiresScripts&&<p className="rl-error">필수 스크립트 실행 미지원</p>}
+      </section>
+      <aside className="rl-info" aria-label="자료 정보"><h2>자료 정보</h2>
+        <dl><div><dt>자료판</dt><dd>{detail.version}판</dd></div><div><dt>공유 범위</dt><dd>{scopes[detail.asset.visibility]}</dd></div>
+          <div><dt>사용 권한</dt><dd>{detail.asset.mine?'소유자':'공유된 판 열람'}</dd></div></dl>
+      {sharedCatalog&&<div className="rl-catalog-use">
+        <p>Workflow에 연결하면 선택한 {detail.version}판을 사용합니다. 사본은 내 자료에 독립적으로 보관됩니다.</p>
+        <div className="rl-actions">
+          {onConnect&&<button type="button" className="rl-primary" disabled={busy} onClick={()=>onConnect(detail.asset,detail.version)}>내 Workflow에 연결</button>}
+          <button type="button" disabled={busy} onClick={()=>void copy()}>내 사본 만들기</button>
+        </div>
+      </div>}
       {(!sharedCatalog||kind==='skill'&&!!payload.files?.length)&&<div className="rl-actions">{canManage&&payload.builtin!=='library'&&detail.version===detail.asset.version&&<button disabled={busy} className="rl-primary" onClick={edit}>수정</button>}
         {!sharedCatalog&&onConnect&&!detail.asset.mine&&detail.asset.releasedVersions?.includes(detail.version)&&<button type="button" className="rl-primary" disabled={busy} onClick={()=>onConnect(detail.asset,detail.version)}>내 Workflow에 연결</button>}
         {!sharedCatalog&&<button disabled={busy} onClick={()=>void copy()}>이 버전의 사본 만들기</button>}
         {kind==='skill'&&payload.files?.length?<button onClick={()=>exportBundle(payload.files!,name)}>Skill ZIP 다운로드</button>:null}
         {canManage&&<button type="button" className="rl-delete" disabled={busy} onClick={event=>askDelete(detail.asset,event.currentTarget)}>
           <Trash2 size={16} aria-hidden="true"/>자료 삭제</button>}</div>}
-      {canManage&&<fieldset className="rl-sharing"><legend>공유 설정</legend>
+      </aside>
+      {kind==='skill'&&filesView()}
+      {canManage&&<fieldset className="rl-sharing"><legend><LockKeyhole size={15} aria-hidden="true"/> 공유 설정</legend>
         <p>현재 공개 범위 · <strong>{scopes[detail.asset.visibility]}</strong>{detail.asset.visibility!=='private'&&detail.asset.publicVersion&&' · '+detail.asset.publicVersion+'판 게시 중'}</p>
         {visible!==detail.asset.visibility?
           <p role="status">적용 전 · {scopes[detail.asset.visibility]} → {scopes[visible]}{visible!=='private'&&' · '+detail.version+'판'}</p>:
           visible!=='private'&&detail.version!==detail.asset.publicVersion&&
           <p role="status">적용 전 · 게시판 {detail.asset.publicVersion}판 → {detail.version}판</p>}
-        <div className="rl-actions"><select aria-label="공유 범위" value={visible} onChange={e=>{setVisible(e.target.value as Visibility);setNotice('');}}>
-        {Object.entries(scopes).map(([k,l])=><option key={k} value={k}>{l}</option>)}</select>
-        <button disabled={busy||visible===detail.asset.visibility&&(visible==='private'||detail.version===detail.asset.publicVersion)} onClick={()=>void applyShare()}>
+        <div className="rl-actions rl-visibility-actions"><div className="rl-field"><label htmlFor="resource-share-visibility">공유 범위</label>
+        <select id="resource-share-visibility" value={visible} disabled={busy} onChange={e=>{setVisible(e.target.value as Visibility);setNotice('');}}>
+        {Object.entries(scopes).map(([k,l])=><option key={k} value={k}>{l}</option>)}</select></div>
+        <button type="button" className="rl-primary" disabled={busy||visible===detail.asset.visibility&&(visible==='private'||detail.version===detail.asset.publicVersion)} onClick={()=>void applyShare()}>
           {visible==='private'?'나만 사용으로 변경':detail.version+'판 공유'}</button>
-        {detail.asset.visibility==='link'&&visible==='link'&&<button disabled={busy} onClick={()=>void applyShare(true)}>현재 링크 철회·재발급</button>}</div>
+        {detail.asset.visibility==='link'&&visible==='link'&&<button type="button" className="rl-delete rl-rotate" disabled={busy} onClick={()=>void applyShare(true)}>현재 링크 철회·재발급</button>}</div>
         </fieldset>}
       {publishedUrl && <fieldset className="rl-share-links"><legend>현재 공유 주소 · {scopes[detail.asset.visibility]}</legend>
-        <ShareAddress label="최신 게시판 주소" url={publishedUrl} notify={setNotice}/>
+        <ResourceCopyField label="최신 게시판 주소" value={publishedUrl.href} copy={copyField} notify={setNotice}/>
         <small>지금은 {detail.asset.publicVersion}판을 엽니다. 새 판을 게시하면 이 주소에도 반영됩니다.</small>
-        {fixedUrl ? <ShareAddress label={detail.version+'판 고정 주소'} url={fixedUrl} notify={setNotice}/> :
+        {fixedUrl ? <ResourceCopyField label={detail.version+'판 고정 주소'} value={fixedUrl.href} copy={copyField} notify={setNotice}/> :
           <small>선택한 {detail.version}판을 현재 범위로 공유하면 고정 주소가 생깁니다.</small>}
       </fieldset>}
     </div>}
   </section>
-    {pendingImport&&<StudioDialog title="Skill 가져오기 확인" onClose={()=>setPendingImport(null)} initialFocus={importCancel}>
+    {pendingImport&&<StudioDialog title="Skill 가져오기 확인" size={pendingImport.changed.length||pendingImport.removed.length?'form':'confirm'} onClose={()=>setPendingImport(null)} initialFocus={importCancel}
+      footer={<><button type="button" ref={importCancel} className="btn" onClick={()=>setPendingImport(null)}>현재 내용 유지</button>
+        <button type="button" className="btn primary" onClick={()=>applyImport(pendingImport)}>가져온 내용 적용</button></>}>
       {pendingImport.overwrite&&<p>작성 중인 SKILL.md 지침이 가져온 본문으로 교체됩니다.</p>}
       {pendingImport.removed.length>0&&<><p>새 파일 구성에서 빠지는 파일 {pendingImport.removed.length}개</p>
         <ul className="rl-import-removed">{pendingImport.removed.map(path=><li key={path}>{path}</li>)}</ul></>}
@@ -720,10 +762,11 @@ export default function ResourceLibrary({assets,onChange,api,initial,initialVers
           onChange={event=>setPendingImport({...pendingImport,replace:event.target.checked?[...pendingImport.replace,path]:pendingImport.replace.filter(file=>file!==path)})}/>{path} 교체</label>)}
       </fieldset>}
       {err&&<p className="rl-error" role="alert">{err}</p>}
-      <div className="row"><button type="button" ref={importCancel} className="btn" onClick={()=>setPendingImport(null)}>현재 내용 유지</button>
-        <button type="button" className="btn primary" onClick={()=>applyImport(pendingImport)}>가져온 내용 적용</button></div>
     </StudioDialog>}
-    {latest&&detail&&<StudioDialog title="최신판과 내 초안 비교" wide dismissDisabled={busy} onClose={()=>setLatest(null)}>
+    {latest&&detail&&<StudioDialog title="최신판과 내 초안 비교" size="settings" dismissDisabled={busy} onClose={()=>setLatest(null)}
+      footer={<><button type="button" className="btn" disabled={busy} onClick={()=>setLatest(null)}>계속 편집</button>
+        <button type="button" className="btn" disabled={busy} onClick={()=>void save(true)}>내 사본으로 저장</button>
+        <button type="button" className="btn primary" disabled={busy} onClick={()=>void save(false,latest.version)}>내 초안을 {latest.version+1}판으로 저장</button></>}>
       {err&&<p className="rl-error" role="alert">{err}</p>}
       <div className="rl-comparison"><ComparisonSide title={'최신 '+latest.version+'판'} name={latest.asset.name} kind={kind} payload={latest.payload}/>
         <ComparisonSide title={detail.version+'판에서 편집한 내 초안'} name={name} kind={kind} payload={kind==='mcp'?
@@ -732,19 +775,17 @@ export default function ResourceLibrary({assets,onChange,api,initial,initialVers
         {attachmentChanges.length===0?<p>부속 파일이 같습니다.</p>:<ul className="rl-import-removed">
           {attachmentChanges.map(f=><li key={f.path}>{f.path} · {f.status}</li>)}</ul>}</section>}
       <p>내 초안 전체를 {latest.version+1}판으로 저장하면 이전 판들은 그대로 보관됩니다.</p>
-      <div className="row"><button type="button" className="btn" disabled={busy} onClick={()=>setLatest(null)}>계속 편집</button>
-        <button type="button" className="btn" disabled={busy} onClick={()=>void save(true)}>내 사본으로 저장</button>
-        <button type="button" className="btn primary" disabled={busy} onClick={()=>void save(false,latest.version)}>내 초안을 {latest.version+1}판으로 저장</button></div>
     </StudioDialog>}
-    {leave.pending&&<StudioDialog title="저장하지 않은 자료" onClose={continueEditing} initialFocus={keepEditing} descriptionId="resource-draft-message">
+    {leave.pending&&<StudioDialog title="저장하지 않은 자료" size="confirm" onClose={continueEditing} initialFocus={keepEditing} descriptionId="resource-draft-message"
+      footer={<><button type="button" className="btn primary" ref={keepEditing} onClick={continueEditing}>계속 작성</button>
+        <button type="button" className="btn" onClick={leave.discardAndProceed}>변경 버리기</button></>}>
       <p id="resource-draft-message">{name?'‘'+name+'’ 자료에':'이 자료에'} 저장하지 않은 변경이 있습니다. 변경을 버리고 나갈까요?</p>
-      <div className="row">
-        <button type="button" className="btn primary" ref={keepEditing} onClick={continueEditing}>계속 작성</button>
-        <button type="button" className="btn" onClick={leave.discardAndProceed}>변경 버리기</button>
-      </div>
     </StudioDialog>}
-    {deleteTarget&&<StudioDialog title="자료 삭제" descriptionId="delete-asset-summary" initialFocus={cancelButton}
-      dismissDisabled={busy} onClose={cancelDelete}>
+    {deleteTarget&&<StudioDialog title="자료 삭제" size="standard" descriptionId="delete-asset-summary" initialFocus={cancelButton}
+      dismissDisabled={busy} onClose={cancelDelete}
+      footer={<><button ref={cancelButton} type="button" className="btn" disabled={busy} onClick={cancelDelete}>취소</button>
+        <button type="button" className="btn danger" disabled={busy||checkingImpact||deleteTargetChanged} onClick={()=>void confirmDelete()}>
+          {busy?'이동 중…':'휴지통으로 이동'}</button></>}>
       <p className="delete-project-name" id="delete-asset-summary"><strong>{deleteTarget.name}</strong> 자료의 모든 판을 휴지통으로 옮길까요?
         현재 공유 범위는 ‘{scopes[deleteTarget.visibility]}’입니다.</p>
       <p>삭제하면 이 자료를 사용하는 Agent가 원문이나 도구에 접근할 수 없어 실행과 게시에 영향을 받을 수 있습니다.
@@ -758,11 +799,6 @@ export default function ResourceLibrary({assets,onChange,api,initial,initialVers
       {deleteTarget.visibility!=='private'&&<p>기존 공유 주소로는 이 자료에 접근할 수 없게 됩니다.</p>}
       {deleteTargetChanged&&<p role="alert">자료가 변경되었습니다. 취소한 뒤 자료를 다시 확인하세요.</p>}
       {deleteError&&<p className="modal-error" role="alert">{deleteError}</p>}
-      <div className="row">
-        <button ref={cancelButton} type="button" className="btn" disabled={busy} onClick={cancelDelete}>취소</button>
-        <button type="button" className="btn danger" disabled={busy||checkingImpact||deleteTargetChanged} onClick={()=>void confirmDelete()}>
-          {busy?'이동 중…':'휴지통으로 이동'}</button>
-      </div>
     </StudioDialog>}
   </>;
 }

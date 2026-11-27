@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { createBlock, templates, type Graph } from '../../domain/index';
 import { arranged, changeBlockMode, changeTerminalBehavior, compactDestinationLabels, editReplySettings, graphChanges, groupEdges, groupKey, materialPreview, nodeSummary, nodeTitle, replyDeadlineMinutes, routeLabelWidth, subgraph, titleById, updateSubgraph } from './graph';
 import { extent, fittedView, groupedWireGeometry, H, nearestWires, nodeLayout, revealBlock, route, selectedPortDirections, wireCaptions, W } from './geometry';
-import { placeNewBlock } from './node-layout';
+import { overviewTargetLimits, placeNewBlock } from './node-layout';
 
 test('같은 팀의 동명 블록만 구분하고 사용자가 이미 붙인 번호와 이름은 보존한다', () => {
   const block = (id:string,title:string) => createBlock('agent.task',{id,title});
@@ -355,6 +355,80 @@ test('블록 추가는 분류 경로와 겹치는 새 카드만 같은 열의 �
   assert.equal(added.y, 185);
   assert.equal(classifier.y, 60);
   assert.equal(placeNewBlock(adjacent, [classifier, below, placed]), adjacent);
+});
+
+test('초급 연결도는 저장한 배치를 유지하며 모든 카드와 단일 출력의 터치 공간을 확보한다', () => {
+  const graph = templates.find(lesson => lesson.id === 'beginner')!.graph;
+  const before = structuredClone(graph);
+  const limits = overviewTargetLimits(graph.nodes);
+  assert.equal(limits.size, 6);
+  for (const node of graph.nodes) {
+    const limit = limits.get(node.id)!;
+    assert.ok((nodeLayout(node).height + limit.above + limit.below) * 0.299 >= 30, node.id);
+    assert.equal(limit.maxPortOutside, 34, node.id);
+  }
+  assert.equal(limits.get('file')!.above + limits.get('file')!.below + H, 128);
+  assert.deepEqual(graph, before);
+});
+
+test('좁은 열은 두 카드의 높이를 나눠 쓰고 인접한 출력은 연결선 통로의 절반을 비운다', () => {
+  const upper = createBlock('ai.single_task', {id:'upper', x:-30, y:-50});
+  const lower = createBlock('resource.context', {id:'lower', x:-30, y:upper.y + H + 12});
+  const beside = createBlock('agent.task', {id:'beside', x:upper.x + W + 20, y:upper.y});
+  const limits = overviewTargetLimits([lower, beside, upper]);
+  assert.equal(limits.get(upper.id)!.below, 4);
+  assert.equal(limits.get(lower.id)!.above, 4);
+  assert.equal(limits.get(upper.id)!.above, 40);
+  assert.equal(limits.get(upper.id)!.maxPortOutside, 10);
+
+  const overlap = {...lower, y: upper.y};
+  const crowded = overviewTargetLimits([upper, overlap]);
+  assert.deepEqual(crowded.get(upper.id), {above:0, below:0, maxPortOutside:0});
+  assert.deepEqual(crowded.get(lower.id), {above:0, below:0, maxPortOutside:0});
+});
+
+test('같은 줄에서 가장자리만 겹친 카드는 위아래로 커지고 깊이 겹친 카드는 기존 경계를 지킨다', () => {
+  const material = createBlock('resource.context', {id:'material', x:0, y:0});
+  const skill = createBlock('instruction.skill', {id:'skill', x:210, y:0});
+  const next = createBlock('agent.task', {id:'next', x:420, y:0});
+  const below = createBlock('agent.task', {id:'below', x:0, y:120});
+  const minimumHeight = 94;
+  const limits = overviewTargetLimits([next, skill, below, material], minimumHeight);
+  const left = limits.get(material.id)!, right = limits.get(skill.id)!;
+  assert.equal(left.maxPortOutside, 0);
+  assert.ok(nodeLayout(material).height + left.above + left.below >= minimumHeight);
+  assert.ok(nodeLayout(skill).height + right.above + right.below >= minimumHeight);
+  assert.ok(nodeLayout(material).height + left.below < below.y - limits.get(below.id)!.above);
+  assert.ok(right.namePortOutside! > right.maxPortOutside);
+  assert.ok(skill.x + nodeLayout(skill).width + right.namePortOutside! < next.x);
+
+  const overlap = overviewTargetLimits([material, {...skill, x:150}], minimumHeight);
+  for (const id of [material.id, skill.id]) assert.deepEqual(overlap.get(id), {above:0, below:0, maxPortOutside:0});
+});
+
+test('분류 경로 옆에서는 기존 출력 행의 터치 영역을 여유 공간에서 제외한다', () => {
+  const branch = createBlock('ai.classify', {id:'classify', x:0, y:0, config:{categories:['예약','문의','반납']}});
+  const lower = createBlock('agent.task', {id:'lower', x:W + 6, y:nodeLayout(branch).height + 12});
+  const away = createBlock('agent.task', {id:'away', x:W + 6, y:lower.y + 150});
+  const limits = overviewTargetLimits([away, lower, branch]);
+  assert.equal(limits.has(branch.id), false);
+  assert.equal(limits.get(lower.id)!.above, 8);
+  assert.equal(limits.get(lower.id)!.below, 40);
+  assert.deepEqual(limits.get(away.id), {above:40, below:40, maxPortOutside:34});
+});
+
+test('밀집 분기 바로 아래 카드는 이웃의 최소 높이를 지키며 남는 공간을 받는다', () => {
+  const branch = createBlock('ai.classify', {id:'router', x:0, y:0});
+  const nodes = [branch, ...['one','two','three'].map((id, i) =>
+    createBlock('agent.task', {id, x:0, y:nodeLayout(branch).height + i * 120}))];
+  const minimumHeight = 94;
+  const limits = overviewTargetLimits(nodes, minimumHeight);
+  const one = limits.get('one')!, two = limits.get('two')!;
+  assert.equal(one.above, 0);
+  assert.ok(one.below > two.above);
+  assert.ok(H + one.above + one.below >= minimumHeight);
+  assert.ok(H + two.above + two.below >= minimumHeight);
+  assert.ok(one.below + two.above <= 120 - H - 4);
 });
 
 test('자동 정렬은 블록 배치만 바꾸고 연결 종류와 전달 항목을 보존한다', () => {

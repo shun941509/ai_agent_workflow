@@ -1,4 +1,5 @@
-import { answerFormat, byType, canonicalErrorStrategy, changesKnowledgeRelease, portsFor } from './catalog';
+import {scheduleTime} from './schedule';
+import { answerFormat, byType, canonicalErrorStrategy, canonicalSelectionConfig, changesKnowledgeRelease, portsFor } from './catalog';
 import type { AgentScope, Block, Edge, EdgeKind, Graph, Issue, Port } from './types';
 
 export const emptyGraph = (): Graph => ({nodes:[],edges:[]});
@@ -6,9 +7,10 @@ function uid(prefix: string) { return prefix + '-' + crypto.randomUUID(); }
 export function createBlock(type: string, options: Partial<Block> = {}): Block {
   const definition = byType.get(type);
   const defaults = Object.fromEntries((definition?.fields ?? []).map(f=>[f.key,structuredClone(f.default ?? '')]));
+  const config={...defaults,...canonicalSelectionConfig(type,options.config??{})};
   const node: Block = {
     id:options.id ?? uid('block'),type,title:options.title ?? definition?.name ?? type,
-    x:options.x ?? 48,y:options.y ?? 64,config:{...defaults,...options.config},
+    x:options.x ?? 48,y:options.y ?? 64,config,
   };
   if (options.graph) node.graph=structuredClone(options.graph);
   return node;
@@ -35,10 +37,11 @@ export function connectionOptions(graph: Graph, fromId: string, toId: string, ro
   }
   // A named route must actually reach the target, even if a data mapping would be compatible on its own.
   if (routeId !== undefined && !options.some(option => option.kind === 'flow')) return [];
+  const detailPort=source.type==='document.read'?'lines':source.type==='ai.classify'?'category':undefined;
   for (const option of options) {
-    // Line records are an explicit mapping. A new document connection still defaults to its body.
-    if(source.type==='document.read'&&option.out==='lines'){option.automatic=false;continue;}
-    const alternatives=options.filter(o=>o.kind===option.kind&&!(source.type==='document.read'&&o.out==='lines'));
+    // Auxiliary results can be explicitly wired without changing the default value mapping.
+    if(option.out===detailPort){option.automatic=false;continue;}
+    const alternatives=options.filter(o=>o.kind===option.kind&&o.out!==detailPort);
     if (alternatives.length<2) continue;
     // Original-question inputs supplement the primary work item. Only one source output
     // may be inferred; a block with two possible outputs still needs an explicit choice.
@@ -95,8 +98,9 @@ export function validateGraph(graph: Graph): Issue[] {
       if (!def) {add(n.type==='tool.code_task'?'이전 코드·계산 블록을 지원되는 작업으로 교체하세요.':'지원하지 않는 블록입니다: '+n.type,n.id);continue;}
       if (typeof n.title!=='string'|| !n.title.trim()) add('블록 이름을 입력하세요.',n.id);
       if (!Number.isFinite(n.x)||!Number.isFinite(n.y)) add('블록 위치가 올바르지 않습니다.',n.id);
+      const config=canonicalSelectionConfig(n.type,n.config);
       for (const f of def.fields) {
-        const raw=n.config[f.key];
+        const raw=config[f.key];
         const v=n.type==='output.answer'&&f.key==='format'&&typeof raw==='string'?answerFormat(raw):
           n.type==='error.handle' && f.key==='strategy' && typeof raw==='string' ? canonicalErrorStrategy(raw) : raw;
         if (f.required && emptyValue(v)) {
@@ -119,7 +123,14 @@ export function validateGraph(graph: Graph): Issue[] {
         const cats=n.config.categories;
         if (cats.some(v=>typeof v!=='string'||!v.trim()) || new Set(cats.map(v=>v.trim())).size!==cats.length) add('분류 이름은 비어 있지 않고 서로 달라야 합니다.',n.id);
       }
-      if (n.type==='control.trigger' && n.config.trigger==='schedule' && !n.config.schedule) add('시작 일정을 지정하세요.',n.id);
+      if (n.type==='control.trigger' && n.config.trigger==='schedule') {
+        const schedule=n.config.schedule;
+        if(typeof schedule!=='string'||!schedule.trim())add('시작 일정을 지정하세요.',n.id);
+        else {
+          const parsed=scheduleTime(schedule,0);
+          if('error' in parsed)add(parsed.error,n.id,undefined,undefined,'schedule');
+        }
+      }
       if (n.type==='control.trigger' && n.config.trigger==='event' && emptyValue(n.config.event)) add('시작 이벤트를 지정하세요.',n.id);
       if (n.type==='agent.team'&&!n.graph) add('팀을 열어 담당자와 결과 경로를 설정하세요.',n.id);
       if (n.type==='agent.create_dynamic' && n.config.resultRequirement==='evidence' && !n.graph)
@@ -169,7 +180,8 @@ export function validateGraph(graph: Graph): Issue[] {
       const def=byType.get(n.type);if (!def) continue;
       const ins=incoming.get(n.id)!,outs=outgoing.get(n.id)!;
       if(n.type==='agent.task'){
-        const missing=Array.isArray(n.config.requiredTools)?n.config.requiredTools.filter(name=>!n.config.allowedTools?.includes(name)):[];
+        const allowedTools=Array.isArray(n.config.allowedTools)?n.config.allowedTools:[];
+        const missing=Array.isArray(n.config.requiredTools)?n.config.requiredTools.filter(name=>typeof name==='string'&&!allowedTools.includes(name)):[];
         if(missing.length)add('도구 연결 필요 · '+missing.join(', '),n.id,undefined,undefined,'allowedTools');
         const names=ins.filter(e=>e.kind==='reference'&&e.input==='workflow').map(e=>nodes.get(e.from)?.config.name);
         if(new Set(names).size!==names.length)add('호출 가능한 Workflow 도구 이름이 중복되었습니다.',n.id);

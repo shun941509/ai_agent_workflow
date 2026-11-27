@@ -15,10 +15,16 @@ export interface AgentContext {
 export const emptyAgentContext:AgentContext={goals:[],assignments:[],availableSkills:[],activeSkills:[]};
 export const modelBlocks:ReadonlySet<string>=new Set(['ai.single_task','agent.task','ai.classify','agent.coordinate','agent.select_candidate','quality.evidence','quality.evaluate','context.compress']);
 
+export function usesModel(graph:Graph):boolean {
+  return graph.nodes.some(node => modelBlocks.has(node.type) || (node.graph ? usesModel(node.graph) :
+    isDelegatedRole(node.type) || (node.type==='workflow.call' && Boolean(node.config.workflowId && node.config.version))));
+}
+
 export function childScopeInstructions(graph?:Graph):string[] {
-  if(graph?.agentScope?.mode!=='dedicated')return [];
+  if(graph?.agentScope?.mode!=='dedicated'||!usesModel(graph))return [];
   return ['', '하위 Agent의 담당 업무 — '+graph.agentScope.purpose,
-    '위임할 입력이 이 범위에 속하는지 먼저 확인하세요. 범위 밖이면 하위 작업을 중단하고, 섞여 있으면 업무에 해당하는 부분만 전달하세요.'];
+    '위임할 입력이 이 범위에 속하는지 먼저 확인하세요. 범위 밖이면 하위 작업을 중단하고, 섞여 있으면 업무에 해당하는 부분만 전달하세요.',
+    '하위 역할의 주 입력과 참조용 원래 질문에는 이 판정을 거친 요청을 사용하세요.'];
 }
 
 export function isDelegatedRole(type:string){

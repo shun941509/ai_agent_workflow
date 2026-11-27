@@ -1,5 +1,6 @@
 import {executeGraph,type EngineCheckpoint,type EngineServices,type EngineRequest,type EngineEvent} from '../engine';
 import {completedRunFiles} from '../engine/legacy-files';
+import {ModelPrivacy} from '../engine/model-privacy';
 import {membershipQuestion,type Block,type Graph} from '../domain';
 import {isIntroExampleAnswer} from '../domain/intro-example-answer';
 import {beginnerRuleSource,sourceSnapshot,type TestSources} from '../domain/source-preview';
@@ -58,11 +59,13 @@ const conversationHistory = `WITH RECURSIVE segments(conversation,before_run) AS
     JOIN runs fork ON fork.conversation=segments.conversation AND fork.retries IS NOT NULL
     JOIN runs original ON original.id=fork.retries AND original.rowid<fork.rowid
     WHERE segments.before_run IS NULL OR fork.rowid<=segments.before_run
-), turns AS (
-  SELECT r.rowid AS position,segments.before_run,r.conversation,r.input,r.output,r.checkpoint FROM segments
+), attempts AS (
+  SELECT r.rowid AS position,segments.before_run,r.conversation,r.input,r.output,r.checkpoint,r.state FROM segments
     CROSS JOIN runs r ON r.conversation=segments.conversation
-    WHERE r.state='completed' AND (segments.before_run IS NULL OR r.rowid<segments.before_run)
-    AND coalesce(json_extract(r.checkpoint,'$.scopeDecision.status'),'')!='out_of_scope'
+    WHERE segments.before_run IS NULL OR r.rowid<=segments.before_run
+), turns AS (
+  SELECT * FROM attempts WHERE state='completed' AND (before_run IS NULL OR position<before_run)
+    AND coalesce(json_extract(checkpoint,'$.scopeDecision.status'),'')!='out_of_scope'
 )`;
 function access(user:User,c:Conv,p=project(c.project)){requireThat(c.owner===user.id&&canReadProjectEdition(p,user,c.version,c.link_token ?? ''),403,'이 대화를 실행할 권한이 없습니다.');
  const graph=pins(resolveWorkflowRefs(JSON.parse(c.graph),user,p.id,{expand:true}),user);
@@ -338,12 +341,21 @@ async function execute(id:string,lease:string){
  const graph=access(user,c),assets=bindRunAssets(graph,user);
  const knowledge=bindKnowledge(graph,c.project,user,c.id,c.mode==='test'?c.scope:undefined);
  stripGraphGrants(graph);
+ const restoredPrivacy=new ModelPrivacy();
+ const hasPrivacy=(design:Graph):boolean=>design.nodes.some(n=>n.type==='safety.redact'||(n.graph&&hasPrivacy(n.graph)));
+ const decisions=all<{checkpoint:string}>(conversationHistory+`
+   SELECT checkpoint FROM attempts WHERE position<=(SELECT rowid FROM runs WHERE id=?)
+   AND (json_array_length(checkpoint,'$.privacyChecks')>0
+        OR (? AND checkpoint IS NOT NULL AND (json_type(checkpoint,'$.privacyChecks') IS NULL OR json_type(checkpoint,'$.privacyVersion') IS NULL)))
+   ORDER BY position`,c.id,id,Number(hasPrivacy(graph)));
+ // Use the exact audited inputs here. The public checkpoint reader removes grant-shaped fields.
+ for(const turn of decisions)restoredPrivacy.restore(JSON.parse(turn.checkpoint),graph);
  const history=all<{input:string;output:string;details:string|null}>(conversationHistory+`
    SELECT coalesce(json_extract(checkpoint,'$.scopeDecision.input'),input) AS input,output,json_extract(checkpoint,'$.historyDetails') AS details FROM turns
    WHERE position<(SELECT rowid FROM runs WHERE id=?) ORDER BY position`,c.id,id)
    .flatMap(x=>{
      const file=attachmentFrom(x.input),question=literalRunQuestion(x.input)??(file?String(record(x.input).question??file.fileName):x.input);
-     const details=x.details?Object.values(JSON.parse(x.details)):[];
+     const details=x.details?restoredPrivacy.value(Object.values(JSON.parse(x.details))):[];
      return [{role:'user' as const,content:details.length?question+'\n'+JSON.stringify(details):question},{role:'assistant' as const,content:x.output}];
    });
  const readOnly=(name:string,pin?:McpPin)=>{const ext=assets.connector(name,pin);return name==='reservations.list'||name==='knowledge.search'||Boolean(ext?.payload.readOnlyTools?.includes(ext.tool));};
@@ -408,7 +420,7 @@ async function execute(id:string,lease:string){
  const retryScopeDecision=checkpoint?.scopeDecision ? undefined : previousScopeDecision(r.retries);
  const pending=all<{data:string}>('SELECT data FROM replies WHERE run=? ORDER BY rowid',id).map(x=>JSON.parse(x.data)).filter(x=>checkpoint?.waits[x.waitId]&&!checkpoint?.replies[x.waitId]);
  const origin=one<{data:string}>('SELECT data FROM run_origins WHERE run=?',id);
- const req:EngineRequest={runId:id,input:r.input,checkpoint:checkpoint??undefined,retryScopeDecision,replies:pending,history,trigger:origin?JSON.parse(origin.data):undefined};
+ const req:EngineRequest={runId:id,input:r.input,checkpoint:checkpoint??undefined,retryScopeDecision,replies:pending,history,restoredPrivacy,trigger:origin?JSON.parse(origin.data):undefined};
  const result=await executeGraph(graph,req,services);
  set("UPDATE runs SET state=?,output=?,error=?,checkpoint=?,prompt=?,lease=NULL,lease_until=0,updated=? WHERE id=? AND state='running' AND lease=?",result.status,result.output,result.error??'',JSON.stringify(result.checkpoint),result.wait?JSON.stringify(result.wait):null,now(),id,lease);
  }catch(e){set("UPDATE runs SET state='failed',error=?,lease=NULL,lease_until=0,updated=? WHERE id=? AND state='running' AND lease=?",e instanceof Error?e.message:'실행에 실패했습니다.',now(),id,lease);}

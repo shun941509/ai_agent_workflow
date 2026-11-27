@@ -27,8 +27,7 @@ export function exportMcp(key: string, name: string, payload?: Payload): ExportM
   const id = stem + '-' + key.slice(2, 14);
   const tools = [...new Set(payload?.tools ?? [])];
   const url = payload?.builtin ? undefined : portableUrl(payload?.url);
-  if (!url) return {id, tools};
-  const connection: ExportMcp = {id, url, tools};
+  const connection: ExportMcp = {id, tools, ...(url?{url}:{}), ...(payload?.readOnlyTools?{readOnlyTools:payload.readOnlyTools.filter(t=>tools.includes(t))}:{})};
   if (payload?.credentialEnv) connection.tokenEnv = 'MCP_' + id.toUpperCase().replace(/-/g, '_') + '_TOKEN';
   return connection;
 }

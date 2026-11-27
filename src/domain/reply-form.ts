@@ -1,4 +1,10 @@
-export type ReplyField = {name:string; required:boolean};
+export type ReplyField = {name:string; required:boolean; format?:'edition'};
+
+/** Published collection editions may be named, while asset editions are numbered. */
+export function editionIdentifier(value:unknown):string | undefined {
+  if(typeof value==='number' && Number.isSafeInteger(value))return String(value);
+  return typeof value==='string' && value.trim() && !/[\r\n]/.test(value) ? value : undefined;
+}
 
 export function replyFields(config:unknown):ReplyField[] {
   if (!Array.isArray(config)) return [];
@@ -16,5 +22,7 @@ export function replyFieldError(fields:ReplyField[],values:Record<string,unknown
   const missing = fields.filter(({name,required}) =>
     required && (!Object.hasOwn(values,name) || values[name] == null ||
       (typeof values[name] === 'string' && !values[name].trim())));
-  return missing.length ? '양식의 필수 항목이 비었습니다: '+missing.map(field=>field.name).join(', ') : '';
+  if(missing.length)return '양식의 필수 항목이 비었습니다: '+missing.map(field=>field.name).join(', ');
+  return fields.some(field=>field.format==='edition' && !editionIdentifier(values[field.name]))
+    ? '원문에 표시된 판 번호 또는 판 이름을 입력하세요.' : '';
 }

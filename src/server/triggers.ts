@@ -1,29 +1,17 @@
+import {scheduleTime} from '../domain/schedule';
 import {timingSafeEqual} from 'node:crypto';
 import type {Graph} from '../domain';
 import type {User} from './auth';
 import {all,digest,key,one,set,tx} from './db';
-import {requireThat,stringArg} from './errors';
+import {requireThat,stringArg,StudioError} from './errors';
 import {getVersion,owned,project} from './projects';
 import {enqueueRun} from './runs';
 
 type Automation={id:string;owner:string;project:string;version:number;node:string;kind:'event'|'schedule';setting:string;input:string;enabled:number;token_hash:string;next_at:number|null;note:string};
-const minute=60_000;
-const day=24*60*minute;
-
-/** Times with offsets are unambiguous; fixed wall-clock daily schedules use Korea Standard Time. */
-export function nextTime(setting:string,after:number):number|null{
-  const interval=setting.trim().match(/^(?:every\s+(\d+)m|매\s*(\d+)\s*분)$/i);
-  if(interval){const count=Number(interval[1]||interval[2]);requireThat(Number.isInteger(count)&&count>=1&&count<=525600,422,'반복 간격은 1~525600분입니다.');return after+count*minute;}
-  const daily=setting.trim().match(/^(?:daily|매일)\s+(\d{1,2}):(\d{2})$/i);
-  if(daily){const h=Number(daily[1]),m=Number(daily[2]);requireThat(h<24&&m<60,422,'일정 시각을 확인하세요.');
-    const dayStart=Math.floor((after+9*60*minute)/day)*day-9*60*minute;
-    const candidate=dayStart+(h*60+m)*minute;return candidate>after?candidate:candidate+day;}
-  const date=Date.parse(setting),localDay=setting.slice(0,10);
-  const calendar=new Date(localDay+'T00:00:00Z');
-  requireThat(/^\d{4}-\d\d-\d\dT\d\d:\d\d(?::\d\d(?:\.\d+)?)?(?:Z|[+-]\d\d:\d\d)$/i.test(setting)&&Number.isFinite(date)
-    && Number.isFinite(calendar.getTime()) && calendar.toISOString().slice(0,10)===localDay && Number(setting.slice(11,13))<24,
-    422,'일정은 매일 09:00, 매 15분 또는 실제 날짜와 시간대가 있는 ISO 시각을 입력하세요.');
-  return date>after?date:null;
+export function nextTime(setting:string,after:number):number|null {
+  const result=scheduleTime(setting,after);
+  if('error' in result)throw new StudioError(422,result.error);
+  return result.time;
 }
 function presentation(a:Automation){return {id:a.id,node:a.node,kind:a.kind,setting:a.setting,version:a.version,enabled:Boolean(a.enabled),input:a.input,nextAt:a.next_at?new Date(a.next_at).toISOString():null,note:a.note};}
 function registration(id:string){const a=one<Automation>('SELECT * FROM automations WHERE id=?',id);requireThat(a,404,'자동 시작 설정을 찾을 수 없습니다.');return a;}

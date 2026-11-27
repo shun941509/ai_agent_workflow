@@ -1,6 +1,7 @@
 import { useId, useRef, useState } from 'react';
 import type { Block, Graph } from '../../domain/types';
 import { message } from '../client';
+import { PromptTextarea } from '../PromptTextarea';
 import {assetNumber} from '../resource-labels';
 import type { AssetItem } from '../ResourceLibrary';
 import type { RecoveryDraft, SourceDraft, SourceDrafts } from './source-drafts';
@@ -142,8 +143,7 @@ export function InlineSourceEditor({ node, draftText, recoveries, onRecover, onE
       <div><small>참고 자료</small><h3>{nodeTitle(node)}</h3></div>
     </div>
     <div className="ws-field" data-field-key="content">
-      <label htmlFor={fieldId}>자료 원문</label>
-      <textarea id={fieldId} rows={8} value={text} aria-invalid={changed && empty}
+      <PromptTextarea id={fieldId} label="자료 원문" expandLabel="자료 원문" rows={8} value={text} aria-invalid={changed && empty}
         aria-describedby={fieldId + '-status'}
         onChange={event => {
           setLastApplied(undefined);

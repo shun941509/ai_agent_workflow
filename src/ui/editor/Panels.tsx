@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useId, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import {
   canonicalErrorStrategy,
   answerFormat,
@@ -21,6 +21,7 @@ import {
   type TerminalBehavior,
 } from '../../domain/index';
 import { BlockIcon, Icon } from './Icons';
+import { PromptTextarea } from '../PromptTextarea';
 import WorkflowRefPicker from './WorkflowRefPicker';
 import McpToolPicker from './McpToolPicker';
 import { InlineSourceEditor, type SaveReferenceDocument } from './InlineSourceEditor';
@@ -39,9 +40,9 @@ import {AssetPicker, accessibleEditions, type AssetOption} from './AssetPicker';
 import {
   changeBlockMode,
   changeTerminalBehavior,
+  connectionKindLabels,
   editReplySettings,
   edgeLabel,
-  edgeNames,
   formerNames,
   groupEdges,
   levels,
@@ -280,14 +281,20 @@ function ConfigField({
   allowEmptyChoice?: boolean;
 }) {
   const stored = value ?? field.default;
-  const stringify = (val: unknown) => JSON.stringify(val ?? null, null, 2);
-  const [raw, setRaw] = useState(() => stringify(stored)),
+  const savedJson = field.type === 'json' ? JSON.stringify(stored ?? null, null, 2) : '';
+  const lastApplied = useRef(savedJson);
+  const input = useRef<HTMLInputElement>(null);
+  const fieldId = useId();
+  const errorId = fieldId + '-error';
+  const [raw, setRaw] = useState(savedJson),
     [error, setError] = useState(''),
     [item, setItem] = useState('');
   useEffect(() => {
-    setRaw(stringify(stored));
+    if (lastApplied.current === savedJson) return;
+    lastApplied.current = savedJson;
+    setRaw(savedJson);
     setError('');
-  }, [stored]);
+  }, [savedJson]);
   const label = (
     <span>
       {field.label}
@@ -303,9 +310,10 @@ function ConfigField({
     stored.every((v) => typeof v === 'string')
   ) {
     const add = () => {
-      if (!item.trim()) return;
-      if (!stored.includes(item.trim())) change([...stored, item.trim()]);
+      if (!item.trim() || stored.includes(item.trim())) return;
+      change([...stored, item.trim()]);
       setItem('');
+      input.current?.focus();
     };
     return (
       <fieldset className="ws-fieldset" data-field-key={field.key}>
@@ -316,7 +324,14 @@ function ConfigField({
               key={i}
               title={entry + ' 삭제'}
               aria-label={entry + ' 삭제'}
-              onClick={() => change(stored.filter((_, n) => n !== i))}
+              onClick={event => {
+                const chips = event.currentTarget.parentElement;
+                change(stored.filter((_, n) => n !== i));
+                requestAnimationFrame(() => {
+                  const remaining = chips?.querySelectorAll('button');
+                  (remaining?.[i] ?? remaining?.[i-1] ?? input.current)?.focus();
+                });
+              }}
             >
               {entry}
               <Icon name="close" size={12} />
@@ -325,6 +340,7 @@ function ConfigField({
         </div>
         <div className="ws-chip-add">
           <input
+            ref={input}
             aria-label={field.label + ' 새 항목'}
             placeholder="항목 이름"
             value={item}
@@ -336,10 +352,11 @@ function ConfigField({
               }
             }}
           />
-          <button className="ws-btn" onClick={add} disabled={!item.trim()}>
+          <button className="ws-btn" onClick={add} disabled={!item.trim() || stored.includes(item.trim())}>
             추가
           </button>
         </div>
+        {stored.includes(item.trim()) && item.trim() && <small role="status">같은 이름의 항목이 있습니다.</small>}
       </fieldset>
     );
   }
@@ -350,23 +367,30 @@ function ConfigField({
         {label}
       </label>
     );
+  if (field.type === 'textarea') {
+    return <div className="ws-field" data-field-key={field.key}>
+      <PromptTextarea id={fieldId} label={label} expandLabel={field.label} value={String(stored ?? '')}
+        aria-required={field.required || undefined} onChange={event => change(event.target.value)} />
+    </div>;
+  }
   return (
     <label className="ws-field" data-field-key={field.key}>
       {label}
-      {field.type === 'textarea' ? (
-        <textarea value={String(stored ?? '')} onChange={(e) => change(e.target.value)} />
-      ) : field.type === 'json' ? (
+      {field.type === 'json' ? (
         <>
           <textarea
             className="ws-code-input"
             spellCheck={false}
             value={raw}
             aria-invalid={!!error}
+            aria-required={field.required || undefined}
+            aria-describedby={error ? errorId : undefined}
             onChange={(e) => {
               const text = e.target.value;
               setRaw(text);
               try {
                 const parsed = JSON.parse(text);
+                lastApplied.current = JSON.stringify(parsed, null, 2);
                 setError('');
                 change(parsed);
               } catch {
@@ -375,13 +399,13 @@ function ConfigField({
             }}
           />
           {error && (
-            <small role="alert" className="ws-danger">
+            <small id={errorId} role="alert" className="ws-danger">
               {error}
             </small>
           )}
         </>
       ) : field.type === 'select' ? (
-        <select value={String(stored ?? '')} onChange={(e) => change(e.target.value)}>
+        <select value={String(stored ?? '')} aria-required={field.required || undefined} onChange={(e) => change(e.target.value)}>
           {allowEmptyChoice && !field.required && <option value="">선택</option>}
           {field.options?.map((o) => (
             <option key={o.value} value={o.value}>
@@ -443,6 +467,28 @@ function ReplyDeadlineField({node, change}: {node: Block; change: (minutes: numb
   </>;
 }
 
+function BlockPosition({node,move}:{node:Block;move:(point:Pick<Block,'x'|'y'>)=>void}) {
+  const x=useRef<HTMLInputElement>(null),y=useRef<HTMLInputElement>(null);
+  const directions = [['왼쪽','←',-8,0],['위','↑',0,-8],['아래','↓',0,8],['오른쪽','→',8,0]] as const;
+  return <details className="ws-detail"><summary>위치 조정</summary>
+    <form className="ws-block-position" onSubmit={event=>{
+      event.preventDefault();
+      const nextX=x.current!.valueAsNumber,nextY=y.current!.valueAsNumber;
+      if(!Number.isFinite(nextX)||!Number.isFinite(nextY)||(nextX===node.x&&nextY===node.y))return;
+      event.currentTarget.querySelector<HTMLButtonElement>('button[type="submit"]')?.focus();
+      move({x:nextX,y:nextY});
+    }}>
+      <label className="ws-field">가로 위치 (X)<input key={node.x} ref={x} type="number" required step="any" defaultValue={node.x} /></label>
+      <label className="ws-field">세로 위치 (Y)<input key={node.y} ref={y} type="number" required step="any" defaultValue={node.y} /></label>
+      <button type="submit" className="ws-btn">위치 적용</button>
+    </form>
+    <div className="ws-block-nudge" role="group" aria-label="블록을 8px씩 이동">
+      {directions.map(([name,arrow,dx,dy])=><button type="button" className="ws-btn" key={name}
+        title={name+' 방향으로 8px 이동'} aria-label={name+' 방향으로 8px 이동'} onClick={()=>move({x:node.x+dx,y:node.y+dy})}>{arrow}</button>)}
+    </div>
+  </details>;
+}
+
 interface InspectorProps {
   graph: Graph;
   rootScope: boolean;
@@ -470,6 +516,7 @@ interface InspectorProps {
   onAttach: (id: string, asset: AssetOption, replaceSource?: boolean) => Promise<void>;
 }
 export function Inspector(props: InspectorProps) {
+  const linksHeadingId = useId();
   const {
     graph,
     selection,
@@ -570,6 +617,16 @@ export function Inspector(props: InspectorProps) {
       <input value={node.title} onChange={e => update({ title: e.target.value })} />
     </label>
   );
+  const modeField = node && modes && modes.length > 1 && (
+    <label className="ws-field">
+      <span>작업 방식</span>
+      <select value={node.type} onChange={e => update(changeBlockMode(node, e.target.value))}>
+        {modes.map(mode => <option key={mode.value} value={mode.value}>{mode.label}</option>)}
+      </select>
+    </label>
+  );
+  const aiTask = node?.type === 'agent.task' || node?.type === 'ai.single_task';
+  const taskPrompts = aiTask ? fields.filter(field => field.type === 'textarea' && !field.advanced) : [];
   const assetPicker = isRef && (
     <AssetPicker
       key={node.id}
@@ -619,7 +676,7 @@ export function Inspector(props: InspectorProps) {
             <p className="ws-hint">
               {spec?.description || '이전 형식의 블록입니다. 대체할 블록을 추가한 뒤 연결을 수정하세요.'}
             </p>
-            {nameField}
+            {aiTask ? <div className="ws-task-fields">{nameField}{modeField}</div> : nameField}
           </>}
           {isTerminal && (
             <label className="ws-field">
@@ -632,21 +689,8 @@ export function Inspector(props: InspectorProps) {
               </select>
             </label>
           )}
-          {modes && modes.length > 1 && (
-            <label className="ws-field">
-              <span>작업 방식</span>
-              <select
-                value={node.type}
-                onChange={(e) => update(changeBlockMode(node, e.target.value))}
-              >
-                {modes.map((m) => (
-                  <option value={m.value} key={m.value}>
-                    {m.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
+          {!aiTask && modeField}
+          {taskPrompts.map(showField)}
           {!inlineDocument && assetPicker}
           {suggestSearch && <div className="ws-missing">
             <small>근거를 확인하려면 검색된 구절이 필요합니다. 자료 검색에서 질문과 원문을 연결하세요.</small>
@@ -697,6 +741,7 @@ export function Inspector(props: InspectorProps) {
             .filter(
               (f) =>
                 !f.advanced &&
+                !taskPrompts.includes(f) &&
                 !(isRef && ['assetId', 'version'].includes(f.key)) &&
                 !(node.type === 'resource.context' && f.key === 'content') &&
                 !(['workflow.call','workflow.tool'].includes(node.type)&&['workflowId','version'].includes(f.key)) &&
@@ -743,34 +788,15 @@ export function Inspector(props: InspectorProps) {
               ))}
             </details>
           )}
-          {spec && (
-            <details className="ws-detail">
-              <summary>입출력 항목</summary>
-              {(['inputs', 'outputs'] as const).map((side) => (
-                <div key={side}>
-                  <h4>{side === 'inputs' ? '받는 항목' : '보내는 항목'}</h4>
-                  {portsFor(node)[side].filter(p => node.type !== 'quality.evidence' || p.id !== 'context').map((p) => (
-                    <div className="ws-port-row" key={p.kind + p.id}>
-                      <span>{p.label}</span>
-                      <small>
-                        {edgeNames[p.kind]} · {p.valueType}
-                      </small>
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </details>
-          )}
-          {fields.some((f) => f.advanced) && (
-            <details className="ws-detail">
-              <summary>고급 설정</summary>
-              {fields.filter((f) => f.advanced).map(showField)}
-              {props.materialLesson === 'dynamic' && node.id === 'spawn' && node.type === 'agent.create_dynamic' &&
-                <small role="status">{dynamicLessonRangeNote(Number(node.config.maxCreatedAgents), Number(node.config.maxInFlightAgents))}</small>}
-            </details>
-          )}
-          <section className="ws-node-links">
-            <h3>연결</h3>
+          <details className="ws-detail ws-advanced-settings">
+            <summary>고급 설정</summary>
+            {fields.filter((f) => f.advanced).map(showField)}
+            {props.materialLesson === 'dynamic' && node.id === 'spawn' && node.type === 'agent.create_dynamic' &&
+              <small role="status">{dynamicLessonRangeNote(Number(node.config.maxCreatedAgents), Number(node.config.maxInFlightAgents))}</small>}
+            <BlockPosition key={node.id} node={node} move={update}/>
+          </details>
+          <section className="ws-node-links" aria-labelledby={linksHeadingId}>
+            <h3 id={linksHeadingId}>연결</h3>
             {groups
               .filter((g) => g.from === node.id || g.to === node.id)
               .map((g) => (
@@ -782,12 +808,33 @@ export function Inspector(props: InspectorProps) {
               <Icon name="link" />
               연결 추가
             </button>
+            {spec && (
+              <details className="ws-detail">
+                <summary>연결 가능한 항목 보기</summary>
+                {(['inputs', 'outputs'] as const).map(side => (
+                  <div key={side}>
+                    <h4>{side === 'inputs' ? '받는 항목' : '보내는 항목'}</h4>
+                    {portsFor(node)[side].filter(p => node.type !== 'quality.evidence' || p.id !== 'context').map(p => (
+                      <div className="ws-port-row" key={p.kind + p.id}>
+                        <span>{p.label}</span>
+                        <small>{connectionKindLabels[p.kind]} · {p.valueType}</small>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </details>
+            )}
           </section>
         </>
       )}
     </>
   );
 }
+const inputExamples = new Map([
+  ['입력값', '글을 요약할 때는 원문을 여기에 연결하세요.'],
+  ['원래 질문', '검색 후에도 처음 질문을 참고하려면 사용자 입력 블록의 결과를 연결하세요.'],
+]);
+
 export function ConnectionModal({
   graph,
   from,
@@ -812,6 +859,7 @@ export function ConnectionModal({
   const [origin, setOrigin] = useState(from ?? ''),
     [target, setTarget] = useState(to ?? ''),
     [choices, setChoices] = useState<Record<string, boolean>>({});
+  const optionsId = useId();
   const filter = (source: string, dest: string) =>
     connectionOptions(graph, source, dest, routeId).filter(
       (o) => (!transfersOnly || o.kind !== 'flow') && (!input || o.input === input || o.kind === 'flow'),
@@ -832,8 +880,9 @@ export function ConnectionModal({
   const source = graph.nodes.find((n) => n.id === origin);
   const routeLabel = routeId && source && portsFor(source).outputs.find(p => p.kind === 'flow' && p.id === routeId)?.label;
   const targetNode = graph.nodes.find((n) => n.id === target);
+  const targetInputs = targetNode ? portsFor(targetNode).inputs : [];
   const missingSource = !from && !!input && !!targetNode && !sources.length;
-  const inputPort = targetNode && portsFor(targetNode).inputs.find(port => port.id === input);
+  const inputPort = targetInputs.find(port => port.id === input);
   const suggestedType = inputPort?.valueType === 'passages' ? 'knowledge.search'
     : targetNode?.type === 'document.read' ? 'file.input' : 'input.user_request';
   const replacing = targetNode
@@ -844,12 +893,12 @@ export function ConnectionModal({
             (o) =>
               o.kind === e.kind &&
               o.input === e.input &&
-              !portsFor(targetNode).inputs.find((p) => p.kind === o.kind && p.id === o.input)?.multiple,
+              !targetInputs.find((p) => p.kind === o.kind && p.id === o.input)?.multiple,
           ),
       )
     : [];
   return (
-    <Modal title={transfersOnly ? '전달 항목 추가' : '연결 추가'} onClose={onClose}>
+    <Modal title={transfersOnly ? '전달 항목 추가' : '연결 추가'} size="form" onClose={onClose}>
       {from ? (
         <p className="ws-hint">출발 블록 · {source && titleById(graph, source.id)}{routeLabel && <> · {routeLabel} 경로</>}</p>
       ) : !missingSource && (
@@ -904,18 +953,23 @@ export function ConnectionModal({
           return (
             available.length > 0 && (
               <fieldset key={kind} className="ws-fieldset">
-                <legend>{edgeNames[kind]}</legend>
-                {available.map((o) => (
-                  <label className="ws-check" key={key(o)}>
+                <legend>{connectionKindLabels[kind]}</legend>
+                {available.map((o, index) => {
+                  const port = targetInputs.find(p => p.kind === kind && p.id === o.input);
+                  const example = port?.kind === 'data' ? inputExamples.get(port.label) : undefined;
+                  const labelId = `${optionsId}-${kind}-${index}`;
+                  return <label className="ws-check ws-connection-choice" key={key(o)}>
                     <input
                       type="checkbox"
+                      aria-labelledby={labelId}
+                      aria-describedby={example ? labelId + '-example' : undefined}
                       checked={isPicked(o)}
                       disabled={singleRouteInput && o.kind === 'flow'}
                       onChange={(e) => {
                         const checked = e.target.checked;
                         setChoices((old) => {
                           const next = { ...old };
-                          if (checked && o.kind !== 'flow' && !portsFor(targetNode!).inputs.find(p => p.kind === o.kind && p.id === o.input)?.multiple)
+                          if (checked && o.kind !== 'flow' && !port?.multiple)
                             for (const other of available)
                               if (other.input === o.input) next[key(other)] = false;
                           next[key(o)] = checked;
@@ -923,9 +977,12 @@ export function ConnectionModal({
                         });
                       }}
                     />
-                    {o.label}
-                  </label>
-                ))}
+                    <span>
+                      <span id={labelId}>{o.label}</span>
+                      {example && <small id={labelId + '-example'}>{example}</small>}
+                    </span>
+                  </label>;
+                })}
               </fieldset>
             )
           );
@@ -933,12 +990,12 @@ export function ConnectionModal({
       {target && origin && !options.length && <p className="ws-hint">
         {routeId && targetNode?.type === 'error.handle'
           ? '오류 처리는 출발 블록의 실행이 실패할 때 시작됩니다. 오류 연결은 블록 속성의 ‘연결 추가’에서 설정하세요.'
-          : transfersOnly ? '이 두 블록 사이에 추가할 데이터·참조 항목이 없습니다.' : '추가할 수 있는 연결이 없습니다.'}
+          : transfersOnly ? '이 두 블록 사이에 추가로 전달할 값이나 참조가 없습니다.' : '추가할 수 있는 연결이 없습니다.'}
       </p>}
       {!candidates.length && !target && <p className="ws-hint">먼저 호환되는 블록을 추가하세요.</p>}
       {replacing.length > 0 && (
         <p className="ws-hint">
-          기존 전달값을 교체합니다.{' '}
+          기존에 연결한 값을 교체합니다.{' '}
           {replacing
             .map(
               (e) =>

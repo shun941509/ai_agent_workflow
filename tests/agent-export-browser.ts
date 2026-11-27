@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {posix} from 'node:path';
 import {chromium, expect, type Locator, type Page} from '@playwright/test';
 import {strFromU8, unzipSync} from 'fflate';
-import {createBlock, type Graph} from '../src/domain';
+import {connectBlocks, createBlock, type Graph} from '../src/domain';
 import type {ExportResource} from '../src/domain/agent-export';
 import {registerBrowserAccount} from './browser-account';
 
@@ -27,6 +27,8 @@ const graph:Graph = {
     createBlock('output.answer',{id:'end'}),
     createBlock('resource.context',{id:'rule',title:'대출 규정',config:{content:original}}),
     createBlock('resource.context',{id:'internal',title:'회의 참고자료',config:{content:omit}}),
+    createBlock('resource.context',{id:'weekday-a',title:'휴무일 안내',config:{content:'첫 자료의 월요일 휴무'}}),
+    createBlock('resource.context',{id:'weekday-b',title:'휴무일 안내',config:{content:'둘째 자료의 금요일 휴무'}}),
     createBlock('instruction.skill',{id:'cite',title:'규정 인용 Skill',config:{content:skillText}}),
     createBlock('connection.mcp',{id:'local-mcp',title:'내장 도서관 연결',config:{server:'library'}}),
   ],
@@ -35,18 +37,34 @@ const graph:Graph = {
     {id:'task',kind:'data',from:'start',out:'value',to:'work',input:'input'},
     {id:'done',kind:'flow',from:'work',out:'next',to:'end',input:'in'},
     {id:'answer',kind:'data',from:'work',out:'value',to:'end',input:'input'},
-    ...['rule','internal'].map(from => ({id:from+'-ref',kind:'reference' as const,from,out:'ref',to:'work',input:'context'})),
+    ...['rule','internal','weekday-a','weekday-b'].map(from => ({id:from+'-ref',kind:'reference' as const,from,out:'ref',to:'work',input:'context'})),
     {id:'cite-ref',kind:'reference',from:'cite',out:'ref',to:'work',input:'skill'},
     {id:'library-ref',kind:'reference',from:'local-mcp',out:'ref',to:'work',input:'mcp'},
   ],
 };
 
 async function downloadZip(page:Page, dialog:Locator, filename = '대출 안내.zip') {
+  const preparation = dialog.getByRole('region',{name:'실행 준비'});
+  const button = dialog.getByRole('button',{name:'ZIP 내려받기'});
+  await expect(button).toBeEnabled();
+  await expect(button).toBeInViewport({ratio:1});
+  const details = await preparation.getByRole('listitem').evaluateAll(items =>
+    items.map(item => [...item.children].map(field => field.textContent?.trim() ?? '')));
   const downloading = page.waitForEvent('download');
-  await dialog.getByRole('button',{name:'ZIP 내려받기'}).click();
+  await button.click();
   const zip = await downloading;
   assert.equal(zip.suggestedFilename(),filename);
-  return unzipSync(await readFile((await zip.path())!));
+  const files = unzipSync(await readFile((await zip.path())!));
+  const readme = strFromU8(files['README.md']);
+  if (details.length) {
+    assert.ok(readme.includes('실행 준비'));
+    const readmeText = readme.replace(/\\([\p{P}\p{S}])/gu, '$1');
+    for (const fields of details) {
+      assert.equal(fields.length,3);
+      for (const field of fields) assert.ok(field && readmeText.includes(field), 'README에서 찾을 준비 안내: ' + field);
+    }
+  }
+  return files;
 }
 
 async function checkLargeExport(page:Page) {
@@ -66,6 +84,9 @@ async function checkLargeExport(page:Page) {
   await page.goto('/?edit=' + (await response.json()).data.id);
   await page.getByRole('button',{name:'Agent 내보내기',exact:true}).click();
   const dialog = page.getByRole('dialog',{name:'Agent 내보내기'});
+  // This draft has instructions but its required goal has not been filled in.
+  const preparation = dialog.getByRole('region',{name:'실행 준비'});
+  await expect(preparation.getByRole('listitem').filter({hasText:'규정 검토문 작성'}).first()).toContainText('맡길 일');
   const files = await downloadZip(page,dialog,'규정 전수 검토.zip');
   const root = strFromU8(files['AGENTS.md']);
   assert.ok(files['AGENTS.md'].byteLength <= 16 * 1024);
@@ -81,6 +102,10 @@ async function checkLargeExport(page:Page) {
   assert.ok(files[taskPath],taskPath);
   const details = strFromU8(files[taskPath]);
   assert.ok(checks.every(line => details.includes(line)), '연결된 단계에서 작업 지시 전체를 읽을 수 있어야 합니다.');
+  const anchor = details.match(/\]\(\.\.\/README\.md#(prep-[\d-]+)\)/)?.[1];
+  assert.ok(anchor);
+  const section = strFromU8(files['README.md']).split('<a id="' + anchor + '"></a>')[1]?.split(/<a id=|\n## /)[0];
+  assert.ok(section?.includes('규정 검토문 작성') && section.includes('맡길 일'));
 }
 
 async function checkTeamExport(page: Page) {
@@ -100,6 +125,51 @@ async function checkTeamExport(page: Page) {
       assert.ok(files[entry] && strFromU8(files[entry]).includes(path), entry);
     }
   }
+}
+
+async function checkSharedEditionAndEvidence(page: Page) {
+  async function api(action:string, data:object) {
+    const response = await page.request.post('/api/studio', {data:{action,data}});
+    const result = await response.json();
+    assert.ok(response.ok(), action + ' ' + (result.error ?? ''));
+    return result.data;
+  }
+  function chain(nodes:Graph['nodes']):Graph {
+    const draft:Graph = {nodes,edges:[]};
+    for (let i=1; i<nodes.length; i++) draft.edges.push(...connectBlocks(draft,nodes[i-1].id,nodes[i].id));
+    return draft;
+  }
+  const marker = '대출 자료에서 접수 처리일을 한 줄로 발췌하세요.';
+  const saved = await api('project.create',{title:'접수 처리일 찾기',graph:chain([
+    createBlock('input.user_request',{id:'question'}),
+    createBlock('ai.single_task',{id:'extract',config:{goal:marker}}),
+    createBlock('output.answer',{id:'result'}),
+  ])});
+  const {number} = await api('versions.save',{id:saved.id,revision:saved.revision});
+  const pin = {workflowId:saved.id,version:number};
+  const graph = chain([
+    createBlock('input.user_request',{id:'start'}),
+    createBlock('workflow.call',{id:'first',title:'첫 접수',config:pin}),
+    createBlock('workflow.call',{id:'second',title:'다음 접수',config:pin}),
+    createBlock('quality.evidence',{id:'check',title:'접수 근거 확인'}),
+    createBlock('output.answer',{id:'out'}),
+  ]);
+  const parent = await api('project.create',{title:'접수 대조',graph});
+  await page.goto('/?edit='+parent.id);
+  await page.getByRole('button',{name:'목록으로 편집',exact:true}).click();
+  await page.locator('[data-canvas-block="check"]').click();
+  const required = page.getByRole('checkbox',{name:'원문 대조 필수',exact:true});
+  await expect(required).not.toBeChecked();
+  await required.check();
+  if (page.viewportSize()!.width < 680) await page.getByRole('button',{name:'속성 닫기'}).click();
+  await page.getByRole('button',{name:'Agent 내보내기',exact:true}).click();
+  const dialog = page.getByRole('dialog',{name:'Agent 내보내기'});
+  await expect(dialog.getByRole('listitem').filter({hasText:'접수 근거 확인'}).filter({hasText:'원문'}).first()).toBeVisible();
+  const files = await downloadZip(page,dialog,'접수 대조.zip');
+  const pages = Object.entries(files).filter(([path])=>path.endsWith('.md')).map(([,data])=>strFromU8(data));
+  assert.equal(pages.join('\n').split(marker).length-1,1);
+  assert.ok(pages.some(body=>body.includes('원문 대조 필수 단계') && body.includes('verification=original')));
+  assert.ok(strFromU8(files['README.md']).includes('원문'));
 }
 
 try {
@@ -169,6 +239,11 @@ try {
       }
       const shared = dialog.getByRole('checkbox',{name:/대출 규정/});
       const internal = dialog.getByRole('checkbox',{name:/회의 참고자료/});
+      const monday = dialog.getByRole('checkbox',{name:/휴무일 안내 \(1\)/});
+      const friday = dialog.getByRole('checkbox',{name:/휴무일 안내 \(2\)/});
+      await expect(monday).toBeChecked();
+      await expect(friday).toBeChecked();
+      await monday.uncheck();
       const connections = dialog.getByRole('group',{name:'ZIP에 포함할 MCP 연결'});
       const local = connections.getByRole('checkbox',{name:/내장 도서관 연결/});
       const remote = connections.getByRole('checkbox',{name:/공개 도서 검색/});
@@ -180,7 +255,21 @@ try {
         await expect(remote).not.toBeChecked();
         await expect(connections).toContainText(publicAddress);
       }
+      const preparation = dialog.getByRole('region',{name:'실행 준비'});
+      await expect(preparation).toBeVisible();
+      const omittedDocument = preparation.getByRole('listitem').filter({hasText:'회의 참고자료'});
+      await expect(omittedDocument).toHaveCount(0);
       await internal.uncheck();
+      await expect(omittedDocument.first()).toBeVisible();
+      await internal.check();
+      await expect(omittedDocument).toHaveCount(0);
+      await internal.uncheck();
+      await expect(omittedDocument.first()).toBeVisible();
+      const showPreparation = dialog.getByRole('button',{name:/실행 준비 \d+건 보기/});
+      await expect(showPreparation).toBeInViewport({ratio:1});
+      await showPreparation.click();
+      await expect(preparation.getByRole('heading',{name:'실행 준비'})).toBeFocused();
+      await expect(preparation.getByRole('heading',{name:'실행 준비'})).toBeInViewport({ratio:1});
       const files = await downloadZip(page,dialog);
       for (const path of ['workflow.json','run.mjs','.codex/config.toml','.mcp.json','opencode.json']) assert.ok(!files[path],path);
       assert.ok(!Object.keys(files).some(path => path.startsWith('runtime/')));
@@ -193,6 +282,7 @@ try {
       assert.ok(!bundle.includes(original));
       assert.ok(!bundle.includes(pending));
       assert.ok(!bundle.includes(omit));
+      assert.ok(!bundle.includes('첫 자료의 월요일 휴무')&&bundle.includes('둘째 자료의 금요일 휴무'));
       assert.ok(!bundle.includes(publicAddress));
       await expect(dialog).toHaveCount(0);
       await expect(trigger).toBeFocused();
@@ -236,6 +326,8 @@ try {
       console.log('PASS Large Agent ZIP links from AGENTS.md to complete stage instructions at '+width+'px');
       await checkTeamExport(await context.newPage());
       console.log('PASS developer and QA subagent download at '+width+'px');
+      await checkSharedEditionAndEvidence(await context.newPage());
+      console.log('PASS shared Workflow edition and required evidence in browser download at '+width+'px');
     } finally { await context.close(); }
   }
 } finally { await browser.close(); }

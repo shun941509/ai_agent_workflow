@@ -64,6 +64,37 @@ test('빈 자료 선택으로 내보낸 ZIP은 세 클라이언트용 지침과 
   assert.match(strFromU8(files['README.md']), /Codex, Claude Code 또는 OpenCode/);
 });
 
+test('단일·분할 ZIP에서 회신 기한은 최초 요청에 고정되고 검토 대기는 병렬 실패 정책을 따른다', () => {
+  for (const split of [false, true]) {
+    function stagePage(type:string, config:Record<string, unknown>) {
+      const focus = createBlock(type, {id:'response', config});
+      const graph:Graph = {nodes:[createBlock('input.user_request', {id:'start'}), focus, createBlock('output.answer', {id:'end'})], edges:[]};
+      graph.edges.push(...connectBlocks(graph, 'start', 'response'), ...connectBlocks(graph, 'response', 'end'));
+      if (split) graph.agentScope = {mode:'dedicated', purpose:'대기 업무 '.repeat(3000)};
+      const files = unzipSync(buildAgentZip({title:'회신 확인', graph, resources:[], files:[]}));
+      assert.equal(!!files['workflow/index.md'], split);
+      return strFromU8(files[split ? 'workflow/step-002.md' : 'AGENTS.md']);
+    }
+    for (const [page, minutes] of [
+      [stagePage('input.form', {replyTimeoutMinutes:13}), 13],
+      [stagePage('control.wait', {}), 60],
+      [stagePage('control.wait', {timeoutMinutes:11000}), 10080],
+    ] as const) {
+      assert.ok(page.includes('처음 회신을 요청할 때부터 ' + minutes + '분 뒤의 마감 시각'));
+      assert.match(page, /같은 회신 번호와 마감 시각을 유지/);
+      assert.match(page, /마감 시각 전에 접수한 유효한 회신은 마감 후에 처리해도 유효/);
+      assert.match(page, /정확히 마감 시각부터 새 회신의 접수를 종료.*대기 기한이 지났습니다.*오류 경로/);
+      assert.doesNotMatch(page, /대기 제한\(분\) — 11000/);
+    }
+    const untimed = stagePage('input.form', {replyTimeoutMinutes:0});
+    assert.match(untimed, /회신 기한 없이 같은 회신 번호/);
+    assert.doesNotMatch(untimed, /정확히 마감 시각/);
+    const review = stagePage('review.human', {});
+    assert.match(review, /계속 진행하는 정책이면 이 검토의 회신을 기다리세요.*전체 중단이면 남은 검토 대기도 종료/);
+    assert.doesNotMatch(review, /정확히 마감 시각/);
+  }
+});
+
 test('공통 지침에는 제외한 자료를 다시 연결할 단계가 남고 선택한 파일만 ZIP에 들어간다', async () => {
   const pkg = samplePackage();
   const document = {kind: 'document' as const, version: '2', available: true, steps: ['예약 확인']};
@@ -131,6 +162,7 @@ test('출시 판단 설계는 상위 QA 자료와 하위 결과의 필드 및 �
   const stages = reachableStages(files);
   const root = stages.get('AGENTS.md')!;
   assert.match(root, /자리표시자이면 값의 원래 자료형/);
+  assert.match(root, /\{\{question\}\}은 연결된 질문 또는 현재 Workflow 호출의 시작 질문/);
   assert.match(root, /범위 밖이면 맡은 업무를 안내하고 종료/);
   assert.match(root, /승인/);
   assert.doesNotMatch(root, /\[\{\{input\}\} QA\]/);

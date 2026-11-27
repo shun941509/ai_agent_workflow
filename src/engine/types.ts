@@ -15,10 +15,11 @@ export interface ModelInput {
 }
 export interface ModelOutput { text: string; tool?: { name: string; args: Values } }
 export interface Source { id: string; title: string; version: string; content: string; assetId?:string; location?:string }
-export interface Passage { id: string; title: string; version: string; location: string; quote: string; assetId?:string }
+export interface Passage { id: string; title: string; version: string; location: string; quote: string; assetId?:string; indexVersion?:string }
+export interface OriginalRow extends Passage { supplied?:true }
 export interface KnowledgeSnapshot { documents:Source[]; version:string; index:IndexedPassage[] }
 export interface KnowledgeCollection {
-  read():Promise<KnowledgeSnapshot>;
+  read():Promise<KnowledgeSnapshot & {originalDocuments?:Source[]}>;
   stage(key:string,value?:string):Promise<string|undefined>;
   release(operation:'publish'|'withdraw',approvedDigest:string,operationId:string):Promise<void>;
 }
@@ -47,6 +48,7 @@ export interface EngineEvent {
 }
 export interface Prompt {
   id: string; kind: 'question' | 'approval' | 'selection' | 'review' | 'event' | 'file';
+  filePurpose?: 'evidenceOriginal';
   fileAccept?: string[];
   fields?: ReplyField[]; fieldError?:string;
   reviewDraft?:string|null;
@@ -55,15 +57,21 @@ export interface Prompt {
   prompt: string; options?: string[]; selectionCount?: number; expiresAt?:string; operation?: { tool: string; args: Values; connector?:McpPin };
 }
 export interface Step {
+  /** Original rows independently read by the engine, outside the user-controlled value. */
+  originalRows?:OriginalRow[];
   evidence?:Passage[];
-  evidenceStatus?:'verified'|'insufficient'|'conflicting';
+  evidenceStatus?:'verified'|'candidate_match'|'insufficient'|'conflicting';
   attachmentInput?:boolean;
   fileOrigins?: {keys:string[]; path:string}[];
   state: 'done' | 'failed' | 'skipped'; values: Values; routes: string[]; error?: string; responsible?:string;
 }
 export interface EngineCheckpoint {
+  /** References the inspected input in existing step start events. */
+  privacyChecks?: {event:number; categories:string[]; block:boolean}[];
+  privacyVersion?:2;
   fileOriginVersion?:1;
   finalFilePaths?:string[];
+  finalFileOverrides?:Record<string,{fileName:string;content:string}>;
   outputFormat?:'text'|'json'|'markdown';
   historyDetails?:Record<string,unknown>;
   version: 1; runId: string; input: string; events: EngineEvent[];
@@ -74,6 +82,8 @@ export interface EngineCheckpoint {
 }
 export interface EngineRequest {
   runId: string; input: string; checkpoint?: EngineCheckpoint; history?: History;
+  /** Includes prior turns and any decisions already recorded in this run. */
+  restoredPrivacy?: import('./model-privacy').ModelPrivacy;
   retryScopeDecision?: EngineCheckpoint['scopeDecision'];
   reply?: { value: string; approved?: boolean; waitId?: string; receivedAt?: number };
   replies?:NonNullable<EngineRequest['reply']>[];

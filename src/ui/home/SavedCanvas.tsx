@@ -1,5 +1,5 @@
 import { Layers3, MousePointer2 } from 'lucide-react';
-import { useId, useLayoutEffect, useRef, useState } from 'react';
+import { useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { portsFor } from '../../domain/catalog';
 import type { Graph } from '../../domain/types';
 import { BlockIcon } from '../editor/Icons';
@@ -34,9 +34,11 @@ export default function SavedCanvas({ graph, selection }: { graph: Graph; select
     return () => observer.disconnect();
   }, [hasNodes]);
   const materialSources = useMaterialPreviews(graph);
-  const nodes = new Map(graph.nodes.map(node => [node.id, node]));
-  const groups = groupEdges(graph);
-  const geometry = groupedWireGeometry(groups, nodes);
+  const { nodes, groups, geometry } = useMemo(() => {
+    const nodes = new Map(graph.nodes.map(node => [node.id, node]));
+    const groups = groupEdges(graph);
+    return { nodes, groups, geometry: groupedWireGeometry(groups, nodes) };
+  }, [graph]);
   const selectedNode = selection?.kind === 'node' ? nodes.get(selection.id) : undefined;
   const selectedGroup = selection?.kind === 'edge' ? groups.find(group => group.id === selection.id) : undefined;
   const selectedLine = selectedGroup && geometry.get(selectedGroup.id);
@@ -44,6 +46,7 @@ export default function SavedCanvas({ graph, selection }: { graph: Graph; select
     graph.nodes.find(node => node.type === 'input.user_request') ?? graph.nodes[0];
   const selectedTitle = selectedGroup ? [selectedGroup.from, selectedGroup.to].map(key => titleById(graph, key)).join(' → ') :
     anchor && titleById(graph, anchor.id);
+  const selectedExcerpt = selectedNode && materialPreview(selectedNode, materialSources);
   const adjacent = groups.filter(group => selectedGroup ? group === selectedGroup : group.from === anchor?.id || group.to === anchor?.id);
   const nearbyIds = new Set([
     ...(anchor ? [anchor.id] : []),
@@ -90,6 +93,7 @@ export default function SavedCanvas({ graph, selection }: { graph: Graph; select
       </button>}
       {selectedTitle && <span className="lh-selection"><MousePointer2 aria-hidden="true" size={14}/>
         {selectedGroup ? '선택한 연결' : selectedNode ? '선택한 블록' : '기준 블록'} <strong>{selectedTitle}</strong></span>}
+      {selectedExcerpt && <span className="lh-selection">{selectedExcerpt}</span>}
     </figcaption>
     {hasNodes ? <svg className="lh-project-diagram" id={id + '-diagram'} ref={svgRef} viewBox={viewBox} role="img" aria-labelledby={id + '-title ' + id + '-description'}>
       <title id={id + '-title'}>{overview ? '마지막으로 편집한 Workflow 전체 배치' : '기준 블록과 직접 연결된 블록'}</title>

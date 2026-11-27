@@ -77,6 +77,6 @@ test('같은 이름의 여러 판과 제외한 Skill도 충돌 없이 연결하�
   assert.equal(new Set(targets).size, 3);
   assert.equal(pkg.files.length, 4);
   assert.equal(pkg.files.find(f => f.path === targets[0]), undefined);
-  assert.equal(frontmatter(markdown(pkg, targets[2])).name, 'citations-2');
-  assert.ok(markdown(pkg, '.claude/skills/citations-2/SKILL.md').includes(targets[2]));
+  assert.equal(frontmatter(markdown(pkg, targets[2])).name, 'citations-3');
+  assert.ok(markdown(pkg, '.claude/skills/citations-3/SKILL.md').includes(targets[2]));
 });

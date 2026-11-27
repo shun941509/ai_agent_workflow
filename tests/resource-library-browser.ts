@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { registerBrowserAccount } from './browser-account';
 import {existsSync} from 'node:fs';
-import {chromium, expect, type BrowserContext} from '@playwright/test';
+import {chromium, expect, type BrowserContext, type Page} from '@playwright/test';
 import {strToU8,strFromU8,zipSync,unzipSync} from 'fflate';
 import {createBlock,type Graph} from '../src/domain';
 import {verifyResourceEditing} from './resource-editing-browser';
@@ -16,6 +16,30 @@ async function api(ctx:BrowserContext,action:string,data:unknown={}) {
   const response=await ctx.request.post('/api/studio',{data:{action,data}});
   const body=await response.json();
   assert.ok(response.ok(),action+' → '+response.status()+' '+(body.error??''));return body.data;
+}
+async function holdNextCopy(page:Page) {
+  await page.evaluate(()=>{
+    const previous=Object.getOwnPropertyDescriptor(navigator,'clipboard');
+    Object.defineProperty(navigator,'clipboard',{configurable:true,value:{
+      writeText(){return new Promise<void>((resolve,reject)=>{
+        if(previous) Object.defineProperty(navigator,'clipboard',previous);
+        else Reflect.deleteProperty(navigator,'clipboard');
+        window.addEventListener('test:finish-copy',event=>{
+          event.preventDefault();
+          if((event as CustomEvent<boolean>).detail) resolve();
+          else reject(new DOMException('Permission denied','NotAllowedError'));
+        },{once:true});
+      });},
+    }});
+  });
+  return async (success:boolean)=>{
+    const handled=await page.evaluate(async ok=>{
+      const handled=!window.dispatchEvent(new CustomEvent('test:finish-copy',{cancelable:true,detail:ok}));
+      await new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve())));
+      return handled;
+    },success);
+    assert.ok(handled,'A clipboard write must already be waiting for the browser response.');
+  };
 }
 async function checkResourceHistory(ctx:BrowserContext,first:{id:string;name:string}) {
   const page=await ctx.newPage();
@@ -41,6 +65,7 @@ async function checkResourceHistory(ctx:BrowserContext,first:{id:string;name:str
     await row.click();
     await expect(page).toHaveURL(new URL(detailed+'2',baseURL).href);
     await expect(lib.getByRole('heading',{name:first.name})).toBeInViewport();
+    await expect(lib.getByRole('heading',{name:first.name})).toBeFocused();
     await page.reload();
     await expect(lib.getByLabel('자료 버전')).toHaveValue('2');
     await lib.getByLabel('자료 버전').selectOption('1');
@@ -77,6 +102,7 @@ async function checkResourceHistory(ctx:BrowserContext,first:{id:string;name:str
     await page.goBack();
     await expect(trash).toBeFocused();
     await lib.getByRole('button',{name:'자료 등록'}).click();
+    await expect(lib.getByRole('heading',{name:'새 자료 등록'})).toBeFocused();
     await lib.getByLabel('자료 본문').fill('오후 다섯 시까지 운영합니다.');
     await lib.getByRole('button',{name:/지식 저장소/}).click();
     await expect(lib.getByLabel('자료 본문')).toHaveValue('오후 다섯 시까지 운영합니다.');
@@ -98,6 +124,7 @@ async function checkResourceDrafts(ctx:BrowserContext,small:boolean) {
     await page.goto('/?view=assets');
     await lib.locator('.rl-asset-open').filter({hasText:name}).click();
     await lib.getByRole('button',{name:'수정',exact:true}).click();
+    await expect(lib.getByRole('heading',{name:'자료 수정'})).toBeFocused();
     await field.fill(modified);
     await expect(lib.locator('.rl-filegrid .rl-source')).toHaveText(modified);
     await expect(lib.locator('.rl-filetitle small')).toHaveText(Buffer.byteLength(modified)+' B');
@@ -135,12 +162,12 @@ async function checkResourceDrafts(ctx:BrowserContext,small:boolean) {
     await page.goBack();
 
     await lib.getByRole('button',{name:'자료 등록'}).click();
-    await lib.getByRole('button',{name:/^✧ Skill/}).click();
+    await lib.getByRole('button',{name:/^Skill 작업 방법/}).click();
     await field.fill(modified);
     await lib.getByRole('button',{name:/참고 자료/}).click();
     await back.click();
     await decision.getByRole('button',{name:'계속 작성'}).click();
-    await lib.getByRole('button',{name:/^✧ Skill/}).click();
+    await lib.getByRole('button',{name:/^Skill 작업 방법/}).click();
     await expect(field).toHaveValue(modified);
     await lib.getByLabel('이름',{exact:true}).fill(name+' 새 자료');
     await lib.getByRole('button',{name:'등록',exact:true}).click();
@@ -161,6 +188,32 @@ try {
   for(let n=0;n<16;n++)await api(owner,'asset.save',{name:'자료함 '+String(n).padStart(2,'0'),kind:'document',payload:{content:'목록 이동 시험'}});
   const mobileOwner=await browser.newContext({baseURL,storageState:await owner.storageState(),viewport:{width:390,height:844},isMobile:true,hasTouch:true});
   try{
+    const narrow=await mobileOwner.newPage();
+    await narrow.setViewportSize({width:320,height:740});
+    await narrow.goto('/?view=assets');
+    const library=narrow.getByRole('region',{name:'도구 및 자료',exact:true});
+    const lastScope=library.getByRole('button',{name:'모두에게 공개',exact:true});
+    await expect(lastScope).toBeInViewport();
+    const bounds=await lastScope.boundingBox();
+    assert.ok(bounds && bounds.x>=0 && bounds.x+bounds.width<=320 && bounds.height>=44);
+    const search=library.getByRole('searchbox');
+    await search.fill('일치하지 않는 자료 '+crypto.randomUUID());
+    await library.getByRole('button',{name:'검색 조건 초기화'}).click();
+    await expect(search).toHaveValue('');
+    await expect(search).toBeFocused();
+    let failFirstRead=true;
+    await narrow.route('**/api/studio',route=>{
+      if(failFirstRead && route.request().postDataJSON()?.action==='asset.read'){
+        failFirstRead=false;
+        return route.abort('connectionreset');
+      }
+      return route.continue();
+    });
+    await narrow.goto('/?asset='+first.id+'&edition=1');
+    await library.getByRole('button',{name:'다시 불러오기'}).click();
+    await expect(library.getByRole('heading',{name:first.name,exact:true})).toBeFocused();
+    await expect(library.locator('.rl-source')).toHaveText('테스트 전용 안내문');
+    await narrow.close();
     await checkResourceHistory(owner,first);await checkResourceHistory(mobileOwner,first);
     await checkResourceDrafts(owner,false);await checkResourceDrafts(mobileOwner,true);
   }
@@ -187,7 +240,7 @@ try {
   await lib.getByRole('button',{name:/지식 저장소/}).click();
   await expect(lib.getByLabel('자료 본문')).toHaveValue('휴관일은 월요일입니다.');
   await lib.getByLabel('자료 본문').fill('정기 휴관일은 월요일입니다.');
-  await lib.getByRole('button',{name:/^✧ Skill/}).click();
+  await lib.getByRole('button',{name:/^Skill 작업 방법/}).click();
   await expect(lib.getByLabel('SKILL.md 지침')).toHaveValue('');
   const archive=zipSync({'citation/SKILL.md':strToU8('# 인용\n원문을 인용하세요.'),'citation/scripts/check.ts':strToU8('const quote = "원문";'),'citation/assets/icon.bin':Uint8Array.from([0,128,255])});
   await lib.locator('input[accept*=".zip"]').setInputFiles({name:'citation.zip',mimeType:'application/zip',buffer:Buffer.from(archive)});
@@ -195,7 +248,7 @@ try {
   await expect(lib.locator('.rl-filegrid code')).toHaveText('const quote = "원문";');
   await lib.getByRole('button',{name:/참고 자료/}).click();
   await expect(lib.getByLabel('자료 본문')).toHaveValue('정기 휴관일은 월요일입니다.');
-  await lib.getByRole('button',{name:/^✧ Skill/}).click();
+  await lib.getByRole('button',{name:/^Skill 작업 방법/}).click();
   await expect(lib.getByLabel('이름',{exact:true})).toHaveValue('인용 Skill');
   await expect(lib.getByLabel('SKILL.md 지침')).toHaveValue('# 인용\n원문을 인용하세요.');
   await expect(lib.locator('.rl-filegrid code')).toHaveText('const quote = "원문";');
@@ -222,10 +275,26 @@ try {
       async readText(){return copied;},
     }});
   });
-  for (const [label,href] of [['최신 게시판 주소 복사',address], ['1판 고정 주소 복사',firstEdition]]) {
-    await lib.getByRole('button',{name:label,exact:true}).click();
+  for (const [label,href] of [['최신 게시판 주소',address], ['1판 고정 주소',firstEdition]]) {
+    await lib.getByRole('button',{name:label+' 복사',exact:true}).click();
     await expect.poll(()=>page.evaluate(()=>navigator.clipboard.readText())).toBe(href);
+    await expect(lib.getByRole('status').filter({hasText:label+'를 복사했습니다.'})).toBeVisible();
   }
+  const copyLatest=lib.getByRole('button',{name:'최신 게시판 주소 복사',exact:true});
+  const copyFixed=lib.getByRole('button',{name:'1판 고정 주소 복사',exact:true});
+  const selected=await holdNextCopy(page);
+  await copyLatest.click();await selected(false);
+  await expect(latestLink).toBeFocused();
+  assert.ok(await latestLink.evaluate((el:HTMLInputElement)=>el.selectionStart===0&&el.selectionEnd===el.value.length));
+  await expect(lib.getByText('선택된 주소를 복사하세요.')).toBeVisible();
+  const moved=await holdNextCopy(page);
+  await copyLatest.click();await fixedLink(1).focus();await moved(false);
+  await expect(fixedLink(1)).toBeFocused();
+  await expect(lib.getByText('최신 게시판 주소 입력란에서 직접 복사하세요.')).toBeVisible();
+  const older=await holdNextCopy(page);
+  await copyLatest.click();await copyFixed.click();await older(false);
+  await expect(lib.getByText('1판 고정 주소를 복사했습니다.')).toBeVisible();
+  await expect(copyFixed).toBeFocused();
   const recipient=await visitor.newPage();await recipient.goto(address);const received=recipient.getByRole('region',{name:'도구 및 자료'});
   await expect(received.getByRole('heading',{name:'인용 Skill',exact:true})).toBeVisible();
   await received.getByRole('button',{name:'이 버전의 사본 만들기'}).click();await expect(received.getByRole('heading',{name:'인용 Skill 사본'})).toBeVisible();
@@ -237,11 +306,24 @@ try {
   await expect(received.locator('.rl-form>section').first()).toContainText('원문을 인용하세요.');
   await lib.getByRole('button',{name:'2판 공유'}).click();await expect(lib.getByText('2판을 공유했습니다.')).toBeVisible();
   await recipient.reload();await expect(received.locator('.rl-form>section').first()).toContainText('두 번째 판의 지침');
+  const previousEdition=await holdNextCopy(page);
+  await copyLatest.click();
   await lib.getByLabel('자료 버전').selectOption('1');await expect(fixedLink(1)).toHaveValue(firstEdition);
+  await previousEdition(true);
+  await expect(lib.getByText('최신 게시판 주소를 복사했습니다.')).toHaveCount(0);
   await expect(latestLink).toHaveValue(address);
   await recipient.goto(firstEdition);await expect(received.locator('.rl-form>section').first()).toContainText('원문을 인용하세요.');
   await expect(received.getByRole('textbox',{name:'1판 고정 주소'})).toHaveValue(firstEdition);
+  const previousToken=await holdNextCopy(page);
+  await copyFixed.click();
   await lib.getByRole('button',{name:'현재 링크 철회·재발급'}).click();await expect(lib.getByText('기존 링크를 철회하고 새 주소를 만들었습니다.')).toBeVisible();
+  await previousToken(false);
+  await expect(lib.getByText('기존 링크를 철회하고 새 주소를 만들었습니다.')).toBeVisible();
+  await expect(fixedLink(1)).not.toBeFocused();
+  const rotated=await latestLink.inputValue();
+  assert.notEqual(rotated,address);
+  await copyLatest.click();
+  await expect.poll(()=>page.evaluate(()=>navigator.clipboard.readText())).toBe(rotated);
   await recipient.reload();await expect(received.getByRole('alert')).toContainText(/권한|공유/);
   await recipient.goto(address);await expect(received.getByRole('alert')).toContainText(/권한|공유/);
   console.log('Asset browser checks passed: ZIP round trip, source preview, immutable versions, independent copy, revocation and mobile recipient.');
@@ -293,9 +375,18 @@ try {
       createBlock('connection.mcp',{id:'server',title:'고정 연결',x:30,y:260,config:{assetId:mcp.id,version:1}})
     ],edges:['agent','action'].map(to=>({id:'ref-'+to,from:'server',to,kind:'reference',out:'ref',input:'mcp'}))};
     const project=await api(owner,'project.create',{title:'MCP 편집기 시험',graph});
+    let failToolRead=true;
+    await page.route('**/api/studio',route=>{
+      const {action,data}=route.request().postDataJSON();
+      return failToolRead && action==='asset.read' && data.id===mcp.id
+        ? route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:'도구 목록 읽기 실패'})})
+        : route.fallback();
+    });
     await page.goto('/?edit='+project.id);
     const panel=page.getByRole('complementary',{name:'속성 패널'});
     const allowed=panel.getByLabel('연결한 MCP에서 허용 도구 추가');
+    await expect(panel.getByRole('alert')).toContainText('도구 목록 읽기 실패');
+    failToolRead=false;await panel.getByRole('button',{name:'MCP 도구 다시 불러오기'}).press('Enter');
     await expect(allowed).toBeEnabled();await expect(allowed.locator('option')).toHaveCount(2);
     const lookup='mcp.'+mcp.id+'.lookup',reserve='mcp.'+mcp.id+'.reserve';
     await allowed.selectOption(lookup);await expect(panel.getByRole('button',{name:lookup+' 삭제'})).toBeVisible();
@@ -311,7 +402,21 @@ try {
     await expect(picker.locator('option').last()).toHaveText(/2판.*reserve.*승인/);await picker.selectOption(reserve);await expect(manual).toHaveValue(reserve);
     await expect.poll(async()=>(await api(owner,'project.open',{id:project.id})).graph.nodes.find((n:{id:string})=>n.id==='action').config.tool).toBe(reserve);
     await page.reload();await page.getByRole('button',{name:'지점 조회 블록 속성',exact:true}).click();await expect(picker).toHaveValue(reserve);
-    await page.goto('/?asset='+mcp.id);await expect(lib.getByLabel('reserve 도구 식별자')).toHaveValue(reserve);
+    await page.goto('/?asset='+mcp.id);
+    const identifier=lib.getByLabel('reserve 도구 식별자');
+    await expect(identifier).toHaveValue(reserve);
+    const copyIdentifier=lib.locator('.rl-actions').filter({
+      has:page.getByRole('textbox',{name:'reserve 도구 식별자',exact:true}),
+    }).getByRole('button',{name:'식별자 복사',exact:true});
+    const manualIdentifier=await holdNextCopy(page);
+    await copyIdentifier.click();await manualIdentifier(false);
+    await expect(identifier).toBeFocused();
+    await expect(lib.getByText('선택된 도구 식별자를 복사하세요.')).toBeVisible();
+    const previousTool=await holdNextCopy(page);
+    await copyIdentifier.click();await lib.getByLabel('자료 버전').selectOption('1');
+    await expect(lib.getByLabel('lookup 도구 식별자')).toHaveValue(lookup);
+    await previousTool(true);
+    await expect(lib.getByText('reserve 도구 식별자를 복사했습니다.')).toHaveCount(0);
     db().close();console.log('Editor MCP checks passed: connected editions, agent allowlist, approval labels, manual override, save and reopen.');
   }
 }finally{await visitor.close();await owner.close();await browser.close();}

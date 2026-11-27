@@ -26,10 +26,9 @@ import {
   Link2,
   Trash2,
 } from 'lucide-react';
-import Editor from './editor/Editor';
+import dynamic from 'next/dynamic';
 import type { SharedAssetPin } from './editor/asset-attachment';
 import type { SourceOutput } from './editor/source-comparison';
-import RunPanel from './RunPanel';
 import {useSharedAgentAccess} from './use-shared-agent-access';
 import DynamicLessonSetup from './DynamicLessonSetup';
 import { dynamicLessonChecks } from '../domain/dynamic-lesson-policy';
@@ -50,10 +49,10 @@ import ProjectTrash, { type TrashedProject } from './ProjectTrash';
 import ProjectActionPicker, { type ProjectMenuAction } from './ProjectActionPicker';
 import StudioDialog from './StudioDialog';
 import WorkspaceHome from './WorkspaceHome';
-import { GuidePage } from './guide/GuidePage';
-import { OptionalPractice } from './guide/OptionalPractice';
+import desk from './home/WorkspaceDesk.module.css';
+import LessonHandout from './guide/LessonHandout';
 import type { GuideLesson } from './WorkflowGuide';
-import { guideAddress, guideLocation, type GuidePosition, type GuideSection } from './guide/navigation';
+import { guideAddress, guideLocation, guideSections, type GuidePosition, type GuideSection } from './guide/navigation';
 import { WorkspaceMenuButton, WorkspaceNav, workspaceLabels as paths, type WorkspaceDestination, type WorkspaceMenuAction } from './WorkspaceNav';
 import { subgraph } from './editor/graph';
 import { validEditorFocus, type EditorFocus } from '../domain/editor-focus';
@@ -67,6 +66,16 @@ import {
 } from '../domain';
 import { api, finishWrite, intentHash, message, pendingWriteKey, StudioApiError } from './client';
 import { rememberedPosition, rememberWorkspacePosition, trackWorkspacePosition, visitLesson, workspaceListAt, type WorkspacePosition } from './workspace-history';
+
+const Editor = dynamic(() => import('./editor/Editor'), {
+  loading: () => <main className="loading"><p role="status">편집기를 여는 중입니다…</p></main>,
+});
+const GuidePage = dynamic(() => import('./guide/GuidePage').then(module => module.GuidePage), {
+  loading: () => <p role="status">가이드를 여는 중입니다…</p>,
+});
+const RunPanel = dynamic(() => import('./RunPanel'), {
+  loading: () => <p className="toast" role="status">실행 화면을 여는 중입니다…</p>,
+});
 
 type EditingSession = { project: FullProject; lastFocus?: string };
 type EditorEntryOptions = { initialAction?: 'import'; archivedRevision?: number; issue?: Issue; sharedAsset?: SharedAssetPin; fromGuide?: boolean; guideStep?: number };
@@ -545,7 +554,7 @@ export default function Studio({accountId}: {accountId: string}) {
       }
       setDialog('');
       setError('');
-      if (selected && (!selected.mine || dialog === 'public')) {
+      if (selected && (!selected.mine || dialog === 'public' || dialog === 'run')) {
         choose(null);
         setView('shared');
         url('view=shared');
@@ -691,6 +700,31 @@ export default function Studio({accountId}: {accountId: string}) {
         choose(full);
         setPublicToken(undefined);
         modal('public');
+      }
+    });
+  }
+  function runSharedProjectAction(project: FullProject, command: 'run' | 'copy') {
+    const visit = routeGeneration.current;
+    return action(async () => {
+      try {
+        if (command === 'run') {
+          const allowed = project.mine || await checkAccess();
+          if (allowed && visit === routeGeneration.current) modal('run');
+          return;
+        }
+        const copyDraft = project.mine && !project.publicVersion;
+        const source = copyDraft ? 'draft-' + project.revision : project.publicVersion;
+        const slot = 'studio.copy.' + JSON.stringify([accountId, project.id, source, project.shareGeneration]);
+        const requestKey = pendingWriteKey(slot);
+        const copy = await api<FullProject>('project.copy', {
+          id:project.id, token:publicToken, shareGeneration:project.shareGeneration,
+          published:!copyDraft, version:project.publicVersion ?? undefined, requestKey,
+        });
+        finishWrite(slot, requestKey);
+        if (visit === routeGeneration.current) edit(copy);
+        else void refresh().catch(() => {});
+      } catch (error) {
+        if (visit === routeGeneration.current) throw error;
       }
     });
   }
@@ -937,9 +971,18 @@ export default function Studio({accountId}: {accountId: string}) {
     }));
   }
   const lesson = data?.lessons.find((l) => l.id === lessonId);
-  const visibleLessons = (data?.lessons ?? []).filter(
-    (l) => filter === '전체' || l.level === filter
-  ).sort((a, b) => levels.indexOf(a.level) - levels.indexOf(b.level));
+  let pageLabel: string = paths[view];
+  if (dialog === 'lesson' && lesson) pageLabel = lesson.title;
+  else if (selected) pageLabel = selected.title + ' · ' + (dialog === 'run' ? '실행' : dialog === 'public' ? paths.shared : paths.editor);
+  else if (inTrash) pageLabel += ' · 휴지통';
+  else if (view === 'guide') pageLabel = guideSections[guidePosition.section] + ' · ' + paths.guide;
+  else if (assetLink) {
+    const assets = view === 'shared-assets' ? data?.sharedAssets : data?.assets;
+    pageLabel = (assets?.find(asset => asset.id === assetLink.id)?.name ?? '자료 상세') + ' · ' + pageLabel;
+  }
+  useEffect(() => { document.title = pageLabel + ' · Workflow Studio'; }, [pageLabel]);
+  const lessonsByLevel = [...(data?.lessons ?? [])].sort((a, b) => levels.indexOf(a.level) - levels.indexOf(b.level));
+  const visibleLessons = lessonsByLevel.filter(l => filter === '전체' || l.level === filter);
   const mine = (data?.projects ?? []).filter((p) => p.mine),
     shared = (data?.projects ?? []).filter(
       (p) => p.publicVersion && p.visibility !== 'private'
@@ -949,21 +992,22 @@ export default function Studio({accountId}: {accountId: string}) {
     return (
       <button
         key={l.id}
-        className={'lesson-tile lesson-' + l.id}
+        className={'lesson-tile ' + desk.lessonRow}
         data-lesson-trigger={l.id}
         onClick={() => openLesson(l.id, l.id)}
       >
-        <span className="lesson-thumb">
-          <Icon size={25} />
-          <em>{l.level}</em>
-        </span>
-        <strong>{l.title}</strong>
-        <span className="tile-description">{l.description}</span>
-        <span className="tile-open">
-          실습 보기 <ArrowUpRight size={14} />
-        </span>
+        <strong><Icon size={19} aria-hidden="true"/>{l.title}</strong>
+        <span className={desk.level}>{l.level}</span>
+        <span className={desk.description}>{l.description}</span>
+        <ChevronRight size={16} aria-hidden="true"/>
       </button>
     );
+  }
+  function lessonList(items: Omit<Lesson, 'graph'>[]) {
+    return <div className={desk.lessonList}>
+      <div className={desk.listHeading} aria-hidden="true"><span>실습 이름</span><span>수준</span><span>실습 내용</span></div>
+      {items.map(lessonCard)}
+    </div>;
   }
   function projects(items: Project[]) {
     const matches = items.filter((p) =>
@@ -990,10 +1034,10 @@ export default function Studio({accountId}: {accountId: string}) {
                   {p.publicVersion && ' · 게시 v' + p.publicVersion}
                 </small>
               </span>
-              <span className="project-visibility">
-                {visibilityNames[p.visibility]}
+              <span className="project-meta">
+                <span className="project-visibility">{visibilityNames[p.visibility]}</span>
+                <time className="project-date" dateTime={p.updated}>수정 {dateLabel(p.updated)}</time>
               </span>
-              <span className="project-date">{dateLabel(p.updated)}</span>
               <ChevronRight size={16} />
             </button>
             {view === 'projects' && p.mine && (
@@ -1029,7 +1073,13 @@ export default function Studio({accountId}: {accountId: string}) {
               ? '아직 공유된 Agent가 없습니다.'
               : '아직 만든 Agent가 없습니다.'}
         </p>
-        {view !== 'shared' && (
+        {search ? (
+          <button className="btn" onClick={() => {
+            setSearch('');
+            rememberWorkspacePosition({search: ''});
+            listSearch.current?.focus();
+          }}>검색 지우기</button>
+        ) : view !== 'shared' && (
           <button
             className="btn"
             onClick={newAgent}
@@ -1128,7 +1178,7 @@ export default function Studio({accountId}: {accountId: string}) {
         )}
       </main>
     );
-  const inEditor = selected?.mine && dialog !== 'public';
+  const inEditor = selected?.mine && dialog !== 'public' && dialog !== 'run';
   const versionProject = versionPanel?.listProject ?? selected;
   const currentSession = editing.current;
   const guide = selected && projectLesson(selected, data.lessons);
@@ -1165,7 +1215,6 @@ export default function Studio({accountId}: {accountId: string}) {
           onLessonGuide={step => openGuide(true, step)}
           fromGuide={editorEntry.fromGuide}
           initialGuideStep={editorEntry.guideStep}
-          initialLevel={guide?.level}
           assets={data.assets}
           onRefreshAssets={async () => { await refresh(); }}
           onSave={(graph, title) => save(graph, title, currentSession)}
@@ -1202,7 +1251,7 @@ export default function Studio({accountId}: {accountId: string}) {
                 {data.modelReady ? '모델 설정됨' : '모델 설정 필요'}
               </span>
             </header>
-            <main className={view === 'home' ? 'workspace-home' : 'workspace-content'}>
+            <main id="workspace-content" tabIndex={-1} className={view === 'home' ? 'workspace-home' : 'workspace-content'}>
               {view === 'guide' && <GuidePage {...guidePosition}
                 lessons={data.lessons} lesson={guideOrigin?.lesson} userId={data.user.id}
                 onNavigate={goToGuideSection} onOpenTemplate={openGuideTemplate} onStartWork={startGuideWork}
@@ -1240,16 +1289,8 @@ export default function Studio({accountId}: {accountId: string}) {
                 <>
                   <WorkspaceHome project={resume ? { title: resume.title, graph: subgraph(resume.graph, homeFocus?.path ?? []) } : null}
                     lesson={homeGuide} selection={homeFocus?.selection} onOpen={openHomeEditor}
-                    onIntro={() => openLesson('intro', 'home-intro')} busy={busy} />
-                  <div className="workspace-content home-more">
-                  <form className="home-proposal" onSubmit={e => {
-                    e.preventDefault(); setNewTitle(''); modal('ai');
-                  }}>
-                    <label htmlFor="home-agent-prompt">AI로 새 Agent 설계하기</label>
-                    <div><input id="home-agent-prompt" aria-label="만들고 싶은 Agent" value={ownDesign?.title === '' ? ownDesign.prompt : ''}
-                      onChange={e => setHomeDesign({owner:accountId, title:'', prompt:e.target.value})} placeholder="어떤 일을 맡기고 싶으세요?" />
-                      <button className="icon-btn" aria-label="AI 설계 제안 열기"><ArrowRight size={18}/></button></div>
-                  </form>
+                    onNew={newAgent} onTemplates={() => navigate('templates')} busy={busy} />
+                  <div className={desk.more}>
                   <section>
                     <div className="section-heading">
                       <div>
@@ -1262,9 +1303,11 @@ export default function Studio({accountId}: {accountId: string}) {
                         전체 보기 <ArrowRight size={15} />
                       </button>
                     </div>
-                    <div className="lesson-grid">
-                      {data.lessons.slice(0, 3).map(lessonCard)}
-                    </div>
+                    {lessonList(lessonsByLevel.slice(0, 3))}
+                    {!resume && <div className={desk.quickPractice}>
+                      <button className="plain" data-lesson-trigger="home-intro" onClick={() => openLesson('intro', 'home-intro')}>입문 실습 보기</button>
+                      <button className="plain" disabled={busy} onClick={openHomeEditor}>도서관 실습 시작하기<ArrowUpRight size={15} aria-hidden="true"/></button>
+                    </div>}
                   </section>
                   <section>
                     <div className="section-heading">
@@ -1280,6 +1323,14 @@ export default function Studio({accountId}: {accountId: string}) {
                     </div>
                     {projects(mine.slice(0, 4))}
                   </section>
+                  <form className="home-proposal" onSubmit={e => {
+                    e.preventDefault(); setNewTitle(''); modal('ai');
+                  }}>
+                    <label htmlFor="home-agent-prompt">AI로 새 Agent 설계하기</label>
+                    <div><input id="home-agent-prompt" aria-label="만들고 싶은 Agent" value={ownDesign?.title === '' ? ownDesign.prompt : ''}
+                      onChange={e => setHomeDesign({owner:accountId, title:'', prompt:e.target.value})} placeholder="어떤 일을 맡기고 싶으세요?" />
+                      <button className="icon-btn" aria-label="AI 설계 제안 열기"><ArrowRight size={18}/></button></div>
+                  </form>
                   </div>
                 </>
               )}
@@ -1289,12 +1340,11 @@ export default function Studio({accountId}: {accountId: string}) {
                     <div>
                       <h1>수준별 템플릿</h1>
                       <p>
-                        원하는 실습을 골라 내 사본에서 바꾸고, 결과를
-                        비교하세요.
+                        내가 만들 결과를 보고 실습을 고르세요. 내 사본에서 자료와 작업 지시를 바꿀 수 있습니다.
                       </p>
                     </div>
                   </div>
-                  <div className="filter-chips">
+                  <div className={'filter-chips ' + desk.filters} role="group" aria-label="실습 수준">
                     {['전체', ...levels].map((v) => (
                       <button
                         key={v}
@@ -1305,9 +1355,8 @@ export default function Studio({accountId}: {accountId: string}) {
                       </button>
                     ))}
                   </div>
-                  <div className="lesson-grid all">
-                    {visibleLessons.map(lessonCard)}
-                  </div>
+                  <p className={desk.count} role="status">{visibleLessons.length}개 실습</p>
+                  {lessonList(visibleLessons)}
                 </>
               )}
               {(view === 'projects' || view === 'shared') && (
@@ -1315,6 +1364,7 @@ export default function Studio({accountId}: {accountId: string}) {
                   <div className="section-heading first">
                     <div>
                       <h1>{view === 'projects' && inTrash ? '휴지통' : paths[view]}</h1>
+                      {!inTrash && <p>{view === 'projects' ? '내가 만든 Agent를 열고 공유 범위를 관리합니다.' : '공유된 Agent의 게시 버전을 확인하고 사용합니다.'}</p>}
                     </div>
                     {view === 'projects' && (
                       <div className="project-folder-actions">
@@ -1331,16 +1381,16 @@ export default function Studio({accountId}: {accountId: string}) {
                     <ProjectTrash key={data.user.id} onRestore={restoreFromTrash} />
                   ) : (
                     <>
-                      <label className="list-search">
-                        <Search size={16} />
+                      <label className="project-search-label" htmlFor="project-search">Agent 이름 검색</label>
+                      <div className="list-search">
+                        <Search size={16} aria-hidden="true" />
                         <input
+                          id="project-search"
                           ref={listSearch}
-                          aria-label="Agent 이름 검색"
-                          placeholder="Agent 이름 검색"
                           value={search}
                           onChange={e => { setSearch(e.target.value); rememberWorkspacePosition({search:e.target.value}); }}
                         />
-                      </label>
+                      </div>
                       {projects(view === 'projects' ? mine : shared)}
                     </>
                   )}
@@ -1392,7 +1442,12 @@ export default function Studio({accountId}: {accountId: string}) {
           onClose={close} onSelect={openMenuProject} />
       )}
       {dialog === 'delete' && deleteTarget && (
-        <Modal title="Agent 프로젝트 삭제" onClose={cancelDelete} initialFocus={cancelDeleteButton} descriptionId="delete-project-summary">
+        <Modal title="Agent 프로젝트 삭제" size="confirm" onClose={cancelDelete} initialFocus={cancelDeleteButton}
+          dismissDisabled={busy} descriptionId="delete-project-summary" footer={<>
+            <button type="button" className="btn" ref={cancelDeleteButton} disabled={busy} onClick={cancelDelete}>취소</button>
+            <button type="button" className="btn danger" disabled={busy || Boolean(deleteTargetChanged)}
+              onClick={() => void confirmDelete(deleteTarget)}>{busy ? '삭제 중…' : '프로젝트 삭제'}</button>
+          </>}>
           <p id="delete-project-summary" className="delete-project-name">
             <strong>{deleteTarget.title}</strong> 프로젝트를 삭제할까요? 현재 공유 범위는 ‘{visibilityNames[deleteTarget.visibility]}’입니다.
           </p>
@@ -1401,15 +1456,11 @@ export default function Studio({accountId}: {accountId: string}) {
             <p>이 프로젝트의 공유 주소도 사용할 수 없게 됩니다.</p>
           )}
           {deleteTargetChanged && <p>목록이 변경되었습니다. 취소한 뒤 삭제할 프로젝트를 다시 확인하세요.</p>}
-          <div className="row">
-            <button type="button" className="btn" ref={cancelDeleteButton} disabled={busy} onClick={cancelDelete}>취소</button>
-            <button type="button" className="btn danger" disabled={busy || Boolean(deleteTargetChanged)}
-              onClick={() => void confirmDelete(deleteTarget)}>{busy ? '삭제 중…' : '프로젝트 삭제'}</button>
-          </div>
         </Modal>
       )}
       {dialog === 'create' && (
-        <Modal title="새 Agent 만들기" onClose={close}>
+        <Modal title="새 Agent 만들기" onClose={close} size="form" dismissDisabled={busy}>
+          {busy && <p role="status" className="creation-status">설계를 준비하고 있습니다…</p>}
           <label className="field">
             Agent 이름
             <input
@@ -1461,12 +1512,23 @@ export default function Studio({accountId}: {accountId: string}) {
               type="file"
               accept=".json"
               disabled={busy}
-              onChange={event => setImportFile(event.target.files?.[0] ?? null)}
+              onChange={event => {
+                setImportFile(event.target.files?.[0] ?? null);
+                setError('');
+              }}
             />
           </label>
           {importFile && missingImport?.file===importFile && <p role="alert">이 설계에는 {missingImport.missing.join(', ')} 자료가 필요합니다. 자료를 함께 가져오려면 원본 Agent에서 내 사본 만들기를 사용하세요.</p>}
           {importFile && <button className="btn primary" disabled={busy} onClick={() => void creationAction(async () => {
-            const raw = JSON.parse(await importFile.text());
+            const fileText = await importFile.text();
+            let raw;
+            try {
+              raw = JSON.parse(fileText);
+            } catch {
+              throw new Error('설계 파일을 읽을 수 없습니다. 내보낸 설계 JSON 파일을 다시 선택하세요.');
+            }
+            if (!raw || typeof raw !== 'object' || Array.isArray(raw))
+              throw new Error('설계가 들어 있는 JSON 파일을 선택하세요.');
             const graph = raw.graph ?? raw;
             const title = typedTitle || raw.title || importFile.name;
             const design=graph.nodes?.every((node: any) => node.config && Number.isFinite(node.x))?{graph,title}:{legacy:raw,title};
@@ -1498,7 +1560,7 @@ export default function Studio({accountId}: {accountId: string}) {
         </Modal>
       )}
       {(dialog === 'ai' || guideDesign) && (
-        <Modal title={guideDesign ? guideDesign.doc.title + ' 설계하기' : '한 문장으로 Agent 만들기'} onClose={close} dismissDisabled={busy}>
+        <Modal title={guideDesign ? guideDesign.doc.title + ' 설계하기' : '한 문장으로 Agent 만들기'} size="form" onClose={close} dismissDisabled={busy}>
           <HomeDesignProposal key={guideDesign?.doc.id ?? 'home'} prompt={guideDesign?.prompt ?? prompt}
             workDocument={guideDesign?.doc} onEdit={text => guideDesign ? setWorkDesign({...guideDesign, prompt:text, answer:undefined})
               : setHomeDesign({owner:accountId, title:typedTitle, prompt:text})}
@@ -1533,42 +1595,15 @@ export default function Studio({accountId}: {accountId: string}) {
         </Modal>
       )}
       {dialog === 'lesson' && lesson && (
-        <Modal title={lesson.title} onClose={close} wide>
-          <div className="lesson-meta">
-            <span>{lesson.level}</span>
-            <span>{lesson.id.startsWith('sw-') ? '할 일 앱 실습' : '도서관 실습'}</span>
-          </div>
-          <p>{lesson.id === 'dynamic' ? lesson.description : lesson.goal || lesson.description}</p>
-          {lesson.id === 'dynamic' && <DynamicLessonSetup busy={busy} label={namedCreation(templateTitle, '내 사본으로 시작')}
-            onStart={dynamicPolicy => void creationAction(() => create({ lesson: lesson.id, title:templateTitle || undefined, dynamicPolicy }))} />}
-          {lesson.level === '전문가' ? <details>
-            <summary>실습 순서 보기</summary>
-            <ol className="lesson-steps">{lesson.steps.map(s => <li key={s}>{s}</li>)}</ol>
-          </details> : <>
-            <h3>체험할 작업</h3>
-            <ol className="lesson-steps">{lesson.steps.map(s => <li key={s}>{s}</li>)}</ol>
-          </>}
-          <details>
-            <summary>{lesson.id === 'dynamic' ? '제공된 예시' : '제공된 예시와 완료 기준'}</summary>
-            <p className="lesson-example">{lesson.example}</p>
-            {lesson.id !== 'dynamic' && <ul>
-              {lesson.checks.map((s) => (
-                <li key={s}>{s}</li>
-              ))}
-            </ul>}
-          </details>
-          {lesson.optionalPractice && <><h3>선택 실습</h3><OptionalPractice lesson={lesson} /></>}
-          {lesson.id !== 'dynamic' && <button
-            className="btn primary"
-            disabled={busy}
-            onClick={() => void creationAction(() => create({ lesson: lesson.id, title:templateTitle || undefined }))}
-          >
-            <ClipboardCopy size={16} />{namedCreation(templateTitle, '내 사본으로 시작')}
-          </button>}
+        <Modal title={lesson.title} displayHeading="실습 상세" onClose={close} size="settings" wide>
+          <LessonHandout lesson={lesson} busy={busy} actionLabel={namedCreation(templateTitle, '내 사본으로 시작')}
+            onStart={() => void creationAction(() => create({ lesson: lesson.id, title:templateTitle || undefined }))}
+            setup={lesson.id === 'dynamic' && <DynamicLessonSetup busy={busy} label={namedCreation(templateTitle, '내 사본으로 시작')}
+              onStart={dynamicPolicy => void creationAction(() => create({ lesson: lesson.id, title:templateTitle || undefined, dynamicPolicy }))} />}/>
         </Modal>
       )}
       {dialog === 'public' && selected && (
-        <Modal title={selected.title} onClose={close}>
+        <Modal title={selected.title} onClose={close} dismissDisabled={busy}>
           {sharingRevoked ? <p className="modal-error" role="alert">게시자가 공유를 철회했습니다</p> : <p>
             게시 버전 {selected.publicVersion ?? '없음'} ·{' '}
             {visibilityNames[selected.visibility]}
@@ -1577,30 +1612,15 @@ export default function Studio({accountId}: {accountId: string}) {
             <button
               className="btn primary"
               disabled={busy || sharingRevoked}
-              onClick={() => void action(async () => {
-                if (selected.mine || await checkAccess()) modal('run');
-              })}
+              onClick={() => void runSharedProjectAction(selected, 'run')}
             >
               <Play size={16} />
-              Agent 사용
+              {selected.mine && !selected.publicVersion ? '초안 시험' : 'Agent 사용'}
             </button>
             <button
               className="btn"
               disabled={busy || sharingRevoked}
-              onClick={() =>
-                void action(async () => {
-                  const slot='studio.copy.'+JSON.stringify([data.user.id,selected.id,selected.publicVersion,selected.shareGeneration]);
-                  const requestKey=pendingWriteKey(slot);
-                  const copy=await api<FullProject>('project.copy', {
-                      id: selected.id,
-                      token: publicToken,
-                      shareGeneration: selected.shareGeneration,
-                      published: true, version:selected.publicVersion, requestKey,
-                  });
-                  finishWrite(slot,requestKey);
-                  edit(copy);
-                })
-              }
+              onClick={() => void runSharedProjectAction(selected, 'copy')}
             >
               <ClipboardCopy size={16} />내 사본 만들기
             </button>
@@ -1608,7 +1628,7 @@ export default function Studio({accountId}: {accountId: string}) {
         </Modal>
       )}
       {(dialog === 'versions' || dialog === 'share') && (
-        <Modal title={dialog === 'share' ? 'Agent 공유 설정' : '버전 및 복구'} onClose={close} wide dismissDisabled={busy}>
+        <Modal title={dialog === 'share' ? 'Agent 공유 설정' : '버전 및 복구'} size="settings" onClose={close} dismissDisabled={busy}>
           {versionProject && versionPanel ? (
             <ProjectVersionPanel
               key={versionPanel.key}
@@ -1632,7 +1652,13 @@ export default function Studio({accountId}: {accountId: string}) {
               onDecisionRecorded={applyProjectSharing}
               onOpenShare={() => modal('share')}
             />
-          ) : !error && <p role="status">공유 설정을 불러오는 중입니다…</p>}
+          ) : error ? sharingRow.current && (
+            <button type="button" className="btn" onClick={event => {
+              const row = sharingRow.current;
+              event.currentTarget.closest('dialog')?.querySelector<HTMLButtonElement>('header button')?.focus();
+              if (row) void openListSharing(row.id);
+            }}>공유 설정 다시 불러오기</button>
+          ) : <p role="status">공유 설정을 불러오는 중입니다…</p>}
         </Modal>
       )}
       {dialog === 'run' && selected && (
@@ -1641,7 +1667,7 @@ export default function Studio({accountId}: {accountId: string}) {
           viewerId={data?.user.id}
           project={selected}
           api={api}
-          initialMode="live"
+          initialMode={selected.mine && !selected.publicVersion ? 'test' : 'live'}
           token={publicToken}
           sharingRevoked={sharingRevoked}
           onAccessDenied={sharedProject ? recheckAccess : undefined}

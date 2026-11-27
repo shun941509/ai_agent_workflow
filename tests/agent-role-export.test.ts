@@ -6,6 +6,7 @@ import type {ExportPackage} from '../src/domain/agent-export';
 import {connectBlocks, createBlock} from '../src/domain/graph';
 import type {Graph} from '../src/domain/types';
 import {buildAgentZip} from '../src/server/agent-zip';
+import {executeGraph} from '../src/engine';
 
 function archive(pkg: ExportPackage) {
   const raw = unzipSync(buildAgentZip(pkg));
@@ -15,6 +16,51 @@ function archive(pkg: ExportPackage) {
 function rolePaths(files: Record<string,string>) {
   return Object.keys(files).filter(path => /^agents\/[^/]+\.md$/.test(path));
 }
+
+test('큰 역할 원문은 작업 번호별로 열고 짧은 역할 등록 파일은 같은 진입점을 사용한다',()=>{
+  const graph:Graph={nodes:Array.from({length:12},(_,i)=>createBlock('agent.delegate',{
+    id:'task-'+i,config:{role:'검토',instruction:'할 일 '+i+' — '+'반납 기록을 확인합니다. '.repeat(120)}})),edges:[]};
+  const files=archive({title:'반복 배정',graph,resources:[],files:[]});
+  const [role]=rolePaths(files);
+  assert.ok(Buffer.byteLength(files[role])<16*1024);
+  const links=[...files[role].matchAll(/\[(step-\d+)\]\(([^)]+)\)/g)];
+  assert.equal(links.length,12);
+  for(const [i,[,key,path]] of links.entries()){
+    assert.ok(files[posix.join('agents',path)]?.includes('할 일 '+i+' —'));
+    assert.ok(Object.values(files).some(body=>body.includes('작업 번호 `'+key+'`')));
+  }
+  assert.match(files[role],/현재 반복 항목.*대기 중인 호출 ID·승인/);
+});
+
+test('팀은 Skill 후보를 보유하고 선택한 하위 역할만 두 형식의 ZIP과 실제 모델에서 사용한다',async()=>{
+  const inner:Graph={nodes:[createBlock('input.user_request',{id:'in'}),createBlock('agent.delegate',{
+    id:'writer',title:'작성 담당',config:{role:'작성자',inheritedSkillIds:['block:a']}}),createBlock('output.answer',{id:'out'})],edges:[]};
+  inner.edges.push(...connectBlocks(inner,'in','writer'),...connectBlocks(inner,'writer','out'));
+  const graph:Graph={nodes:[createBlock('input.user_request',{id:'q'}),createBlock('agent.team',{id:'team',title:'작성 팀',graph:inner}),
+    createBlock('output.answer',{id:'end'})],edges:[]};
+  graph.edges.push(...connectBlocks(graph,'q','team'),...connectBlocks(graph,'team','end'));
+  const resources:ExportPackage['resources']=[];
+  const data:ExportPackage['files']=[];
+  for(const id of ['a','b']){
+    graph.nodes.push(createBlock('instruction.skill',{id,title:'Rule-'+id,config:{content:'rule-'+id+'-only',exportResource:id}}));
+    graph.edges.push(...connectBlocks(graph,id,'team'));
+    resources.push({kind:'skill',key:id,name:'Rule-'+id,version:'1',steps:['작성 팀'],available:true,included:id==='a',files:['resources/'+id+'/SKILL.md']});
+    if(id==='a')data.push({path:'resources/a/SKILL.md',data:Buffer.from('rule-a-only').toString('base64')});
+  }
+  const result=await executeGraph(graph,{runId:'skills',input:'작성'},{model:async req=>{
+    assert.match(req.instruction,/rule-a-only/);assert.doesNotMatch(req.instruction,/rule-b-only/);return {text:'완료'};},tool:async()=>null});
+  assert.equal(result.output,'완료',result.error??'');
+  for(const split of [false,true]){
+    if(split)graph.nodes[0].config.question='긴 입력\n'.repeat(205);
+    const files=archive({title:'팀 선택',graph,resources,files:data});
+    assert.equal(Boolean(files['workflow/index.md']),split);
+    const team=Object.values(files).find(text=>text.includes('Agent 팀 · team'))!.split('Agent 팀 · team')[1].split('### ')[0];
+    assert.doesNotMatch(team,/지침을 읽고 적용|Rule-b.*요청/);
+    const [path]=rolePaths(files);
+    assert.match(files[path],/\.agents\/skills\/rule-a\/SKILL\.md/);
+    assert.doesNotMatch(files[path],/Rule-b|rule-b/);
+  }
+});
 
 test('일반 AI 역할, 팀, 병렬 분기만 있는 설계는 네이티브 하위 Agent를 등록하지 않는다', () => {
   const graph: Graph = {nodes:[
@@ -87,7 +133,8 @@ test('단계가 분리되어도 동명 역할에 배정한 작업·Skill·MCP가
   assert.ok(firstPath && secondPath);
   assert.notEqual(firstPath, secondPath);
   assert.match(files[firstPath], /\.agents\/skills\/policy\/SKILL\.md/);
-  assert.match(files[firstPath], /public-catalog/);
+  assert.match(files[firstPath], /단일 응답에서 호출할 도구 — 없음/);
+  assert.doesNotMatch(files[firstPath], /public-catalog/);
   assert.doesNotMatch(files[secondPath], /FIRST-CHECK|\.agents\/skills\/policy\/SKILL\.md|public-catalog/);
   assert.doesNotMatch(Object.values(files).join('\n'), /비공개연결|never-export/);
   const linked = new Set<string>();
@@ -127,7 +174,8 @@ test('같은 범위에서 역할을 재사용하면 두 단계의 배정을 구�
   const newTool = roles.find(path => files[path].includes('C03'));
   const newSkill = roles.find(path => files[path].includes('D04'));
   assert.ok(newTool && newSkill && newTool !== newSkill);
-  assert.match(files[newTool], /update/);
+  assert.match(files[newTool], /단일 응답에서 호출할 도구 — 없음/);
+  assert.doesNotMatch(files[newTool], /update/);
   assert.match(files[newSkill], /\.agents\/skills\/handbook\/SKILL\.md/);
 });
 

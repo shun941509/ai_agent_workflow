@@ -1,0 +1,306 @@
+{
+  "source": "2718a4304ad5e11fd2a9934030dd5ab5f6f74389bca27a5e22f4bb3d62b4050e",
+  "appFingerprint": "4205841ce846dd0b4a7ba4255e5c00b753f6bbe0cb4467695f133b2a81ebe8c5",
+  "browserSuiteFingerprint": "6209b8b0c4ef97c617195208c9eb200e3bc8d048f92133899662ab398adf0ad7",
+  "fingerprints": {
+    "source": "scripts/verify-agent-export/source.mjs",
+    "appFingerprint": "src, public, package.json, pnpm-lock.yaml, next.config.ts",
+    "browserSuiteFingerprint": "scripts/test-browser.mjs, tests/browser-account.ts and the 35 listed test files in runner order",
+    "method": "SHA-256 of relative path, NUL, file bytes, NUL, with directory entries in lexicographic order; isolated copy and working tree matched."
+  },
+  "command": "node scripts/test-browser.mjs",
+  "packageScript": "test:browser",
+  "environment": {
+    "platform": "Windows",
+    "node": "v26.5.0",
+    "browser": "Headless Google Chrome 157.0.8103.79",
+    "playwright": "1.64.1",
+    "next": "16.4.6",
+    "buildId": "d1ChFzvzUQCGJaSUOKTr_",
+    "buildCompletedAt": "2026-11-26T16:59:07.211Z",
+    "server": "Production Next.js build with fresh temporary SQLite and loopback web/MCP ports",
+    "model": "disabled, deterministic fixtures",
+    "liveServicesIncluded": false
+  },
+  "reportedAt": "2026-11-26T17:19:56.186Z",
+  "exitCode": 0,
+  "passed": 35,
+  "failed": 0,
+  "resultSource": "The official sequential runner throws immediately on any nonzero child exit. Its successful final exit establishes code 0 for each listed child, including the shared MCP test selected for the isolated database.",
+  "scripts": [
+    {
+      "order": 1,
+      "name": "browser-smoke",
+      "file": "tests/browser-smoke.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 2,
+      "name": "run-recovery-browser",
+      "file": "tests/run-recovery-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 3,
+      "name": "agent-decisions-browser",
+      "file": "tests/agent-decisions-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 4,
+      "name": "creation-sharing-browser",
+      "file": "tests/creation-sharing-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 5,
+      "name": "home-lesson-browser",
+      "file": "tests/home-lesson-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 6,
+      "name": "workflow-guide-browser",
+      "file": "tests/workflow-guide-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 7,
+      "name": "guide-visuals-browser",
+      "file": "tests/guide-visuals-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 8,
+      "name": "beginner-reference-browser",
+      "file": "tests/beginner-reference-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 9,
+      "name": "lesson-run-context-browser",
+      "file": "tests/lesson-run-context-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 10,
+      "name": "optional-practice-browser",
+      "file": "tests/optional-practice-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 11,
+      "name": "dynamic-policy-browser",
+      "file": "tests/dynamic-policy-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 12,
+      "name": "library-visit-browser",
+      "file": "tests/library-visit-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 13,
+      "name": "editor-focus-proposal-browser",
+      "file": "tests/editor-focus-proposal-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 14,
+      "name": "editor-contracts-browser",
+      "file": "tests/editor-contracts-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 15,
+      "name": "agent-scope-browser",
+      "file": "tests/agent-scope-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 16,
+      "name": "agent-export-browser",
+      "file": "tests/agent-export-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 17,
+      "name": "editor-source-navigation-browser",
+      "file": "tests/editor-source-navigation-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 18,
+      "name": "canvas-editing-browser",
+      "file": "tests/canvas-editing-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 19,
+      "name": "canvas-keyboard-browser",
+      "file": "tests/canvas-keyboard-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 20,
+      "name": "canvas-zoom-browser",
+      "file": "tests/canvas-zoom-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 21,
+      "name": "canvas-placement-names-browser",
+      "file": "tests/canvas-placement-names-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 22,
+      "name": "canvas-copy-browser",
+      "file": "tests/canvas-copy-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 23,
+      "name": "canvas-connection-edit-browser",
+      "file": "tests/canvas-connection-edit-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 24,
+      "name": "canvas-placement-path-browser",
+      "file": "tests/canvas-placement-path-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 25,
+      "name": "canvas-gesture-browser",
+      "file": "tests/canvas-gesture-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 26,
+      "name": "canvas-wire-browser",
+      "file": "tests/canvas-wire-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 27,
+      "name": "canvas-history-browser",
+      "file": "tests/canvas-history-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 28,
+      "name": "engine-run-browser",
+      "file": "tests/engine-run-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 29,
+      "name": "run-case-conversation-browser",
+      "file": "tests/run-case-conversation-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 30,
+      "name": "decision-csv-browser",
+      "file": "tests/decision-csv-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 31,
+      "name": "editor-repair-browser",
+      "file": "tests/editor-repair-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 32,
+      "name": "resource-library-browser",
+      "file": "tests/resource-library-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 33,
+      "name": "shared-resource-gallery-browser",
+      "file": "tests/shared-resource-gallery-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 34,
+      "name": "shared-mcp-copy-browser",
+      "file": "tests/shared-mcp-copy-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    },
+    {
+      "order": 35,
+      "name": "trigger-browser",
+      "file": "tests/trigger-browser.ts",
+      "status": "passed",
+      "exitCode": 0
+    }
+  ],
+  "retries": [
+    {
+      "script": "browser-smoke",
+      "phase": "Initial run",
+      "status": "failed",
+      "reason": "The first ordered list in the guide page was the visual example, so the release lesson steps assertion read the wrong list."
+    },
+    {
+      "script": "browser-smoke",
+      "phase": "Selector refinement",
+      "status": "failed",
+      "reason": "The lesson section contains a second ordered list for an optional practice, so selecting all section lists was ambiguous."
+    },
+    {
+      "script": "browser-smoke",
+      "phase": "Final full run",
+      "status": "passed",
+      "change": "Scoped both course checklist assertions to the ordered list following the practice heading. The final frozen tests also check the explicit category mapping confirmation."
+    }
+  ],
+  "supplemental": {
+    "scope": "Concurrent independent repeat of the last 17 official scripts, on another isolated database and local ports",
+    "first": "canvas-keyboard-browser",
+    "last": "trigger-browser",
+    "passed": 17,
+    "failed": 0,
+    "exitCode": 0,
+    "countedInOfficialTotal": false
+  }
+}

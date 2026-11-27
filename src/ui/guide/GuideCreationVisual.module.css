@@ -1,0 +1,69 @@
+.creation {
+  margin-block-start: clamp(26px, 4vw, 45px);
+  padding-block-start: 20px;
+  border-block-start: 1px solid var(--border);
+  color: var(--ink);
+}
+.creation h3 { margin: 0; font-size: 1.2rem; }
+.creation > p { margin: 6px 0 16px; line-height: 1.6; }
+.creation ol {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 2.8vw, 28px); margin: 0; padding: 0; list-style: none;
+}
+.creation li { min-width: 0; }
+.creation .tryIt { margin-block: 20px 0; padding: 12px 15px; border-inline-start: 3px solid var(--accent); background: var(--tint); }
+.tryIt strong { display: block; }
+.annotation {
+  --rail: 12px;
+  --inset: 7px;
+  background: var(--surface);
+  border: 1px solid var(--field-border);
+  border-radius: 5px;
+  overflow: hidden;
+  max-width: 800px;
+  margin-inline: auto;
+}
+.action {
+  display: flex; align-items: center; gap: 7px; min-height: 32px;
+  padding: 4px var(--inset); color: var(--accent); background: var(--tint);
+  font-size: .88rem; font-weight: 700; line-height: 1.4; text-align: start;
+}
+.action > span {
+  display: grid; place-items: center; flex: none;
+  inline-size: 24px; block-size: 24px; border: 1px solid var(--accent); border-radius: 50%;
+  font-variant-numeric: tabular-nums;
+}
+.shot { position: relative; margin-inline-start: calc(var(--rail) * 2 + var(--inset)); }
+.shot img { display: block; width: 100%; height: auto; }
+.leader, .target { position: absolute; pointer-events: none; }
+.leader {
+  top: 0; left: calc(0px - var(--rail)); width: calc(var(--rail) + var(--mark-left) - 3px); height: var(--mark-mid);
+  color: var(--accent); border-inline-start: 2px solid; border-block-end: 2px solid;
+}
+.leader::after {
+  content: ''; position: absolute; right: -1px; bottom: -4px;
+  width: 7px; height: 7px; border-block-end: 2px solid; border-inline-end: 2px solid; transform: rotate(-45deg);
+}
+.annotation[data-right] .action::after {
+  content: ''; flex: 1; min-width: 4px; margin-inline-end: var(--rail); border-block-end: 1px solid;
+}
+.annotation[data-right] .shot { margin-inline: 0 calc(var(--rail) * 2 + var(--inset)); }
+.annotation[data-right] .leader {
+  left: auto; right: calc(0px - var(--rail));
+  width: calc(var(--rail) + 100% - var(--mark-left) - var(--mark-width) - 3px);
+  border-inline-start: 0; border-inline-end: 2px solid;
+}
+.annotation[data-right] .leader::after { left: -1px; right: auto; transform: rotate(135deg); }
+.target {
+  left: var(--mark-left); top: var(--mark-top); width: var(--mark-width); height: var(--mark-height);
+  border: 2px solid var(--accent); border-radius: 3px;
+  box-shadow: 0 0 0 1px white, inset 0 0 0 1px white;
+}
+@container guide (max-width: 700px) {
+  .creation ol { grid-template-columns: minmax(0, 1fr); }
+  .creation li { max-width: 530px; }
+}
+@media (forced-colors: active) {
+  .leader { color: Highlight; }
+  .target, .action > span { border-color: Highlight; box-shadow: none; }
+}

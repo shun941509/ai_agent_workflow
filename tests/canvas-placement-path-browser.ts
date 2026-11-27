@@ -47,7 +47,7 @@ try {
         await page.screenshot({path:join(process.env.STUDIO_SCREENSHOTS,name+'-'+width+'.png')});
       };
       for (const list of [false,true]) {
-        if (list) await page.getByRole('button',{name:'목록으로 편집',exact:true}).press('Enter');
+        await page.getByRole('button',{name:list ? '목록으로 편집' : '캔버스로 보기',exact:true}).press('Enter');
         await block('free').press('Control+ArrowDown');
         await expect(block('free')).toBeFocused();
         await expect(canvas.getByRole('status')).toContainText('연결된 선이 없습니다');
@@ -107,7 +107,7 @@ try {
       await expect.poll(topBlock).toBe('review');
       for (let step=0; step<8; step++) await moving.press('Shift+ArrowLeft');
       await expect(canvas.getByRole('status')).toBeEmpty();
-      await page.getByRole('button',{name:'전체 보기',exact:true}).press('Enter');
+      await page.getByRole('button',{name:'캔버스에 맞추기',exact:true}).press('Enter');
       const from = (await moving.boundingBox())!, to = (await block('review').boundingBox())!;
       const start = {x:from.x+from.width/2,y:from.y+from.height/2};
       const end = {x:to.x+to.width/2,y:to.y+to.height/2};

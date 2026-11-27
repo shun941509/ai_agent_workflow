@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useId, useLayoutEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { Maximize2 } from 'lucide-react';
 import StudioDialog from '../StudioDialog';
@@ -6,6 +6,7 @@ import { captures } from './captures';
 import styles from './GuidePage.module.css';
 
 type Capture = NonNullable<(typeof captures)[keyof typeof captures]>;
+type ZoomSize = 'fit' | 'original' | 'double';
 
 const captureNames: Record<string, string> = {
   'terms-workflow': '도서관 질문의 전체 Workflow',
@@ -40,17 +41,34 @@ function MarkedImage({ capture, preview = false, scale = 1, eager = false }: { c
 export function GuideFigure({id, title = captureNames[id] ?? '실습 화면', eager = false}: {id: string; title?: string; eager?: boolean}) {
   const capture = captures[id];
   const [zoom, setZoom] = useState(false);
-  const [size, setSize] = useState<'fit' | 'original' | 'double'>('fit');
+  const [size, setSize] = useState<ZoomSize>('fit');
   const opener = useRef<HTMLButtonElement>(null);
   const viewport = useRef<HTMLDivElement>(null);
+  const descriptionId = useId();
+  const readingPoint = useRef<{x:number; y:number} | null>(null);
+  function changeSize(next: ZoomSize) {
+    const area = viewport.current;
+    const image = area?.querySelector('img');
+    if (area && image && size !== 'fit' && next !== 'fit') {
+      const box = image.getBoundingClientRect();
+      const frame = area.getBoundingClientRect();
+      if (box.width && box.height) readingPoint.current = {
+        x:(frame.left + area.clientLeft + area.clientWidth / 2 - box.left) / box.width,
+        y:(frame.top + area.clientTop + area.clientHeight / 2 - box.top) / box.height,
+      };
+    }
+    setSize(next);
+  }
   useLayoutEffect(() => {
     const area = viewport.current;
     if (!area || !capture) return;
     const first = capture.marks[0];
-    if (size !== 'fit' && first) {
+    const point = readingPoint.current ?? (first && {x:(first.x + first.w / 2) / 100, y:(first.y + first.h / 2) / 100});
+    readingPoint.current = null;
+    if (size !== 'fit' && point) {
       const scale = size === 'double' ? 2 : 1;
-      area.scrollLeft = (first.x + first.w / 2) * capture.width * scale / 100 - area.clientWidth / 2;
-      area.scrollTop = (first.y + first.h / 2) * capture.height * scale / 100 - area.clientHeight / 2;
+      area.scrollLeft = point.x * capture.width * scale - area.clientWidth / 2;
+      area.scrollTop = point.y * capture.height * scale - area.clientHeight / 2;
     } else {
       area.scrollTo(0, 0);
     }
@@ -79,17 +97,17 @@ export function GuideFigure({id, title = captureNames[id] ?? '실습 화면', ea
           {mark.label}</span>)}
       </span>}
     </figcaption>
-    {zoom && <StudioDialog wide title={title + ' 확대'} onClose={() => {
+    {zoom && <StudioDialog size="workspace" title={title + ' 확대'} descriptionId={descriptionId} onClose={() => {
       setZoom(false);
       requestAnimationFrame(() => opener.current?.focus({preventScroll: true}));
     }}>
       <div className={styles.zoomTools}>
-        <span>{capture.caption}</span>
+        <span id={descriptionId}>{capture.caption}</span>
         <div role="group" aria-label="이미지 배율">
-          <button type="button" className="btn" onClick={() => setSize(size === 'fit' ? 'original' : 'fit')}>
+          <button type="button" className="btn" onClick={() => changeSize(size === 'fit' ? 'original' : 'fit')}>
             {size === 'fit' ? '원본 크기로 보기' : '화면에 맞추기'}
           </button>
-          <button type="button" className="btn" aria-pressed={size === 'double'} onClick={() => setSize(size === 'double' ? 'original' : 'double')}>
+          <button type="button" className="btn" aria-pressed={size === 'double'} onClick={() => changeSize(size === 'double' ? 'original' : 'double')}>
             2배로 확대
           </button>
         </div>

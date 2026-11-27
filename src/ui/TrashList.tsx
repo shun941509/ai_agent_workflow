@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Search, Trash2, Undo2 } from 'lucide-react';
+import { Clock3, Search, Trash2, Undo2 } from 'lucide-react';
 import { api, message } from './client';
 import StudioDialog from './StudioDialog';
+import './trash-list.css';
 
 export type TrashEntry = {
   id: string;
@@ -153,13 +154,14 @@ export default function TrashList<T extends TrashEntry>({ scope, titleOf, subtit
     }
   }
 
-  return <>
-    <p className="trash-policy">
-      {noun}는 삭제한 시각부터 3일 동안 보관한 뒤 자동으로 영구 삭제됩니다.{' '}
+  return <div className="trash-surface">
+    <div className="trash-policy"><Clock3 size={19} aria-hidden="true"/><div>
+      <strong>보관 및 복구</strong>
+      <p>{noun}는 삭제한 시각부터 3일 동안 보관한 뒤 자동으로 영구 삭제됩니다.{' '}
       {scope === 'project'
         ? '복구하면 ‘나만 사용’으로 돌아오며, 공유와 자동 시작을 다시 설정할 수 있습니다.'
-        : '복구하면 모든 판이 ‘나만 사용’으로 돌아옵니다. 다른 사람이 다시 사용하려면 자료를 새로 공유하세요.'}
-    </p>
+        : '복구하면 모든 판이 ‘나만 사용’으로 돌아옵니다. 다른 사람이 다시 사용하려면 자료를 새로 공유하세요.'}</p>
+    </div></div>
     <label className="list-search">
       <Search size={16} aria-hidden="true" />
       <input ref={searchInput} aria-label={searchLabel} placeholder={searchLabel}
@@ -169,11 +171,18 @@ export default function TrashList<T extends TrashEntry>({ scope, titleOf, subtit
     {notice && <p role="status">{notice}</p>}
     {listError ? <div className="empty-state">
       <p role="alert">{listError}</p>
-      <button className="btn" type="button" onClick={() => setReload(value => value + 1)}>다시 불러오기</button>
+      <button className="btn" type="button" onClick={() => {
+        searchInput.current?.focus();
+        setReload(value => value + 1);
+      }}>다시 불러오기</button>
     </div> : items === null ? <p role="status">휴지통을 불러오는 중입니다.</p>
       : matches.length === 0 ? <div className="empty-state">
         <Trash2 size={20} aria-hidden="true" />
-        <p>{search.trim() ? '검색 결과가 없습니다.' : '휴지통이 비어 있습니다.'}</p>
+        <p role="status">{search.trim() ? '검색 결과가 없습니다.' : '휴지통이 비어 있습니다.'}</p>
+        {search.trim()&&<button type="button" className="btn" onClick={()=>{
+          updateSearch('');
+          searchInput.current?.focus();
+        }}>검색어 지우기</button>}
       </div> : <>
         <div className="trash-toolbar">
           <label className="trash-select">
@@ -208,19 +217,25 @@ export default function TrashList<T extends TrashEntry>({ scope, titleOf, subtit
               <span className="project-name">
                 <b>{titleOf(item)}</b>
                 {subtitleOf && <small>{subtitleOf(item)}</small>}
-                <small>삭제 <time dateTime={item.deletedAt}>{localDate.format(new Date(item.deletedAt))}</time></small>
-                <small>자동 삭제 예정 <time dateTime={item.expiresAt}>{localDate.format(new Date(item.expiresAt))}</time></small>
               </span>
             </label>
             <button className="btn trash-restore" aria-label={titleOf(item) + ' 복구'} type="button"
               disabled={busy} onClick={() => void restore(item)}>
               <Undo2 size={16} aria-hidden="true" />{restoring === item.id ? '복구 중…' : '복구'}
             </button>
+            <dl className="trash-times">
+              <div><dt>삭제</dt><dd><time dateTime={item.deletedAt}>{localDate.format(new Date(item.deletedAt))}</time></dd></div>
+              <div><dt>자동 삭제 예정</dt><dd><time dateTime={item.expiresAt}>{localDate.format(new Date(item.expiresAt))}</time></dd></div>
+            </dl>
           </li>)}
         </ul>
       </>}
-    {confirmation && <StudioDialog title={noun + ' 영구 삭제'} descriptionId="purge-summary"
-      initialFocus={cancelButton} onClose={cancelPurge} dismissDisabled={purging}>
+    {confirmation && <StudioDialog title={noun + ' 영구 삭제'} size={confirmation.length>4?'standard':'confirm'} descriptionId="purge-summary"
+      initialFocus={cancelButton} onClose={cancelPurge} dismissDisabled={purging}
+      footer={<><button className="btn" type="button" ref={cancelButton} disabled={purging} onClick={cancelPurge}>취소</button>
+        <button className="btn danger" type="button" disabled={purging || confirmationChanged} onClick={() => void purge()}>
+          {purging ? '영구 삭제 중…' : '영구 삭제'}
+        </button></>}>
       <p id="purge-summary">선택한 {noun} {confirmation.length}개를 영구 삭제할까요? 삭제하면 복구할 수 없습니다.</p>
       <ul className="purge-project-names" aria-label={'영구 삭제할 ' + noun}>
         {confirmation.map(item => <li key={item.id}>{titleOf(item)}</li>)}
@@ -228,12 +243,6 @@ export default function TrashList<T extends TrashEntry>({ scope, titleOf, subtit
       {confirmationChanged && !purging && <p className="modal-error" role="alert">
         보관 기한이 지난 {noun}가 있습니다. 취소한 뒤 남은 {noun}를 다시 확인하세요.
       </p>}
-      <div className="row">
-        <button className="btn" type="button" ref={cancelButton} disabled={purging} onClick={cancelPurge}>취소</button>
-        <button className="btn danger" type="button" disabled={purging || confirmationChanged} onClick={() => void purge()}>
-          {purging ? '영구 삭제 중…' : '영구 삭제'}
-        </button>
-      </div>
     </StudioDialog>}
-  </>;
+  </div>;
 }

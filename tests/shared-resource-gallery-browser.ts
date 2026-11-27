@@ -42,7 +42,14 @@ async function signUpFromPinnedLink(owner:BrowserContext, note:{id:string;name:s
     await expect(page.getByText('직원 안내 지침',{exact:true})).toHaveCount(0);
     await page.getByRole('button',{name:'계정 만들기',exact:true}).click();
     await page.getByLabel('아이디',{exact:true}).fill('edition-'+crypto.randomUUID().slice(0,12));
-    await page.getByLabel('비밀번호',{exact:true}).fill(crypto.randomUUID());
+    const password=page.getByLabel('비밀번호',{exact:true});
+    const reveal=page.getByRole('button',{name:'비밀번호 표시',exact:true});
+    await password.fill(crypto.randomUUID());
+    await reveal.tap();
+    await expect(password).toHaveAttribute('type','text');
+    await expect(reveal).toHaveAttribute('aria-pressed','true');
+    await reveal.press('Space');
+    await expect(password).toHaveAttribute('type','password');
     await page.getByRole('button',{name:'계정 만들기',exact:true}).click();
     const detail=page.getByRole('region',{name:'도구 및 자료'});
     await expect(detail.getByRole('heading',{name:note.name,exact:true})).toBeVisible();

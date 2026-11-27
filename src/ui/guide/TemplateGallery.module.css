@@ -34,20 +34,23 @@
   display: flex;
   gap: 8px;
   align-items: baseline;
-  min-height: 40px;
+  min-height: 44px;
   padding: 8px;
   border-inline-start: 3px solid transparent;
   line-height: 1.45;
 }
 .option small { flex: none; font-size: .76rem; color: var(--muted); }
-.option:hover > span { background: #f0f5f3; }
+.option:hover > span { background: var(--workspace-bg); }
 .option input:checked + span {
   border-color: var(--accent);
-  background: #e8f2ee;
-  color: #165b53;
+  background: var(--tint);
+  color: var(--accent);
   font-weight: 700;
 }
 .option input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: -2px; }
+@media (forced-colors: active) {
+  .option input:checked + span::after { content: '✓' / ''; margin-inline-start: auto; font-weight: 700; }
+}
 .compactPicker { display: none; }
 .previewHeader {
   display: flex;
@@ -73,17 +76,17 @@
 .outputTable th, .outputTable td { text-align: start; padding: 6px 4px; border-bottom: 1px solid var(--border); vertical-align: top; }
 .outputTable th { white-space: nowrap; }
 .results p { line-height: 1.65; }
-.results details summary { color: var(--accent); cursor: pointer; font-weight: 650; }
+.results details summary { min-height: 44px; padding-block: 10px; color: var(--accent); cursor: pointer; font-weight: 650; }
 .layout details { margin-top: 14px; border-top: 1px solid var(--border); }
 .layout summary { min-height: 44px; padding-block: 12px; cursor: pointer; color: var(--accent); font-weight: 650; }
 .results {
   padding: 14px 16px 16px;
   align-self: start;
-  border-inline-start: 3px solid #76a398;
-  background: #f1f6f3;
+  border-inline-start: 3px solid var(--accent);
+  background: var(--tint);
 }
 .results dl { margin: 0; }
-.results dt { margin-top: 12px; color: #3c5954; font-size: .85rem; font-weight: 700; }
+.results dt { margin-top: 12px; color: var(--ink); font-size: .85rem; font-weight: 700; }
 .results dd { margin-top: 3px; }
 .results dd > p, .results dd > ol { margin-block: 0; }
 .results dd > p + ol { margin-top: .5rem; }
@@ -99,7 +102,7 @@
     min-width: 0;
     min-height: 44px;
     padding: 7px 9px;
-    border: 1px solid #93a9a6;
+    border: 1px solid var(--field-border);
     border-radius: 4px;
     background: white;
     color: var(--ink);

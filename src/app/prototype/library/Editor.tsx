@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import {
   ArrowDownToLine, ArrowRight, Check, ChevronRight, FileText, Layers3, List,
   PanelRight, Play, Quote, Search, Workflow, X,
@@ -8,6 +8,7 @@ import {
 import LibraryGraph, { NodeIcon } from './LibraryGraph';
 import { nodes, type NodeId, type Point, type Positions } from './graph-model';
 import { readLoanRule } from './library-rule';
+import { cycleDialogFocus } from '../../../ui/dialog-focus';
 import './editor.css';
 
 const sequence: NodeId[] = ['input', 'agent', 'file', 'output'];
@@ -77,7 +78,7 @@ function Canvas(props: GraphProps) {
   return <section className="le-canvas" aria-label="워크플로 캔버스">
     <div className="le-canvas-header">
       <h2><Workflow size={16} />워크플로 캔버스</h2>
-      <div className="le-view-toggle" aria-label="캔버스 보기">
+      <div className="le-view-toggle" role="group" aria-label="캔버스 보기">
         <button type="button" title="연결도 보기" aria-label="연결도 보기" aria-pressed={!listView} onClick={() => setListView(false)}><Workflow size={15} /></button>
         <button type="button" title="목록 보기" aria-label="목록 보기" aria-pressed={listView} onClick={() => setListView(true)}><List size={16} /></button>
       </div>
@@ -94,7 +95,7 @@ function Canvas(props: GraphProps) {
 }
 
 type RuleProps = { rule: string; onRuleChange: (source: string) => void };
-function Inspector({ selected, selectNode, rule, onRuleChange }: SelectionProps & RuleProps) {
+function Inspector({ selected, selectNode, rule, onRuleChange, titleRef }: SelectionProps & RuleProps & {titleRef: RefObject<HTMLHeadingElement | null>}) {
   const [pending, setPending] = useState<string | null>(null);
   const [lastApplied, setLastApplied] = useState<string | null>(null);
   const draft = pending ?? rule;
@@ -112,7 +113,7 @@ function Inspector({ selected, selectNode, rule, onRuleChange }: SelectionProps 
   }
   return <aside className="le-inspector" aria-label="블록 속성">
     <h2 className="le-panel-heading"><PanelRight size={16} />블록 속성</h2>
-    <div className="le-inspect-title"><NodeIcon node={node} /><div><small>{node.role}</small><h3>{node.name}</h3></div></div>
+    <div className="le-inspect-title"><NodeIcon node={node} /><div><small>{node.role}</small><h3 ref={titleRef} tabIndex={-1}>{node.name}</h3></div></div>
     {selected === 'rules' ? <section className="le-inspect-section">
       <label className="le-source-label" htmlFor="le-rule-source">자료 원문</label>
       <textarea id="le-rule-source" className="le-source-input" rows={9} value={draft}
@@ -145,13 +146,13 @@ function Result({ rule, close }: { rule: string; close: () => void }) {
     fileLink.current.href = url;
     return () => URL.revokeObjectURL(url);
   }, [answer, quote]);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;
     dialog.showModal();
     return () => dialog.close();
   }, []);
-  return <dialog ref={ref} className="le-result" aria-labelledby="le-result-title" onCancel={close} onClick={(event) => {
+  return <dialog ref={ref} className="le-result" aria-labelledby="le-result-title" onKeyDown={cycleDialogFocus} onCancel={close} onClick={(event) => {
     if (event.target === event.currentTarget) close();
   }}>
     <div className="le-result-inner">
@@ -169,7 +170,15 @@ function Result({ rule, close }: { rule: string; close: () => void }) {
 export default function Editor({ rule, onRuleChange, positions, selected, onSelect, onMove }: RuleProps & GraphProps) {
   const [mobilePanel, setMobilePanel] = useState<'canvas' | 'inspector'>('canvas');
   const [preview, setPreview] = useState(false);
+  const inspectorTitle = useRef<HTMLHeadingElement>(null);
+  const selectionTrigger = useRef<Element | null>(null);
+  useLayoutEffect(() => {
+    const trigger = selectionTrigger.current;
+    selectionTrigger.current = null;
+    if (trigger && !trigger.getClientRects().length) inspectorTitle.current?.focus();
+  }, [selected, mobilePanel]);
   function selectNode(id: NodeId) {
+    selectionTrigger.current = document.activeElement;
     onSelect(id);
     setMobilePanel('inspector');
   }
@@ -183,7 +192,7 @@ export default function Editor({ rule, onRuleChange, positions, selected, onSele
     <div className={`le-workspace le-mobile-${mobilePanel}`}>
       <Palette selected={selected} selectNode={selectNode} />
       <Canvas positions={positions} selected={selected} onSelect={selectNode} onMove={onMove} />
-      <Inspector selected={selected} selectNode={selectNode} rule={rule} onRuleChange={onRuleChange} />
+      <Inspector selected={selected} selectNode={selectNode} rule={rule} onRuleChange={onRuleChange} titleRef={inspectorTitle} />
     </div>
     {preview && <Result rule={rule} close={() => setPreview(false)} />}
   </div>;

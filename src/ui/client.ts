@@ -5,7 +5,17 @@ export class StudioApiError extends Error {
 }
 
 export async function studioResponse(action:string,data:unknown={},signal?:AbortSignal):Promise<Response>{
-  const res=await fetch('/api/studio',{method:'POST',credentials:'same-origin',headers:{'content-type':'application/json'},body:JSON.stringify({action,data}),cache:'no-store',signal});
+  const body = JSON.stringify({action,data});
+  let res: Response;
+  try {
+    res = await fetch('/api/studio', {
+      method:'POST', credentials:'same-origin', headers:{'content-type':'application/json'}, body, cache:'no-store', signal,
+    });
+  } catch (error) {
+    if (error instanceof TypeError && !signal?.aborted)
+      throw new TypeError('서버 응답을 받지 못했습니다. 네트워크 연결과 작업실 서버 상태를 확인하세요.', {cause:error});
+    throw error;
+  }
   if (!res.ok) {
     if (res.status === 401 && typeof window !== 'undefined' && window.location.pathname !== '/login') {
       window.location.replace(loginAddress(window.location.pathname + window.location.search + window.location.hash));

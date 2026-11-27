@@ -12,21 +12,25 @@ import { legacyGuestSession } from './legacy-guest';
 import {createProject,openProject,runnable,saveProject} from '../src/server/projects';
 import {readAsset} from '../src/server/assets';
 import {scopeModel} from './scope-fixture';
+import {EngineExportMatrix} from './engine-export-matrix';
 
 process.env.STUDIO_DATA_DIR=mkdtempSync(join(tmpdir(),'studio-capability-matrix-'));
 const designer=legacyGuestSession().user;
 const observedResults=new Set<string>();
+const exportMatrix=new EngineExportMatrix();
 async function executeGraph(graph:Graph,request:EngineRequest,adapters:EngineServices){
   const saved=createProject(designer,{graph,title:'블록 검증'});
   const restored=openProject(designer,saved.id).graph!;
   assert.equal(JSON.stringify(restored),JSON.stringify(graph));
   const result=await runEngine(restored,request,adapters);
+  exportMatrix.compare(designer,saved.id,restored,result);
   for(const event of result.events)if(event.kind==='result'&&event.blockType)observedResults.add(event.blockType);
   return result;
 }
 after(()=>{
   const missing=catalog.filter(def=>!observedResults.has(def.type)).map(def=>def.type);
   assert.deepEqual(missing,[],'SQLite 재열기 후 동작 결과가 확인되지 않은 블록');
+  exportMatrix.finish();
 });
 
 function block(id:string,type:string,config:Block['config']={},graph?:Graph):Block {
@@ -464,7 +468,8 @@ test('검색 자산 준비·색인과 조건 분기, 오류 처리, MCP 참조',
   g.nodes.push(block('document','resource.context',{content:'자료 한 줄\n둘째 줄'}));
   g.edges.push(edge('document','index','reference','ref','context'));
   const r=await run(g,'');const indexed=JSON.parse(r.output);
-  assert.equal(indexed.lines,2);assert.equal(indexed.documents[0].version,'2');
+  assert.equal(indexed.lines,2);assert.equal(indexed.documents[0].version,'1');
+  assert.equal(indexed.index[0].passage.indexVersion,'2');
   const branch=block('branch','control.branch',{operator:'contains',expected:'예약'});
   const check=block('validate','data.validate',{requiredFields:['reservationId']});
   const handle=block('handle','error.handle',{strategy:'fallback',message:'예약 번호 추가 필요'});

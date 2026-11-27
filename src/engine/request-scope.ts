@@ -1,15 +1,9 @@
-import {isDelegatedRole, modelBlocks} from '../domain/agent-context';
+import {usesModel} from '../domain/agent-context';
 import {attachmentFrom, encodeRunQuestion, literalRunQuestion} from '../domain/run-input';
 import type {Graph} from '../domain/types';
-import type {Session} from './session';
+import type {Scope,Session} from './session';
 import type {EngineCheckpoint} from './types';
-import {record} from './values';
-
-function usesModel(graph: Graph): boolean {
-  return graph.nodes.some(node => modelBlocks.has(node.type) ||
-    (node.graph ? usesModel(node.graph) : isDelegatedRole(node.type) ||
-      (node.type==='workflow.call' && Boolean(node.config.workflowId && node.config.version))));
-}
+import {asText,record} from './values';
 
 const scopeInstruction = [
   '업무 범위 판정: 이 Agent의 목적과 사용자가 맡긴 행동을 비교하세요. 요청 수행, 질문에 대한 답변, 도구 실행 없이 판정 JSON만 반환하세요.',
@@ -41,9 +35,10 @@ function removeExcluded(question: string, excluded: unknown): string {
 }
 
 async function classify(purpose: string, session: Session, raw = session.request.input, path='root#scope'): Promise<NonNullable<EngineCheckpoint['scopeDecision']>> {
-  const literal = literalRunQuestion(raw);
-  const file = attachmentFrom(raw);
-  const question = literal ?? (file ? String(record(raw).question ?? file.fileName) : raw);
+  const safeRaw = session.privacy.text(raw);
+  const literal = literalRunQuestion(safeRaw);
+  const file = attachmentFrom(safeRaw);
+  const question = literal ?? (file ? String(record(safeRaw).question ?? file.fileName) : safeRaw);
   const response = await session.model(path, 'classify', {
     instruction: scopeInstruction,
     input: JSON.stringify({question, ...(file && {fileName:file.fileName})}),
@@ -60,13 +55,16 @@ async function classify(purpose: string, session: Session, raw = session.request
   throw Error('Agent의 업무 범위 판정 결과를 읽을 수 없습니다. 다시 시도해 주세요.');
 }
 
-export async function scopedChildInput(graph:Graph,session:Session,path:string,input:unknown){
-  if(graph.agentScope?.mode!=='dedicated'||!usesModel(graph))return input;
-  const raw=typeof input==='string'?input:JSON.stringify(input);
-  const decision=await classify(graph.agentScope.purpose,session,raw,path+'#scope');
+export async function scopedChild(graph:Graph,session:Session,scope:Scope):Promise<Scope>{
+  if(graph.agentScope?.mode!=='dedicated'||!usesModel(graph))return scope;
+  const raw=typeof scope.input==='string'?scope.input:JSON.stringify(scope.input);
+  const decision=await classify(graph.agentScope.purpose,session,raw,scope.path+'#scope');
   if(decision.status==='out_of_scope')throw Error('하위 Agent의 업무 범위에 해당하지 않습니다. '+graph.agentScope.purpose);
-  if(decision.status==='mixed')return literalRunQuestion(decision.input)??decision.input;
-  return input;
+  const accepted=decision.status==='mixed'?decision.input:raw;
+  const literal=literalRunQuestion(accepted);
+  const file=attachmentFrom(accepted);
+  return {...scope,input:decision.status==='mixed'?literal??accepted:scope.input,
+    originalQuestion:literal??(file?asText(record(accepted).question??file.fileName):accepted)};
 }
 
 export async function checkRequestScope(graph: Graph, session: Session): Promise<EngineCheckpoint['scopeDecision']> {

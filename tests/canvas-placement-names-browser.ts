@@ -47,6 +47,10 @@ async function exercise(width:number) {
     await expect(page.getByRole('button',{name:'캔버스로 바로 가기'})).toBeFocused();
     await page.keyboard.press('Enter');
     await expect(block('source')).toBeFocused();
+    if (mobile) {
+      await page.getByRole('button',{name:'캔버스로 보기',exact:true}).click();
+      await block('source').focus();
+    }
     await expect(block('first')).toHaveText('1번 · 답변 보내기');
     await expect(block('second')).toHaveText('2번 · 답변 보내기');
     await page.keyboard.press('ArrowRight');

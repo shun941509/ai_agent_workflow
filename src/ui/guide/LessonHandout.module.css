@@ -1,0 +1,58 @@
+:global(.modal-content):has(> .handout) { padding: 0; display: flex; flex-direction: column; gap: 0; }
+:global(.modal-content):has(> .handout) > :is([role="status"], [role="alert"]) { padding: 12px 16px; }
+.handout { display: flex; flex-direction: column; min-height: 0; line-height: 1.65; color: var(--ink); overflow-wrap: anywhere; word-break: keep-all; }
+.spread { display: grid; grid-template-columns: minmax(210px, .8fr) minmax(0, 1.55fr); min-height: 0; overflow: auto; scroll-padding-block: 12px; overscroll-behavior: contain; }
+.cover {
+  display: flex;
+  flex-direction: column;
+  padding: clamp(22px, 2.7vw, 38px);
+  color: white;
+  background: #28479f;
+  border-inline-start: 9px solid #1d3989;
+}
+.level { display: flex; align-items: center; gap: 9px; font-size: .88rem; font-weight: 650; }
+.cover h2 { margin: 29px 0 15px; color: white; font-size: clamp(29px, 3.2vw, 45px); letter-spacing: -.055em; line-height: 1.22; }
+.cover > p { margin: 0; color: #edf1ff; }
+.imprint { margin-top: auto; padding-top: clamp(36px, 5vw, 80px); }
+.imprint small { display: block; padding-top: 12px; border-top: 1px solid #93a8dc; color: #edf1ff; }
+.imprint strong { display: block; margin-top: 3px; font-size: 1.22rem; letter-spacing: -.04em; }
+.guide { min-width: 0; padding: clamp(19px, 2.7vw, 36px); background: #fdfcf9; }
+.handout .guide > h3 { margin: 0 0 12px; font-size: 1.4rem; letter-spacing: -.04em; }
+.guide .steps { list-style: none; margin: 0 0 12px; padding: 0; }
+.steps li { display: grid; grid-template-columns: 25px minmax(0, 1fr); gap: 8px; padding: 13px 0; border-top: 1px solid var(--border); }
+.steps li > span { color: var(--accent); font-variant-numeric: tabular-nums; font-weight: 700; }
+.steps h4 { margin: 0 0 4px; font-size: 1.02rem; }
+.steps p { font-size: .94rem; line-height: 1.6; }
+.guide details { border-top: 1px solid var(--border); }
+.guide summary { cursor: pointer; min-height: 44px; padding-block: 10px; color: var(--ink); font-weight: 650; }
+.guide details > p { margin-bottom: 10px; }
+.guide :is(ul, ol):not(.steps) { padding-inline-start: 22px; margin-bottom: 12px; }
+.example { white-space: pre-line; }
+.guide :global(.lesson-policy) { margin-bottom: 16px; }
+.action {
+  flex: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--surface, white);
+}
+.action span { font-size: .84rem; color: var(--muted); }
+.action button { flex: none; min-height: 44px; max-width: 100%; white-space: normal; }
+@media (max-width: 650px) {
+  .spread { grid-template-columns: minmax(0, 1fr); }
+  .cover { padding: 18px 22px; border-inline-start-width: 6px; }
+  .cover h2 { margin: 10px 0 7px; font-size: clamp(25px, 6vw, 34px); }
+  .cover p { font-size: .89rem; }
+  .imprint { display: flex; align-items: baseline; gap: 8px; padding-top: 9px; }
+  .imprint small { border: 0; padding: 0; }
+  .imprint strong { font-size: .91rem; }
+  .action { padding: 8px 13px; }
+}
+@media (max-width: 400px) {
+  .action { flex-wrap: wrap; gap: 4px; }
+  .action button { flex: 1 0 auto; }
+  .action span { font-size: .78rem; }
+}

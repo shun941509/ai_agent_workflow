@@ -61,6 +61,7 @@ export function BlockReference({filters, onChange, headingRef, libraryPreview}: 
   libraryPreview: ReactNode;
 }) {
   const levelGroup = useId();
+  const searchInput = useRef<HTMLInputElement>(null);
   const {term, firstLevel} = filters;
   const query = term.trim().toLocaleLowerCase('ko');
   const matches = (...parts: string[]) => parts.join(' ').toLocaleLowerCase('ko').includes(query);
@@ -72,7 +73,7 @@ export function BlockReference({filters, onChange, headingRef, libraryPreview}: 
     <div className={styles.filters}>
       <label className={styles.search}>
         블록·자료 이름 검색
-        <input type="search" value={term} placeholder="AI 작업, Skill, 지식 저장소" onChange={event => onChange({...filters, term:event.target.value})} />
+        <input ref={searchInput} type="search" value={term} placeholder="AI 작업, Skill, 지식 저장소" onChange={event => onChange({...filters, term:event.target.value})} />
       </label>
       <fieldset className={styles.levelPicker}>
         <legend>블록 추천 수준</legend>
@@ -84,8 +85,12 @@ export function BlockReference({filters, onChange, headingRef, libraryPreview}: 
     </div>
     <div className={styles.resultBar}>
       <p role="status">{!blocks.length && !materials.length
-        ? '일치하는 항목이 없습니다. 검색어를 바꾸거나 블록 추천 수준을 전체로 선택하세요.'
+        ? '일치하는 항목이 없습니다.'
         : `설계 블록 ${blocks.length}개 · 자료 종류 ${materials.length}개`}</p>
+      {!blocks.length && !materials.length && <button type="button" className={styles.referenceAction} onClick={() => {
+        onChange({term:'', firstLevel:'전체'});
+        searchInput.current?.focus();
+      }}>검색 조건 초기화</button>}
       {blocks.length > 0 && materials.length > 0 &&
         <a className={styles.materialJump} href="#guide-material-reference" onClick={jumpToReference}>자료 설명으로 이동</a>}
     </div>
@@ -144,7 +149,7 @@ export function LessonReference({lesson, onOpenTemplate, busy}: {lesson: GuideLe
   </section>;
 }
 
-export function GuideGoals({lessons, onOpenTemplate, onStartWork, onStartBlank, busy, lesson, returnToReference}: {
+export function GuideGoals({lessons, onOpenTemplate, onStartWork, onStartBlank, busy, lesson, returnToReference, examples}: {
   lessons: readonly Omit<Lesson, 'graph'>[];
   onOpenTemplate: (id: string) => void;
   onStartWork: (id: WorkPurpose) => void;
@@ -152,9 +157,11 @@ export function GuideGoals({lessons, onOpenTemplate, onStartWork, onStartBlank, 
   busy?: boolean;
   lesson?: GuideLesson;
   returnToReference?: ReactNode;
+  examples?: ReactNode;
 }) {
   return <div>
     {lesson && <LessonReference lesson={lesson} onOpenTemplate={onOpenTemplate} busy={busy}/>}
+    {examples}
     <TemplateGallery lessons={lessons} initialId={lesson?.id} displayedPracticeId={lesson?.optionalPractice ? lesson.id : undefined} onOpenTemplate={onOpenTemplate} onStartWork={onStartWork} busy={busy}
       returnToReference={returnToReference} />
     <section className={styles.blank}>

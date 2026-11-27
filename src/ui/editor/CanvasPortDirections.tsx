@@ -33,6 +33,7 @@ export function CanvasRouteDetail({ ports, activeRouteId, destinations, viewedDe
   onViewDestination, onReturnToRoute, onLeaveDetail }: DetailProps) {
   const [previewId, setPreviewId] = useState<string>();
   const focusedOption = useRef<HTMLElement | null>(null);
+  const drawingScroll = useRef<number | null>(null);
   useLayoutEffect(() => {
     if (previewId) revealDetailOption(focusedOption.current);
   }, [previewId]);
@@ -81,8 +82,23 @@ export function CanvasRouteDetail({ ports, activeRouteId, destinations, viewedDe
 
   return (
     <div className="ws-route-readout" ref={detailRef} data-awaiting-route={!activeRouteId || undefined}
+      onFocus={event => {
+        const stage = event.currentTarget.closest<HTMLElement>('.ws-stage');
+        if (!stage || stage.scrollHeight <= stage.clientHeight) return;
+        if (!event.currentTarget.contains(event.relatedTarget)) drawingScroll.current = stage.scrollTop;
+        if (event.target.matches(':focus-visible')) {
+          const area = event.target.closest('.ws-route-buttons') ?? event.target;
+          area.scrollIntoView({block:'nearest', inline:'nearest'});
+        }
+      }}
       onBlur={event => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setPreviewId(undefined);
+        if (event.currentTarget.contains(event.relatedTarget)) return;
+        setPreviewId(undefined);
+        if (drawingScroll.current !== null && event.relatedTarget instanceof Element && event.relatedTarget.matches('.ws-route-callout')) {
+          const stage = event.currentTarget.closest<HTMLElement>('.ws-stage');
+          if (stage) stage.scrollTop = drawingScroll.current;
+        }
+        drawingScroll.current = null;
       }}>
       {/* Inactive details reserve their wrapped height without entering the focus order. */}
       {routes.map(route => {

@@ -7,7 +7,11 @@ import { GuideWalkthrough } from './GuideWalkthrough';
 import { MenuReference } from './MenuReference';
 import { VisualGlossary, type GlossaryTerm } from './VisualGlossary';
 import referenceStyles from '../WorkflowGuide.module.css';
-import { guideSteps, libraryQuestion } from './content';
+import { guideSteps } from './content';
+import { FirstGuideStart, FirstGuideSteps } from './FirstGuideStart';
+import { FirstGuideQuestions } from './FirstGuideQuestions';
+import { GuideAgentConcept, GuideCoreFeatures, GuideUseCases } from './GuideVisualConcepts';
+import { GuideCreationVisual } from './GuideCreationVisual';
 import { guideAddress, guideSections, type GuidePosition, type GuideSection } from './navigation';
 import styles from './GuidePage.module.css';
 
@@ -197,19 +201,31 @@ function GuideReader({
     {section === 'start' ? <>
       {activeStep !== 1 && stepNavigation}
       <section className={styles.chapter} aria-labelledby="guide-chapter-title">
-        <header className={styles.chapterHeader}>
+        {activeStep === 1 ? <FirstGuideStart headingRef={chapterHeading} title={current.title} description={current.goal}
+          modelReady={modelReady} workButton={workButton} /> : <header className={styles.chapterHeader}>
           <h2 id="guide-chapter-title" tabIndex={-1} ref={chapterHeading}>{current.title}</h2>
           <p>{current.goal}</p>
-        </header>
-        {activeStep === 1 && <div className={styles.overview}>
-          <dl>
-            <div><dt>완성할 결과</dt><dd>“{libraryQuestion}”라고 물어 신분증이 필요하다는 안내를 받습니다.</dd></div>
-            <div><dt>준비사항</dt><dd>예제에 도서관 규정이 들어 있습니다. 현재 상태는 <strong>{modelReady ? '모델 설정됨' : '모델 설정 필요'}</strong>입니다.
-              {!modelReady && <> 운영자에게 모델 연결을 요청하세요.</>}</dd></div>
-          </dl>
-          {workButton}
-        </div>}
-        {activeStep === 1 && stepNavigation}
+        </header>}
+        {activeStep === 1 && <>
+          <FirstGuideSteps onStep={readStep} />
+          <GuideAgentConcept />
+          <FirstGuideQuestions modelReady={modelReady} onHelp={topic => navigate('help', activeStep, topic)} />
+          <section className={styles.nextUses} aria-labelledby="guide-next-uses">
+            <h3 id="guide-next-uses">내 일에 써보기</h3>
+            <div>
+              <button type="button" onClick={() => onStartWork('meeting-report')} disabled={busy}>
+                <strong>회의 메모로 회의록 만들기 <ArrowRight size={15} aria-hidden="true" /></strong>
+                <span>확정된 일과 담당자를 표로 정리하는 예제를 엽니다.</span>
+              </button>
+              <button type="button" onClick={() => onOpenTemplate('beginner')} disabled={busy}>
+                <strong>내 자료로 안내하기 <ArrowRight size={15} aria-hidden="true" /></strong>
+                <span>자료 한 줄을 고치고 답변과 안내 파일이 어떻게 달라지는지 봅니다.</span>
+              </button>
+            </div>
+          </section>
+          <h3 className={styles.practiceTitle}>실습을 단계별로 따라가기</h3>
+          {stepNavigation}
+        </>}
         <GuideWalkthrough key={activeStep} step={current} workButton={activeStep !== 1 && workButton}>
           <PracticeCheck key={[activeStep, practiceProjectId].join('.')} step={activeStep}
             available={activeStep === 1 || Boolean(practiceProjectId)}
@@ -220,6 +236,7 @@ function GuideReader({
             <button className={styles.textButton} type="button" onClick={() => navigate('help', activeStep, current.helpId)}>문제 해결</button>
           </section>
         </GuideWalkthrough>
+        {activeStep === 2 && <GuideCreationVisual />}
         <nav className={styles.turnPage} aria-label="단계 이동">
           {activeStep > 1 && <button type="button" onClick={() => readStep(activeStep - 1)}><ArrowLeft size={16} aria-hidden="true" />이전 단계</button>}
           <button type="button" onClick={() => activeStep === guideSteps.length ? navigate('goals', activeStep) : readStep(activeStep + 1)}>
@@ -233,8 +250,11 @@ function GuideReader({
       : <section className={styles.lookup} aria-labelledby="guide-chapter-title">
       <h2 id="guide-chapter-title" tabIndex={-1} ref={chapterHeading}>{guideSections[section]}</h2>
       {section === 'goals' && <GuideGoals lesson={lesson} lessons={lessons} onStartBlank={onStartBlank} onOpenTemplate={onOpenTemplate} onStartWork={onStartWork} busy={busy}
-        returnToReference={returnToReference} />}
-      {section === 'terms' && <VisualGlossary selected={glossaryTerm} onSelect={setGlossaryTerm} libraryPreview={libraryPreview} />}
+        returnToReference={returnToReference} examples={!linkedPreview && <GuideUseCases step={activeStep} />} />}
+      {section === 'terms' && <>
+        <GuideCoreFeatures />
+        <VisualGlossary selected={glossaryTerm} onSelect={setGlossaryTerm} libraryPreview={libraryPreview} />
+      </>}
       {section === 'help' && <GuideTroubleshooting step={activeStep} issue={issue} origin={issueOrigin}
         onSelectIssue={id => navigate('help', activeStep, id)}
         onReturnToStep={() => navigate('start', activeStep)} />}

@@ -1,5 +1,6 @@
 import { ArrowUpRight, ChevronDown } from 'lucide-react';
-import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import ResumeHeading from '../ProjectNameHeading';
 import './workspace-home.css';
 
 type Props = {
@@ -15,27 +16,7 @@ type Props = {
   practiceNote?: ReactNode;
 };
 
-function ResumeHeading({title}: {title: ReactNode}) {
-  const heading = useRef<HTMLHeadingElement>(null);
-  const [expanded, setExpanded] = useState(false);
-  const [needsToggle, setNeedsToggle] = useState(false);
-  useLayoutEffect(() => {
-    const element = heading.current!;
-    function measure() {
-      const lineHeight = Number.parseFloat(getComputedStyle(element).lineHeight);
-      setNeedsToggle(element.scrollHeight > 2 * lineHeight + 1);
-    }
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, [title]);
-  return <>
-    <h1 id="lh-project-name" className="lh-resume-heading" data-expanded={expanded} ref={heading}>{title}</h1>
-    {needsToggle && <button type="button" className="lh-title-toggle" aria-expanded={expanded} aria-controls="lh-project-name"
-      onClick={() => setExpanded(value => !value)}>{expanded ? '이름 접기' : '전체 이름 보기'}</button>}
-  </>;
-}
+export { ResumeHeading };
 
 export default function HomeLayout({ resume, title, description, facts, artwork, onOpen, onIntro, busy, steps, practiceNote }: Props) {
   return <div className="lh-home"><div className="lh-content">

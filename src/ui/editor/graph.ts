@@ -88,6 +88,7 @@ export function titleById(graph: Graph, id: string): string {
   return labels.get(id) ?? id;
 }
 export const edgeNames = { flow: '진행', data: '데이터', reference: '참조' };
+export const connectionKindLabels = { flow: '실행 순서', data: '전달할 값', reference: '참조' };
 export const clone = <T>(value: T): T => structuredClone(value);
 export const empty = (): Graph => ({ nodes: [], edges: [] });
 export const uniqueId = () => crypto.randomUUID();

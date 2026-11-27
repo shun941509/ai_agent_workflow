@@ -1,9 +1,11 @@
-import {useState} from 'react';
+import {useRef,useState} from 'react';
 import {replyFields} from '../../domain/reply-form';
 import {Icon} from './Icons';
 
 export function ReplyFieldsEditor({entries,onChange}:{entries:unknown[];onChange:(value:unknown[])=>void}) {
   const [draft,setDraft]=useState('');
+  const addInput=useRef<HTMLInputElement>(null);
+  const removeButtons=useRef(new Map<string,HTMLButtonElement>());
   const fields=replyFields(entries);
   const name=draft.trim(),duplicate=fields.some(field=>field.name===name);
   function add(){
@@ -14,7 +16,7 @@ export function ReplyFieldsEditor({entries,onChange}:{entries:unknown[];onChange
   return <fieldset className="ws-fieldset" data-field-key="fields">
     <legend>입력 항목</legend>
     {!fields.length&&<p className="ws-hint">항목이 없으면 이용자가 글로 답할 수 있습니다.</p>}
-    {fields.map(field=>{
+    {fields.map((field,index)=>{
       const matches=(entry:unknown)=>replyFields([entry])[0]?.name===field.name;
       return <div className="ws-reply-field" key={field.name}>
         <span>{field.name}</span>
@@ -23,11 +25,16 @@ export function ReplyFieldsEditor({entries,onChange}:{entries:unknown[];onChange
             ? {...(typeof entry==='object' && entry!==null?entry:{name:field.name}),required:e.target.checked}
             : entry))}/>필수</label>
         <button type="button" className="ws-icon-button" aria-label={field.name+' 삭제'}
-          onClick={()=>onChange(entries.filter(entry=>!matches(entry)))}><Icon name="close" size={14}/></button>
+          ref={button=>{if(button)removeButtons.current.set(field.name,button);else removeButtons.current.delete(field.name);}}
+          onClick={()=>{
+            const neighbor=fields[index+1]??fields[index-1];
+            onChange(entries.filter(entry=>!matches(entry)));
+            requestAnimationFrame(()=>(neighbor?removeButtons.current.get(neighbor.name):addInput.current)?.focus());
+          }}><Icon name="close" size={14}/></button>
       </div>;
     })}
     <div className="ws-chip-add">
-      <input aria-label="입력 항목 새 항목" placeholder="항목 이름" value={draft} onChange={e=>setDraft(e.target.value)}
+      <input ref={addInput} aria-label="입력 항목 새 항목" placeholder="항목 이름" value={draft} onChange={e=>setDraft(e.target.value)}
         onKeyDown={e=>{if(e.key==='Enter' && !e.nativeEvent.isComposing){e.preventDefault();add();}}}/>
       <button type="button" className="ws-btn" onClick={add} disabled={!name||duplicate}>추가</button>
     </div>

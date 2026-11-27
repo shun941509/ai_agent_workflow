@@ -2,16 +2,18 @@ import { createHash } from 'node:crypto';
 import type { AgentContext } from '../domain/agent-context';
 import type { Block,Graph } from '../domain/index';
 import {recoverLegacyFilePaths} from './legacy-files';
+import {ModelPrivacy,privacyBlockError} from './model-privacy';
+import {defaultRunCounts, runConcurrency} from './limits';
 import { toolPin, type McpPin } from '../domain/mcp-scope';
 import {replyFieldError} from '../domain/reply-form';
-import type { EngineCheckpoint, EngineEvent, EngineRequest, EngineServices, ModelInput, ModelOutput, Prompt, Values } from './types';
+import type { EngineCheckpoint, EngineEvent, EngineRequest, EngineServices, ModelInput, ModelOutput, OriginalRow, Prompt, Values } from './types';
 import { asText, integer, object, record, strings } from './values';
 
 export class Suspended extends Error {}
 export class RunAborted extends Error {}
 export class Stopped extends RunAborted {}
 export class LimitReached extends RunAborted {}
-export interface Scope { path:string; budgetPath?:string; input:unknown; permissions:string[] | undefined; depth:number; context:unknown[]; responsible?:string; connectors?:McpPin[]; agentContext?:AgentContext }
+export interface Scope { path:string; budgetPath?:string; input:unknown; originalQuestion?:string; includeOriginalQuestion?:boolean; permissions:string[] | undefined; depth:number; context:unknown[]; originalRows?:OriginalRow[]; responsible?:string; connectors?:McpPin[]; agentContext?:AgentContext }
 export const message=(error:unknown)=>error instanceof Error?error.message:String(error);
 export function stable(value:unknown):string {
   if(Array.isArray(value)) return '['+value.map(stable).join(',')+']';
@@ -23,6 +25,7 @@ export function allowed(config:unknown, ceiling:string[]|undefined):string[] {
   return [...new Set(strings(config))].filter(name=>!ceiling || ceiling.includes(name));
 }
 export class Session {
+  readonly privacy:ModelPrivacy;
   readonly fileOrigins=new WeakMap<object,string>();
   fileReferences(value:unknown,keys:string[]=[]):NonNullable<import('./types').Step['fileOrigins']>{
     if(!value || typeof value!=='object')return [];
@@ -40,8 +43,13 @@ export class Session {
     if(request.checkpoint && (request.checkpoint.runId!==request.runId || request.checkpoint.input!==request.input || request.checkpoint.version!==1))
       throw new Error('실행 기록과 요청이 일치하지 않습니다.');
     this.state=request.checkpoint?structuredClone(request.checkpoint):{
-      version:1,runId:request.runId,input:request.input,events:[],steps:{},memo:{},waits:{},replies:{},counts:{steps:0,modelCalls:0,toolCalls:0,agents:0},
+      version:1,runId:request.runId,input:request.input,privacyVersion:2,privacyChecks:[],events:[],steps:{},memo:{},waits:{},replies:{},counts:{steps:0,modelCalls:0,toolCalls:0,agents:0},
     };
+    this.privacy=request.restoredPrivacy??new ModelPrivacy();
+    if(request.checkpoint&&graph){
+      if(!request.restoredPrivacy)this.privacy.restore(this.state,graph);
+      if(this.state.historyDetails)this.state.historyDetails=this.privacy.value(this.state.historyDetails);
+    }
     if(request.checkpoint&&graph&&!this.state.fileOriginVersion)recoverLegacyFilePaths(graph,this.state);
     this.state.fileOriginVersion=1;
     for(const step of Object.values(this.state.steps)){
@@ -53,6 +61,23 @@ export class Session {
     }
   }
   key(scope:Scope,node:Block) {return scope.path+'/'+encodeURIComponent(node.id);}
+  inspectPrivacy(node:Block,path:string,input:unknown,categories:string[],block:boolean){
+    if(!this.privacy.inspect(input,categories,block))return input;
+    let start=this.state.events.findLast(e=>e.kind==='start'&&e.path===path);
+    if(!start){
+      // A parallel save can persist the step budget before its start event.
+      this.event(node,path,'start',node.title+' 시작',{input});
+      start=this.state.events[this.state.events.length-1];
+    }
+    if(!Object.hasOwn(object(start.data),'input'))start.data={...object(start.data),input};
+    this.state.privacyChecks?.push({event:start.id,categories,block});
+    if(this.state.historyDetails)this.state.historyDetails=this.privacy.value(this.state.historyDetails);
+    if(block)throw Error(privacyBlockError);
+    return this.privacy.value(input,(original,copy)=>{
+      const origin=this.fileOrigins.get(original);
+      if(origin)this.fileOrigins.set(copy,origin);
+    });
+  }
   private interruption?:Error;
   interrupt(reason:Error){return this.interruption??=reason;}
   assertActive(){if(this.interruption)throw this.interruption;}
@@ -62,7 +87,7 @@ export class Session {
     this.assertActive();
   }
   private async remote<T>(operation:()=>Promise<T>):Promise<T> {
-    const limit=integer(this.services.limits?.concurrency,4,1,12);
+    const limit=runConcurrency(this.services.limits?.concurrency);
     if(this.activeRemote>=limit)await new Promise<void>(resume=>this.remoteQueue.push(resume));
     else this.activeRemote++;
     try{await this.stopCheck();this.assertActive();return await operation();}
@@ -80,8 +105,7 @@ export class Session {
   charge(counter:keyof EngineCheckpoint['counts'],id:string,maximum?:number) {
     const key='budget:'+counter+':'+id;
     if(Object.hasOwn(this.state.memo,key)) return;
-    const fallback={steps:512,modelCalls:72,toolCalls:48,agents:24};
-    const ceiling=Math.min(maximum??Number.MAX_SAFE_INTEGER,integer(this.services.limits?.[counter],fallback[counter],0,fallback[counter]));
+    const ceiling=Math.min(maximum??Number.MAX_SAFE_INTEGER,integer(this.services.limits?.[counter],defaultRunCounts[counter],0,defaultRunCounts[counter]));
     if(this.state.counts[counter]>=ceiling) throw new LimitReached('실행 한도에 도달했습니다 ('+counter+' '+ceiling+').');
     this.state.counts[counter]++;
     this.state.memo[key]=true;
@@ -111,7 +135,12 @@ export class Session {
     if(Object.hasOwn(this.state.memo,key)) return this.state.memo[key] as ModelOutput;
     await this.stopCheck();
     this.charge('modelCalls',key);
-    const output=await this.remote(()=>invoke({...request,history:this.request.history??[]}));
+    const output=await this.remote(()=>{
+      this.privacy.assertReady();
+      const safe=this.privacy.value({...request,history:this.request.history??[]});
+      safe.tools=request.tools.filter(name=>this.privacy.text(name)===name);
+      return invoke(safe);
+    });
     if(typeof output?.text!=='string') throw new Error('모델이 읽을 수 있는 결과를 반환하지 않았습니다.');
     this.state.memo[key]=output;
     await this.save();

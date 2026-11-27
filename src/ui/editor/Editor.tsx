@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type MouseEventHandler, type ReactNode, type Ref } from 'react';
+import { useCallback, useEffect, useId, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState, type MouseEventHandler, type ReactNode, type Ref } from 'react';
 import {
   byType,
   blankPracticeLessonId,
@@ -16,6 +16,7 @@ import {
 } from '../../domain/index';
 import { Canvas, type CanvasBookmark, type CanvasHandle, type CanvasListPosition } from './Canvas';
 import { CanvasShortcuts } from './CanvasShortcuts';
+import { preferredList, rememberCanvasMode } from './canvas-preference';
 import { FlowConditionsModal } from './FlowConditionsModal';
 import { AgentScopeDialog } from './AgentScopeDialog';
 import { AgentExportDialog } from './AgentExportDialog';
@@ -33,6 +34,7 @@ import {SharedAssetDialog} from './SharedAssetDialog';
 import { WorkspaceMenuButton, WorkspaceNav, type WorkspaceDestination, type WorkspaceMenuAction } from '../WorkspaceNav';
 import PracticeCoach, { type PracticeCoachHandle } from './PracticeCoach';
 import RunPanel, { type RunProject } from '../RunPanel';
+import { PromptTextarea } from '../PromptTextarea';
 import { api } from '../client';
 import { InspectorTabs, type InspectorTab } from './InspectorTabs';
 import { useInspectorFocus } from './use-inspector-focus';
@@ -48,7 +50,6 @@ import {
   graphChanges,
   groupEdges,
   groupKey,
-  levels,
   nodeTitle,
   subgraph,
   titleById,
@@ -58,6 +59,7 @@ import {
 } from './graph';
 import './editor.css';
 import './inspector-tabs.css';
+import './workspace-editor.css';
 
 export type EditorDestination = Exclude<WorkspaceDestination, 'editor'>;
 export interface EditorProps {
@@ -87,9 +89,8 @@ export interface EditorProps {
   initialSharedAsset?: SharedAssetPin;
   initialIssue?: Issue;
   onFocusChange?: (focus: EditorFocus) => void;
-  initialLevel?: string;
   assets?: AssetOption[];
-  lesson?: Pick<Lesson, 'id' | 'title' | 'task' | 'steps' | 'checks' | 'question' | 'example' | 'optionalPractice'>;
+  lesson?: Pick<Lesson, 'id' | 'title' | 'level' | 'task' | 'steps' | 'checks' | 'question' | 'example' | 'optionalPractice'>;
 }
 type Doc = { graph: Graph; title: string };
 type EditorProposal = { graph: Graph; base: string; scope: string; prompt: string; issues: string[] };
@@ -235,7 +236,6 @@ export default function Editor({
   initialSharedAsset,
   initialIssue,
   onFocusChange,
-  initialLevel,
   assets = [],
   lesson,
 }: EditorProps) {
@@ -280,9 +280,7 @@ export default function Editor({
   docRef.current = doc;
   const past = useRef<HistoryEntry[]>([]),
     future = useRef<HistoryEntry[]>([]);
-  const [level, setLevel] = useState(
-    initialLevel && levels.includes(initialLevel as (typeof levels)[number]) ? initialLevel : '입문',
-  );
+  const level = lesson?.level ?? '입문';
   const [paletteTab, setPaletteTab] = useState<PaletteTab>('level');
   const [showCatalog, setShowCatalog] = useState(!lesson || !graph.nodes.length);
   const [sharedAsset] = useState(initialSharedAsset);
@@ -328,8 +326,25 @@ export default function Editor({
   useEffect(() => {
     focusCallback.current?.({ path, selection });
   }, [path, selection]);
-  const [list, setList] = useState(() => entry?.list ?? (Boolean(lesson) && typeof window !== 'undefined' && window.matchMedia('(max-width:580px)').matches)),
+  const [list, setList] = useState(() => entry?.list ?? preferredList(user.id, project.id,
+    typeof window !== 'undefined' && window.matchMedia('(max-width:680px)').matches)),
     [layoutRev, setLayoutRev] = useState(0);
+  const [overview, setOverview] = useState(false);
+  const overviewExit = useRef<HTMLButtonElement>(null);
+  const overviewTrigger = useRef<HTMLButtonElement>(null);
+  function chooseView(nextList: boolean) {
+    setOverview(false);
+    setList(nextList);
+    rememberCanvasMode(user.id, project.id, nextList ? 'list' : 'diagram');
+  }
+  function openOverview() {
+    setOverview(true);
+    requestAnimationFrame(() => overviewExit.current?.focus({preventScroll:true}));
+  }
+  function closeOverview() {
+    setOverview(false);
+    requestAnimationFrame(() => overviewTrigger.current?.focus({preventScroll:true}));
+  }
   const [dialog, setDialog] = useState<EditorDialog>(sharedAsset ? 'attach-shared' : initialMenuAction ?? (entry?.dialog === 'attach-shared' ? null : entry?.dialog) ?? null),
     [connection, setConnection] = useState<ConnectionTarget | null>(entry?.connection ?? null);
   const [status, setStatus] = useState<string | null>('설계 초안을 열었습니다.'),
@@ -341,6 +356,7 @@ export default function Editor({
     [thinking, setThinking] = useState(false),
     [aiError, setAiError] = useState('');
   const changeAnswerField = useRef<HTMLTextAreaElement>(null);
+  const proposalFormId = useId();
   const needsChangeAnswer = clarificationAnswer !== undefined;
   useEffect(() => {
     if (dialog === 'ai' && needsChangeAnswer && !thinking && !proposal) changeAnswerField.current?.focus();
@@ -626,6 +642,7 @@ export default function Editor({
     void nav(() => onOpenTemplate(id));
   }
   const selectInspectorTab = (tab: InspectorTab, trigger?: HTMLElement | SVGElement) => {
+    setOverview(false);
     inspectorFocus.rememberOpener(trigger);
     if (tab === 'results') {
       if (inspectorTab !== 'results' || trigger) setReviewedSources(null);
@@ -710,6 +727,11 @@ export default function Editor({
         return;
       }
       if (input) return;
+      if (overview && event.key === 'Escape' && !wireChoices.length) {
+        event.preventDefault();
+        closeOverview();
+        return;
+      }
       if (event.key !== 'Escape' && event.target instanceof Element && event.target.closest('#ws-panel-results, #ws-tab-results')) return;
       if (
         (event.ctrlKey || event.metaKey) &&
@@ -726,6 +748,7 @@ export default function Editor({
     return () => document.removeEventListener('keydown', onKey);
   });
   const inspect = (trigger?: HTMLElement | SVGElement, focusTab = true) => {
+    setOverview(false);
     inspectorFocus.rememberOpener(trigger);
     setInspectorTab('properties');
     setPane(inspectorFocus.mobile ? 'inspector' : 'canvas');
@@ -896,11 +919,15 @@ export default function Editor({
     const node = workspace.nodes.find((n) => n.id === id);
     if (!node) return;
     if (canvas.current) parentViews.current.set(JSON.stringify(path), {bookmark: canvas.current.bookmark(), list});
-    setCanvasReturn(undefined);
     const childPath = [...path, id];
     const remembered = listPositions.current.get(JSON.stringify(childPath));
+    const previous = validEditorFocus(doc.graph,{path:childPath,selection:remembered?.selection})?.selection;
+    const first = subgraph(doc.graph, childPath).nodes[0];
+    const next = previous ?? (first ? {kind:'node' as const,id:first.id} : null);
+    setCanvasReturn({scope:JSON.stringify(childPath), id:next?.id ?? ''});
+    setOverview(false);
     setPath(childPath);
-    setSelection(validEditorFocus(doc.graph,{path:childPath,selection:remembered?.selection})?.selection ?? null);
+    setSelection(next);
     setPane('canvas');
   };
   const returnToParent = () => {
@@ -967,6 +994,7 @@ export default function Editor({
       setPath(restored.path);
     }
     setList(!sameScope && previous ? previous.list : destination.list);
+    setOverview(false);
     if (sameScope && pane === 'inspector' && destination.pane === 'canvas' && nextSelection &&
         !inspectorFocus.opener.current?.isConnected) {
       const attribute = nextSelection.kind === 'node' ? 'data-canvas-block' : 'data-canvas-wire';
@@ -1120,6 +1148,7 @@ export default function Editor({
     }
   });
   const openPalette = (catalog:boolean) => {
+    setOverview(false);
     const active = document.activeElement;
     if (active instanceof HTMLElement || active instanceof SVGElement) inspectorFocus.paletteOpener.current = active;
     setShowCatalog(catalog);
@@ -1165,7 +1194,7 @@ export default function Editor({
         onMenuAction={openMenuAction}
         onAccount={() => void nav(onAccount)}
       />
-      <main className="ws-editor" data-pane={pane}>
+      <main id="workspace-content" tabIndex={-1} className="ws-editor" data-pane={pane} data-overview={overview || undefined}>
         <header className="ws-top" inert={overlayOpen}>
           <WorkspaceMenuButton open={drawer} onOpen={() => setDrawer(true)} />
           <button className="ws-crumb" aria-label="내 워크스페이스" onClick={() => go('projects')}>
@@ -1212,20 +1241,6 @@ export default function Editor({
                 {doc.title || '이름 없는 Agent'}
               </button>
             </h1>
-            <label className="ws-level">
-              <Icon name="workflow" size={15} />
-              <select
-                value={level}
-                onChange={(e) => setLevel(e.target.value)}
-                aria-label="추천 블록 수준"
-              >
-                {levels.map((l) => (
-                  <option value={l} key={l}>
-                    {l} Workflow
-                  </option>
-                ))}
-              </select>
-            </label>
             <div className="ws-authoring-actions">
               <ToolButton icon="spark" onClick={openAi}>AI 설계</ToolButton>
               <ToolButton icon="play" primary onClick={event => launchRun(event.currentTarget)}>시험 실행</ToolButton>
@@ -1267,7 +1282,7 @@ export default function Editor({
             else openPalette(false);
           }}>
             {coachInCanvas && coach}
-            <div className="ws-canvas-head">
+            <div className="ws-canvas-head ws-canvas-tools">
               <div className="ws-graph-crumb">
                 {path.length > 0 && (
                   <button
@@ -1279,7 +1294,7 @@ export default function Editor({
                   </button>
                 )}
                 <Icon name="workflow" size={15}/>
-                <h2>{path.length ? parentBlock?.title ?? '내부 설계' : '워크플로 캔버스'}</h2>
+                <h2>{overview ? '연결도 전체 보기' : path.length ? parentBlock?.title ?? '내부 설계' : '워크플로 캔버스'}</h2>
               </div>
               <div className="ws-controls">
                 <button type="button" className="ws-icon-button" aria-label="키보드 단축키" aria-haspopup="dialog"
@@ -1307,19 +1322,23 @@ export default function Editor({
                   <Icon name="grid" />
                   <span>자동 정렬</span>
                 </button>
-                <button
-                  className="ws-btn"
-                  aria-pressed={list}
-                  title={list ? '캔버스로 보기' : '목록으로 편집'}
-                  onClick={() => setList(!list)}
-                >
-                  <Icon name={list ? 'workflow' : 'list'} />
-                  <span>{list ? '캔버스로 보기' : '목록으로 편집'}</span>
-                </button>
                 <button className="ws-btn ws-mobile-properties" title="속성 열기" ref={inspectorFocus.fallback}
                   aria-haspopup="dialog" onClick={event => inspect(event.currentTarget)}>
                   <Icon name="settings" />
                 </button>
+              </div>
+              <div className="ws-viewbar">
+                <div className="ws-view-modes" role="group" aria-label="캔버스 보기 방식">
+                  <button type="button" aria-pressed={list && !overview} title="목록으로 편집" onClick={() => chooseView(true)}>
+                    <Icon name="list" size={16}/><span>목록으로 편집</span>
+                  </button>
+                  <button type="button" aria-pressed={!list && !overview} title="캔버스로 보기" onClick={() => chooseView(false)}>
+                    <Icon name="workflow" size={16}/><span>캔버스로 보기</span>
+                  </button>
+                </div>
+                {overview
+                  ? <button className="ws-return-view" type="button" ref={overviewExit} onClick={closeOverview} aria-label="편집기로 돌아가기"><Icon name="back" size={16}/><span>편집기로<span className="ws-return-tail"> 돌아가기</span></span></button>
+                  : <button className="ws-return-view" type="button" ref={overviewTrigger} disabled={!workspace.nodes.length} onClick={openOverview} title="전체 보기"><Icon name="fit" size={16}/>전체 보기</button>}
               </div>
             </div>
             <Canvas
@@ -1334,7 +1353,8 @@ export default function Editor({
               wireSource={wireSource}
               onWireChoicesChange={(ids,source) => {setWireChoices(ids); setWireSource(source);}}
               selection={selection}
-              list={list}
+              list={list && !overview}
+              overview={overview}
               onSelect={next => {
                 setSelection(next);
                 if (next) setInspectorTab('properties');
@@ -1481,7 +1501,7 @@ export default function Editor({
             onClick={()=>exportGraph(exportEdited)}>JSON 내려받기</button>
         </Modal>}
         {dialog === 'name' && (
-          <Modal title="Agent 이름 변경" onClose={() => setDialog(null)}>
+          <Modal title="Agent 이름 변경" size="confirm" onClose={() => setDialog(null)}>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -1501,14 +1521,15 @@ export default function Editor({
                   onChange={(e) => setName(e.target.value)}
                 />
               </label>
-              <button className="ws-btn ws-primary" type="submit">
-                적용
-              </button>
+              <div className="ws-modal-actions">
+                <button type="button" className="ws-btn" onClick={() => setDialog(null)}>취소</button>
+                <button className="ws-btn ws-primary" type="submit" disabled={!name.trim()}>적용</button>
+              </div>
             </form>
           </Modal>
         )}
         {dialog === 'issues' && (
-          <Modal title="설계 검사" onClose={() => setDialog(null)}>
+          <Modal title="설계 검사" size={issues.length ? 'form' : 'confirm'} onClose={() => setDialog(null)}>
             {issues.length ? (
               <>
                 <p className="ws-hint">시험 실행 전에 아래 {issues.length}개 항목을 확인하세요.</p>
@@ -1526,7 +1547,7 @@ export default function Editor({
           </Modal>
         )}
         {dialog === 'import' && (
-          <Modal title="설계 가져오기" onClose={() => {importCheck.current++;setImportWarning(undefined);setDialog(null);}}>
+          <Modal title="설계 가져오기" size="form" onClose={() => {importCheck.current++;setImportWarning(undefined);setDialog(null);}}>
             <p>가져온 설계를 적용할 프로젝트는 <strong>{doc.title}</strong>입니다.</p>
             <label className="ws-field">
               <span>설계 JSON 파일</span>
@@ -1565,7 +1586,7 @@ export default function Editor({
             </button>
             <label className="ws-field">
               <span>설계 내용</span>
-              <textarea value={importText} onChange={(e) => {importCheck.current++;setImportText(e.target.value);}} rows={6} />
+              <textarea spellCheck={false} value={importText} onChange={(e) => {importCheck.current++;setImportText(e.target.value);}} rows={6} />
             </label>
             {importError && (
               <p role="alert" className="ws-danger">
@@ -1575,28 +1596,32 @@ export default function Editor({
             {importWarning?.text===importText && <div role="alert">이 프로젝트에서 사용할 수 없는 자료가 있습니다.
               <ul>{importWarning.missing.map(value=><li key={value}>{value}</li>)}</ul>
               <p>자료를 포함하려면 원본 Agent에서 내 사본 만들기를 사용하거나 이 프로젝트에서 해당 자료판을 발행하세요.</p></div>}
-            <button className="ws-btn ws-primary" disabled={!importText.trim()} onClick={importGraph}>
-              {importWarning?.text===importText?'자료 없이 현재 초안에 적용':'현재 초안에 적용'}
-            </button>
+            <div className="ws-modal-actions">
+              <button className="ws-btn ws-primary" disabled={!importText.trim()} onClick={importGraph}>
+                {importWarning?.text===importText?'자료 없이 현재 초안에 적용':'현재 초안에 적용'}
+              </button>
+            </div>
           </Modal>
         )}
         {dialog === 'ai' && (
-          <Modal title="AI 설계 제안" onClose={closeAi}>
+          <Modal title="AI 설계 제안" size="form" onClose={closeAi}>
             {parentBlock && <p className="ws-hint">‘{parentBlock.title}’ 내부 설계에 적용할 변경을 제안합니다.</p>}
-            <label className="ws-field">
-              <span>만들거나 바꿀 일</span>
-              <textarea
+            <div className="ws-field">
+              <label htmlFor={proposalFormId + '-prompt'}>만들거나 바꿀 일</label>
+              <PromptTextarea
+                id={proposalFormId + '-prompt'}
+                expandLabel="만들거나 바꿀 일"
                 value={prompt}
                 onChange={(e) => editPrompt(e.target.value)}
                 placeholder="회의 내용에서 결정 사항과 담당자를 뽑아 줘"
                 rows={3}
               />
-            </label>
-            {needsChangeAnswer && <label className="ws-field">
-              <span>현재 설계에서 무엇을 바꾸고 싶으세요?</span>
-              <textarea ref={changeAnswerField} value={clarificationAnswer}
+            </div>
+            {needsChangeAnswer && <div className="ws-field">
+              <label htmlFor={proposalFormId + '-answer'}>현재 설계에서 무엇을 바꾸고 싶으세요?</label>
+              <PromptTextarea id={proposalFormId + '-answer'} expandLabel="현재 설계에서 무엇을 바꾸고 싶으세요?" ref={changeAnswerField} value={clarificationAnswer}
                 onChange={e => editPrompt(e.target.value, true)} rows={2} />
-            </label>}
+            </div>}
             <button
               className="ws-btn"
               disabled={thinking || !prompt.trim() || (needsChangeAnswer && !clarificationAnswer.trim())}

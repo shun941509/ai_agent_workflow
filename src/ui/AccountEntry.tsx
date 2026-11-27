@@ -1,7 +1,8 @@
 'use client';
 
-import { useRef, useState, type FormEvent } from 'react';
-import { api, message } from './client';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { CircleAlert, Eye, EyeOff } from 'lucide-react';
+import { api, message, StudioApiError } from './client';
 import StudioMark from './StudioMark';
 import './account-entry.css';
 
@@ -11,20 +12,25 @@ export default function AccountEntry({ returnTo, guestWork }: { returnTo: string
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [login, setLogin] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [choice, setChoice] = useState<'import' | 'keep' | null>(null);
   const [error, setError] = useState('');
+  const [invalid, setInvalid] = useState<'credentials' | 'login'>();
   const [busy, setBusy] = useState(false);
   const submitting = useRef(false);
   const loginField = useRef<HTMLInputElement>(null);
   const signup = mode === 'signup';
   const hasGuestWork = guestWork && Object.values(guestWork).some(count => count > 0);
   const title = signup ? '계정 만들기' : '로그인';
+  useEffect(() => { document.title = title + ' · Workflow Studio'; }, [title]);
 
   function switchMode() {
     setMode(signup ? 'login' : 'signup');
     setPassword('');
+    setPasswordVisible(false);
     setChoice(null);
     setError('');
+    setInvalid(undefined);
     loginField.current?.focus();
   }
 
@@ -33,6 +39,7 @@ export default function AccountEntry({ returnTo, guestWork }: { returnTo: string
     if (submitting.current) return;
     submitting.current = true;
     setError('');
+    setInvalid(undefined);
     setBusy(true);
     try {
       await api('auth.' + mode, { login, password, importGuestWork: choice === 'import' });
@@ -41,6 +48,10 @@ export default function AccountEntry({ returnTo, guestWork }: { returnTo: string
       window.location.replace(destination.href);
     } catch (cause) {
       setError(message(cause));
+      if (cause instanceof StudioApiError) {
+        if (cause.status === 409 && signup && cause.message === '이미 사용 중인 아이디입니다.') setInvalid('login');
+        if (cause.status === 401 && !signup) setInvalid('credentials');
+      }
       setBusy(false);
       submitting.current = false;
     }
@@ -57,21 +68,28 @@ export default function AccountEntry({ returnTo, guestWork }: { returnTo: string
           <h1 id="account-title">{title}</h1>
           <p>{signup ? '작업실에 사용할 아이디와 비밀번호를 정해주세요.' : 'AI Agent 작업실을 열려면 로그인하세요.'}</p>
         </div>
-        <form className="account-form" method="post" aria-labelledby="account-title" onSubmit={submit}>
+        <form className="account-form" method="post" aria-labelledby="account-title" aria-busy={busy} onSubmit={submit}
+          onChange={()=>{if(error){setError('');setInvalid(undefined);}}}>
           <div className="account-field">
             <label htmlFor="account-login">아이디</label>
             <input id="account-login" name="login" ref={loginField} type="text"
               autoComplete="username" autoCapitalize="none" spellCheck={false}
               maxLength={64} required readOnly={busy} value={login}
-              onChange={e => setLogin(e.target.value)} aria-describedby={signup ? 'account-id-rule' : undefined} />
+              onChange={e => setLogin(e.target.value)} aria-invalid={invalid ? true : undefined}
+              aria-describedby={[signup&&'account-id-rule',invalid&&'account-error'].filter(Boolean).join(' ')||undefined} />
             {signup && <small id="account-id-rule">글자, 숫자, 점(.), 밑줄(_), 붙임표(-)로 3~40자</small>}
           </div>
           <div className="account-field">
             <label htmlFor="account-password">비밀번호</label>
-            <input id="account-password" name="password" type="password"
+            <div className="account-secret"><input id="account-password" name="password" type={passwordVisible ? 'text' : 'password'}
               autoComplete={signup ? 'new-password' : 'current-password'}
               minLength={8} maxLength={128} required readOnly={busy} value={password}
-              onChange={e => setPassword(e.target.value)} aria-describedby={signup ? 'account-password-rule' : undefined} />
+              onChange={e => setPassword(e.target.value)} aria-invalid={invalid==='credentials'||undefined}
+              aria-describedby={signup ? 'account-password-rule' : invalid==='credentials' ? 'account-error' : undefined} />
+              <button type="button" className="account-reveal" aria-label="비밀번호 표시" aria-pressed={passwordVisible}
+                disabled={busy} onClick={()=>setPasswordVisible(value=>!value)}>
+                {passwordVisible?<EyeOff size={18} aria-hidden="true"/>:<Eye size={18} aria-hidden="true"/>}
+              </button></div>
             {signup && <small id="account-password-rule">8~128자</small>}
           </div>
           {hasGuestWork && (
@@ -88,7 +106,7 @@ export default function AccountEntry({ returnTo, guestWork }: { returnTo: string
               </>}
             </fieldset>
           )}
-          {error && <p className="account-error" role="alert">{error}</p>}
+          {error && <p id="account-error" className="account-error" role="alert"><CircleAlert size={18} aria-hidden="true"/>{error}</p>}
           <button className="account-submit" type="submit" disabled={busy}>
             {busy ? (signup ? '계정 만드는 중…' : '로그인 중…') : title}
           </button>

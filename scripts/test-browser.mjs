@@ -93,6 +93,7 @@ try {
         'creation-sharing-browser',
         'home-lesson-browser',
         'workflow-guide-browser',
+        'guide-visuals-browser',
         'beginner-reference-browser',
         'lesson-run-context-browser',
         'optional-practice-browser',

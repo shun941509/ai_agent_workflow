@@ -55,7 +55,15 @@ async function check(mobile: boolean) {
     await button('목록으로 편집').click();
     await page.locator('[data-canvas-block="rule"]').click();
     const text = page.getByRole('textbox',{name:'자료 원문',exact:true});
-    await text.fill(rule.replace('3권','5권'));
+    const savedSource = async () => ((await api(context,'project.open',{id:project.id})).graph as Graph)
+      .nodes.find(node => node.id === 'rule')!.config.content;
+    await button('자료 원문 넓게 쓰기').click();
+    const writing = page.getByRole('dialog',{name:'자료 원문',exact:true});
+    await writing.getByRole('textbox',{name:'자료 원문',exact:true}).fill(rule.replace('3권','5권'));
+    await writing.getByRole('button',{name:'작성 마치기'}).click();
+    await expect(writing).toHaveCount(0);
+    await expect(text).toHaveValue(rule.replace('3권','5권'));
+    assert.equal(await savedSource(),rule);
     await page.getByRole('tab',{name:'실행 결과'}).click();
     const panel = page.getByRole('tabpanel',{name:'실행 결과'});
     const choice = panel.getByRole('region',{name:'시험에 사용할 원문'});
@@ -72,8 +80,6 @@ async function check(mobile: boolean) {
       await expect(panel.locator('.run-output').last()).toContainText(expected,{timeout:20000});
     }
     await ask('3권');
-    const savedSource = async () => ((await api(context,'project.open',{id:project.id})).graph as Graph)
-      .nodes.find(node => node.id === 'rule')!.config.content;
     assert.equal(await savedSource(),rule);
     if (mobile) await button('실행 화면 닫기').click();
     const projectAction = async (name: string) => {

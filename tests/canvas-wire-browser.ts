@@ -26,6 +26,11 @@ function midpoint(wire:Locator) {
 }
 
 // Compare screen-space bounds with the physical port, including when the camera is zoomed out.
+async function openDiagram(page:Page, id:string) {
+  await page.goto('/?edit='+id);
+  await page.getByRole('button',{name:'캔버스로 보기',exact:true}).click();
+}
+
 async function checkPortCue(cue:Locator, port:Locator, incoming:boolean) {
   await expect(cue).toBeVisible();
   await expect(cue).toHaveCSS('pointer-events','none');
@@ -41,7 +46,7 @@ async function checkPortCue(cue:Locator, port:Locator, incoming:boolean) {
 
 // Select at the actual fit scale, then measure in screen pixels after the trace stops.
 async function checkCrowdedOutputs(page:Page, nodeId:string, names:(string|RegExp)[], mobile:boolean) {
-  const fit = page.getByRole('button',{name:'전체 보기',exact:true});
+  const fit = page.getByRole('button',{name:'캔버스에 맞추기',exact:true});
   await fit.click();
   const zoom = page.locator('.ws-zoom-percent');
   const overview = await zoom.innerText();
@@ -91,7 +96,9 @@ async function checkCrowdedOutputs(page:Page, nodeId:string, names:(string|RegEx
       if (Math.abs(end.y - (bounds.y + bounds.height/2)) > 2 || Math.abs(end.x - bounds.left) > 3)
         issues.push(name + ' 인출선 끝이 해당 행에 닿지 않습니다.');
       if (bounds.left < box.right || bounds.right > frame.right || bounds.top < frame.top || bounds.bottom > frame.bottom)
-        issues.push(name + ' 경로 행이 블록 오른쪽에서 벗어나거나 잘렸습니다.');
+        issues.push(name + ' 경로 행이 블록 오른쪽에서 벗어나거나 잘렸습니다. ' + JSON.stringify({
+          row:bounds.toJSON(), canvas:frame.toJSON(), block:box.toJSON(),
+        }));
       const pairs = [[text,arrow.getBoundingClientRect()], ...labels.map(caption => [caption,bounds])];
       if (bounds.top < previousBottom || pairs.some(([a,b]) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom))
         issues.push(name + ' 경로 이름과 화살표 또는 다른 경로 표시가 겹칩니다.');
@@ -164,13 +171,13 @@ async function checkClassifierPathSelection(ctx:BrowserContext, page:Page, mobil
     ],
   };
   const project = await api(ctx,'project.create',{graph,title:'도서관 문의 경로'});
-  await page.goto('/?edit='+project.id);
+  await openDiagram(page,project.id);
   await checkCrowdedOutputs(page,'classifier',routes.map(route=>new RegExp(route.word)),mobile);
   const canvas = page.locator('.ws-canvas');
   const rows = canvas.locator('button.ws-route-callout');
   async function tapLastRoute() {
     // Fit to the available canvas and tap the part of the row to the right of the zoom controls.
-    await page.getByRole('button',{name:'전체 보기',exact:true}).tap();
+    await page.getByRole('button',{name:'캔버스에 맞추기',exact:true}).tap();
     const row = rows.last();
     const box = await row.boundingBox();
     assert.ok(box);
@@ -266,8 +273,8 @@ async function checkClassifierPathSelection(ctx:BrowserContext, page:Page, mobil
   // One physical exit may also lead to two different receiving blocks.
   graph.edges.push({id:'fallback-help',kind:'flow',from:'classifier',out:'other',to:'help',input:'in'});
   const fanout = await api(ctx,'project.create',{graph,title:'문의 분류의 복수 목적지'});
-  await page.goto('/?edit='+fanout.id);
-  await page.getByRole('button',{name:'전체 보기',exact:true}).click();
+  await openDiagram(page,fanout.id);
+  await page.getByRole('button',{name:'캔버스에 맞추기',exact:true}).click();
   const classifier = canvas.locator('[data-canvas-block="classifier"]');
   if (mobile) {
     await classifier.tap();
@@ -340,7 +347,7 @@ async function checkMergedAndSplitRoutes(ctx:BrowserContext, page:Page, mobile:b
     ],
   };
   const project = await api(ctx,'project.create',{graph,title:'도서관 문의 경로 확인'});
-  await page.goto('/?edit='+project.id);
+  await openDiagram(page,project.id);
   await checkCrowdedOutputs(page,'choice',routes.map(route => route.name),mobile);
   const canvas = page.locator('.ws-canvas');
   const rows = canvas.locator('button.ws-route-callout');
@@ -398,8 +405,8 @@ async function openLastClassifierRoute(ctx:BrowserContext, page:Page, fallback:{
     ],
   };
   const project = await api(ctx,'project.create',{graph,title:'32개 문의 경로의 목적지 탐색'});
-  await page.goto('/?edit='+project.id);
-  await page.getByRole('button',{name:'전체 보기',exact:true}).click();
+  await openDiagram(page,project.id);
+  await page.getByRole('button',{name:'캔버스에 맞추기',exact:true}).click();
   const canvas = page.locator('.ws-canvas');
   const zoom = canvas.locator('.ws-zoom-percent');
   const overview = await zoom.innerText();
@@ -780,8 +787,7 @@ async function verify(mobile:boolean) {
     const {id} = await api(ctx,'project.create',{lesson:'intermediate'});
     const page = await ctx.newPage();
     const wire = (from:string,to:string) => page.locator('.ws-wire[data-from="' + from + '"][data-to="' + to + '"]');
-    await page.goto('/?edit='+id);
-    if (mobile) await page.getByRole('button',{name:'캔버스로 보기'}).click();
+    await openDiagram(page,id);
     const recipient = page.locator('[data-canvas-block="answer"]');
     await recipient.focus();
     await expect(wire('input','answer').locator('.ws-wire-label')).toHaveText('원래 질문');
@@ -789,7 +795,7 @@ async function verify(mobile:boolean) {
     await expect(wire('input','answer').locator('.ws-wire-label')).toHaveCount(0);
 
     if (!mobile) {
-      await page.getByRole('button',{name:'전체 보기',exact:true}).click();
+      await page.getByRole('button',{name:'캔버스에 맞추기',exact:true}).click();
       const intended = wire('input','search'), hit = await midpoint(intended);
       await page.mouse.click(hit.x,hit.y);
       await expect(intended).toHaveAttribute('aria-pressed','true');
@@ -803,7 +809,7 @@ async function verify(mobile:boolean) {
     const cues = page.locator('.ws-port-direction');
     const incoming = page.locator('.ws-port-direction[data-direction="incoming"]');
     const outgoing = page.locator('.ws-port-direction[data-direction="outgoing"]');
-    await page.getByRole('button',{name:'전체 보기',exact:true}).click();
+    await page.getByRole('button',{name:'캔버스에 맞추기',exact:true}).click();
     if (mobile) {
       await search.tap();
       await expect(page.locator('.ws-wire-trace').first()).toHaveCSS('animation-play-state','paused');
@@ -943,7 +949,7 @@ async function verify(mobile:boolean) {
     await expect(page.locator('.ws-save-badge')).toHaveText('저장됨');
 
     const condition = await api(ctx,'project.create',{graph:conditionExample(),title:'신청 확인과 안내'});
-    await page.goto('/?edit='+condition.id);
+    await openDiagram(page,condition.id);
     await checkCrowdedOutputs(page,'condition',['접수됨','다시 확인'],mobile);
     const acceptedRoute = page.getByRole('button',{name:'접수됨 → 접수 안내',exact:true});
     if (mobile) await acceptedRoute.tap(); else await acceptedRoute.click();
@@ -969,7 +975,7 @@ async function verify(mobile:boolean) {
       ],
     };
     const edgeProject = await api(ctx,'project.create',{graph:rightmost,title:'화면 오른쪽의 질문 분류'});
-    await page.goto('/?edit='+edgeProject.id);
+    await openDiagram(page,edgeProject.id);
     await checkCrowdedOutputs(page,'rightmost',[/신청/,/취소/,'미분류'],mobile);
 
     await checkClassifierPathSelection(ctx,page,mobile);
@@ -987,13 +993,13 @@ async function verify(mobile:boolean) {
       id:'edge-'+block.id, from:source.id, to:block.id, kind:'flow', out:'next', input:'in',
     }))};
     const overlap = await api(ctx,'project.create',{graph, title:'겹친 경로'});
-    await page.goto('/?edit='+overlap.id);
+    await openDiagram(page,overlap.id);
     const first = wire('source','a');
     await first.waitFor();
     await page.locator('[data-canvas-block="loose"]').focus();
     await expect(page.locator('[data-workflow-node="loose"] .ws-port-out')).toBeVisible();
     await expect(cues).toHaveCount(0);
-    await page.getByRole('button',{name:'전체 보기',exact:true}).click();
+    await page.getByRole('button',{name:'캔버스에 맞추기',exact:true}).click();
     const point = await midpoint(first);
     const tap = () => mobile ? page.touchscreen.tap(point.x,point.y) : page.mouse.click(point.x,point.y);
     await tap();

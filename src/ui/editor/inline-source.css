@@ -17,16 +17,16 @@
   overflow-wrap: anywhere;
 }
 .ws-source-editor .ws-field { margin: 17px 0 13px; gap: 8px; }
+.ws-source-editor .prompt-input { --prompt-min-height: min(calc(8lh + 22px), 45dvh); }
 .ws-source-editor .ws-field textarea {
   padding: 10px 12px;
-  font: inherit;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.65;
 }
 .ws-source-editor [role='status']:empty { display: none; }
 .ws-save-reference { border-top: 1px solid var(--ws-line); padding-top: 14px; }
 .ws-save-reference .ws-edition-link { margin: 0; }
-.ws-source-editor textarea[aria-invalid='true'] ~ [role='status'] { color: #873a32; }
+.ws-source-editor .ws-field:has(textarea[aria-invalid='true']) > [role='status'] { color: #873a32; }
 .ws-edition-link { display: inline-block; margin-bottom: 12px; color: var(--ws-accent); text-underline-offset: 3px; }
 .ws-edition-link span { font-size: 12px; }
 .ws-editor .ws-source-editor .ws-btn:disabled,

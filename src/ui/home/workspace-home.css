@@ -58,12 +58,6 @@
   line-height: 1.28;
   letter-spacing: -.045em;
 }
-.lh-resume-heading[data-expanded="false"] {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-}
 .lh-title-toggle {
   margin: -4px 0 8px;
   padding: 5px 0;

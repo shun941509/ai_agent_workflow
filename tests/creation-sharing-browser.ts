@@ -21,6 +21,53 @@ async function api(context: BrowserContext, action: string, data: unknown = {}) 
   return body.data;
 }
 
+async function ownerDraftAndSharingRecovery() {
+  const context = await browser.newContext({baseURL, viewport:{width:390,height:844}});
+  try {
+    await registerBrowserAccount(context);
+    const project = await api(context, 'project.create', {title:'미게시 업무 안내',graph:intro.graph});
+    const page = await context.newPage();
+    const address = '/?agent=' + project.id;
+    await page.goto(address);
+    await page.getByRole('button', {name:'초안 시험'}).click();
+    await expect(page.getByLabel('실행 환경')).toHaveValue('test');
+    await expect(page.getByLabel('실행할 설계 버전')).toBeVisible();
+    await expect(page.locator('.ws-workbench')).toHaveCount(0);
+    await page.getByRole('button', {name:'실행 화면 닫기'}).click();
+    await expect(page).toHaveURL(/\?view=shared$/);
+    await expect(page).toHaveTitle(/공유 Agent/);
+    await page.goto(address);
+    await page.getByRole('button', {name:'내 사본 만들기'}).click();
+    await expect(page).toHaveURL(/\?edit=/);
+    const copyId = new URL(page.url()).searchParams.get('edit');
+    assert.notEqual(copyId, project.id);
+    const copy = await api(context, 'project.open', {id:copyId});
+    assert.deepEqual(copy.graph.nodes.map((n: {type:string}) => n.type), project.graph.nodes.map((n: {type:string}) => n.type));
+
+    await api(context, 'versions.save', {id:project.id,revision:project.revision});
+    await page.goto('/?view=projects');
+    await expect(page).toHaveTitle(/내 Agent/);
+    let failOpen = true, failEdition = true;
+    await page.route('**/api/studio', route => {
+      const req = route.request().postDataJSON();
+      const firstOpen = failOpen && req.action === 'project.open';
+      const edition = failEdition && req.action === 'run.lastTestSources' && req.data.version === 1;
+      if (!firstOpen && !edition) return route.continue();
+      if (firstOpen) failOpen = false;
+      return route.fulfill({status:503,json:{error:'시험 연결을 잠시 사용할 수 없습니다.'}});
+    });
+    await page.getByRole('button',{name:project.title + ' 공유 설정',exact:true}).click();
+    const dialog = page.getByRole('dialog',{name:'Agent 공유 설정'});
+    await dialog.getByRole('button',{name:'공유 설정 다시 불러오기'}).press('Enter');
+    const retryEdition = dialog.getByRole('button',{name:'시험 기록 다시 불러오기'});
+    await expect(retryEdition).toBeVisible();
+    failEdition = false;
+    await retryEdition.press('Enter');
+    await expect(dialog.getByLabel('대상 버전')).toBeFocused();
+    await expect(dialog).toContainText('시험 기록 없음');
+  } finally { await context.close(); }
+}
+
 async function shareFromProjectList(context: BrowserContext, page: Page, mobile: boolean) {
   const first = await api(context, 'project.create', {title:'지점 안내 · 대출',graph:intro.graph});
   const second = await api(context, 'project.create', {title:'지점 안내 · 반납',graph:intro.graph});
@@ -138,7 +185,7 @@ async function verifySharingAudience(owner: BrowserContext, ownerPage: Page, mob
     const state = settings.getByRole('region', {name:'현재 공유 상태'});
     const scope = settings.getByLabel('공유 범위');
     // Capture exactly what the copy button writes, without changing the system clipboard.
-    await ownerPage.evaluate(() => {
+    const enableTestClipboard = () => ownerPage.evaluate(() => {
       let text = '';
       Object.defineProperty(navigator, 'clipboard', {configurable:true, value:{
         async writeText(value: string) { text = value; }, async readText() { return text; },
@@ -149,10 +196,13 @@ async function verifySharingAudience(owner: BrowserContext, ownerPage: Page, mob
       return ownerPage.evaluate(() => navigator.clipboard.readText());
     }
 
+    await enableTestClipboard();
+    const addressField = state.getByRole('textbox', {name:'현재 공유 주소', exact:true});
     await scope.selectOption('public');
     await activate(settings.getByRole('button', {name:'선택한 버전 게시'}));
     await expect(state).toContainText('모두에게 공개');
     const publicAddress = await copyAddress();
+    await expect(addressField).toHaveValue(publicAddress);
     for (const page of [recipient, observer]) {
       await activate(await searchGallery(page, true));
       await expectOpen(page, '모두에게 공개');
@@ -163,6 +213,18 @@ async function verifySharingAudience(owner: BrowserContext, ownerPage: Page, mob
     await expect(state).toContainText('비밀 링크');
     const secretAddress = await copyAddress();
     assert.ok(publicAddress !== secretAddress);
+    await ownerPage.evaluate(denied => {
+      Object.defineProperty(navigator, 'clipboard', {configurable:true, value:denied ? {
+        async writeText() { throw new DOMException('Permission denied', 'NotAllowedError'); },
+      } : undefined});
+    }, mobile);
+    await activate(state.getByRole('button', {name:'현재 공유 주소 복사'}));
+    await expect(settings.getByRole('alert')).toContainText('선택된 주소를 직접 복사하세요.');
+    await expect(addressField).toBeFocused();
+    await expect(addressField).toHaveValue(secretAddress);
+    assert.ok(await addressField.evaluate((field:HTMLInputElement) =>
+      field.readOnly && field.selectionStart === 0 && field.selectionEnd === field.value.length));
+    await enableTestClipboard();
     for (const page of [recipient, observer]) {
       await searchGallery(page, false);
       await expectDenied(page, publicAddress);
@@ -221,8 +283,21 @@ async function verifySharingAudience(owner: BrowserContext, ownerPage: Page, mob
       document.dispatchEvent(new Event('visibilitychange'));
     });
 
+    // The browser may leave clipboard permission undecided while the owner withdraws the link.
+    await ownerPage.evaluate(() => {
+      Object.defineProperty(navigator, 'clipboard', {configurable:true, value:{
+        writeText() {
+          return new Promise<void>((_, reject) => {
+            window.addEventListener('test:deny-old-copy', () => reject(new DOMException('Permission denied', 'NotAllowedError')), {once:true});
+          });
+        },
+      }});
+    });
+    await activate(state.getByRole('button', {name:'현재 공유 주소 복사'}));
+    await expect(settings.getByRole('button', {name:'닫기'})).toBeEnabled();
     await activate(settings.getByRole('button', {name:'공유 철회'}));
     await expect(state).toContainText('나만 사용');
+    await expect(addressField).toHaveCount(0);
     const revoked = /^게시자가 공유를 철회했습니다\.?$/;
     await Promise.all([
       expect(detail.getByText(revoked)).toBeVisible({timeout:15000}),
@@ -252,8 +327,14 @@ async function verifySharingAudience(owner: BrowserContext, ownerPage: Page, mob
     await scope.selectOption('link');
     await activate(settings.getByRole('button', {name:'공유 설정 적용'}));
     await expect(state).toContainText('비밀 링크');
+    await enableTestClipboard();
     const reissuedAddress = await copyAddress();
     assert.notEqual(reissuedAddress, secretAddress);
+    await expect(addressField).toHaveValue(reissuedAddress);
+    await ownerPage.evaluate(() => window.dispatchEvent(new Event('test:deny-old-copy')));
+    await expect(state.getByRole('status')).toHaveText('현재 공유 주소를 복사했습니다.');
+    await expect(settings.getByRole('alert')).toHaveCount(0);
+    await expect(addressField).not.toBeFocused();
     for (const page of [priorLinkPage, gallery]) {
       await searchGallery(page, false);
       await expectDenied(page, secretAddress);
@@ -419,6 +500,11 @@ async function exercise(mobile: boolean) {
 
     const importTitle = '금요일 운영 자료 가져오기';
     await namedChooser(importTitle);
+    await dialog.locator('input[type=file]').setInputFiles({
+      name:'incomplete.json',mimeType:'application/json',buffer:Buffer.from('{'),
+    });
+    await dialog.getByRole('button', {name:'‘' + importTitle + '’ 만들기', exact:true}).click();
+    await expect(dialog.getByRole('alert')).toContainText('내보낸 설계 JSON 파일을 다시 선택하세요');
     await dialog.locator('input[type=file]').setInputFiles({
       name:'rules.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify({title:'파일 안의 이름',graph:intro.graph})),
     });
@@ -646,6 +732,7 @@ async function resourceSharing(mobile: boolean) {
   } finally { await ctx.close(); }
 }
 try {
+  await ownerDraftAndSharingRecovery();
   await resourceSharing(false);
   await resourceSharing(true);
   await shareAndResume(false);

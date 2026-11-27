@@ -1,0 +1,29 @@
+.diagram {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 1.25rem minmax(0,1fr);
+  gap: .65rem;
+  align-items: start;
+  color: var(--ink);
+}
+.scene { min-width: 0; }
+.scene > strong { display: block; margin-bottom: .5rem; font-size: .91rem; }
+.screen, .stateChange {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  min-height: 4.7rem;
+  padding: .35rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+}
+.screen img { display: block; max-width: 100%; width: auto; height: auto; margin-inline: auto; }
+.stateChange { gap: .45rem; padding: .65rem; }
+.stateChange span { display: flex; align-items: center; gap: .45rem; font-weight: 600; }
+.stateChange svg { color: var(--accent); }
+.scene > p { margin: .5rem 0 0; line-height: 1.55; font-size: .9rem; }
+.arrow { margin-top: 3rem; color: var(--muted); }
+@container guide (max-width: 590px) {
+  .diagram { grid-template-columns: minmax(0,1fr); gap: .35rem; }
+  .arrow { justify-self: start; margin: .15rem 0; transform: rotate(90deg); }
+}

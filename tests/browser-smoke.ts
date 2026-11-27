@@ -6,6 +6,7 @@ import {
   expect,
   type BrowserContext,
   type Page,
+  type Route,
 } from '@playwright/test';
 import { createBlock, templates, type Edge, type Graph } from '../src/domain';
 import { registerBrowserAccount } from './browser-account';
@@ -118,6 +119,11 @@ async function checkLoginRequired(small: boolean) {
     await expectLoginPage();
     await form.getByLabel('아이디', {exact:true}).fill(credentials.login);
     await form.getByLabel('비밀번호', {exact:true}).fill('invalid-test-password');
+    await page.route('**/api/studio', route => route.abort('internetdisconnected'), {times:1});
+    await form.getByRole('button', {name:'로그인', exact:true}).click();
+    await expect(form.getByRole('alert')).toContainText('네트워크 연결과 작업실 서버 상태를 확인하세요.');
+    await expect(form.getByLabel('아이디', {exact:true})).toHaveValue(credentials.login);
+    await expect(form.getByLabel('비밀번호', {exact:true})).toHaveValue('invalid-test-password');
     await form.getByRole('button', {name:'로그인', exact:true}).click();
     await expect(form.getByRole('alert')).toContainText('아이디 또는 비밀번호');
     await expectLoginPage();
@@ -270,6 +276,8 @@ async function verifyMobileSourceRun(ctx: BrowserContext) {
   const page = await newPage(ctx);
   try {
     await page.goto('/?edit=' + project.id);
+    await expect(page.locator('.ws-graph-list [data-canvas-block="rule"]')).toContainText('대출 한도는 3권입니다.');
+    await page.getByRole('button', {name:'캔버스로 보기',exact:true}).click();
     const rule = page.getByRole('button', { name: '검증용 대출 규정 블록 속성', exact: true });
     await expect(rule).toContainText('대출 한도는 3권입니다.');
     await expect(rule).not.toContainText('다음 날');
@@ -418,7 +426,7 @@ async function verifyEditorLessonGuides() {
         for (const step of steps) await expect(guide).toContainText(step);
         await expect(guide).toContainText(criterion);
       } else {
-        const order = guide.locator('ol').first();
+        const order = guide.getByRole('heading',{level:3,name:/실습 안내$/}).locator('xpath=following-sibling::ol[1]');
         for (const step of steps) await expect(order).toContainText(step);
         await guide.getByText('제공된 예시와 완료 기준 보기', {exact:true}).click();
         await expect(guide.getByRole('list').filter({hasText:criterion}).first()).toBeVisible();
@@ -474,7 +482,8 @@ async function verifyReleaseCopyGuide(context: BrowserContext) {
     await expect(page.locator('.ws-task')).toContainText('첫 버전');
     await page.getByRole('button', {name:'실습 안내', exact:true}).click();
     const guide = page.getByRole('main');
-    await expect(guide.locator('ol').first()).toContainText('현재 초안 버전 저장');
+    const order=guide.getByRole('heading',{level:3,name:/실습 안내$/}).locator('xpath=following-sibling::ol[1]');
+    await expect(order).toContainText('현재 초안 버전 저장');
     await guide.getByRole('button', {name:'기준판·후보판이 준비된 실습 열기'}).click();
     const dialog = page.getByRole('dialog', {name:'규정 변경 검증·게시·복구'});
     await dialog.getByRole('button', {name:'내 사본으로 시작'}).click();
@@ -520,12 +529,36 @@ async function chooseReleaseDecision(page: Page) {
     await expect(dialog.getByText('판단 기록 ('+count+'건)', {exact:true})).toBeVisible();
   }
   const whyHold = '일요일 휴관과 다른 답변이 있어 운영 정보를 다시 확인합니다.';
-  await record('2', 'hold', whyHold, 1);
+  await version.selectOption('2');
+  await decision.selectOption('hold');
+  await reason.fill(whyHold);
+  let resumeDecision!: () => void;
+  const holdRequest = new Promise<void>(resolve => { resumeDecision = resolve; });
+  const delayDecision = async (route: Route) => {
+    if (route.request().postDataJSON()?.action === 'versions.decide') await holdRequest;
+    await route.fallback();
+  };
+  await page.route('**/api/studio', delayDecision);
+  try {
+    await submit.click();
+    await expect(decision).toBeDisabled();
+    await expect(reason).not.toBeEditable();
+  } finally { resumeDecision(); }
+  await expect(dialog.getByText('판단 기록 (1건)', {exact:true})).toBeVisible();
+  await page.unroute('**/api/studio', delayDecision);
   const held = await api(desktop, 'project.open', {id});
   assert.equal(held.visibility, 'private');
   assert.equal(held.publicVersion, null);
   await dialog.getByLabel('공유 범위').selectOption('link');
   await record('2', 'publish', '게시된 후보판에서 문제가 보고됐을 때의 대응을 시험합니다.', 2);
+  const audience = dialog.getByLabel('공유 범위');
+  await audience.selectOption('public');
+  await decision.selectOption('publish');
+  await reason.fill('공개 범위를 검토하던 중 작성한 근거');
+  await audience.selectOption('link');
+  await expect(decision).toHaveValue('');
+  await expect(reason).toHaveValue('공개 범위를 검토하던 중 작성한 근거');
+  await expect(submit).toBeDisabled();
   await record('1', 'rollback', '일요일 운영 안내에 오류가 있어 이전 기준판으로 복구합니다.', 3);
   await dialog.getByRole('button', {name:'닫기', exact:true}).click();
   await expect(dialog).toHaveCount(0);
@@ -631,8 +664,8 @@ async function verifyConnections(page: Page) {
   await wire.press('Enter');
   await expect(sourceCard.locator('.ws-port-in')).toHaveCount(0);
   await expect(targetCard.locator('.ws-port-in')).toHaveCount(1);
-  await expect(page.getByRole('region', { name: '실행 조건', exact: true })).toContainText('받을 질문');
-  const values = page.getByRole('region', { name: '전달값', exact: true });
+  await expect(page.getByRole('region', { name: '실행 순서', exact: true })).toContainText('받을 질문');
+  const values = page.getByRole('region', { name: '전달할 값', exact: true });
   await expect(values).toContainText('받을 질문');
   await expect(values).toContainText('전달할 답변');
   const notes = page.getByRole('textbox',{ name:/선 설명$/ });
@@ -676,16 +709,16 @@ async function verifyConnections(page: Page) {
     await expect(
       small.getByRole('textbox',{ name:/선 설명$/ }).last()
     ).toHaveValue('원래 질문 전달');
-    await small.getByRole('button', { name: '데이터 연결 삭제' }).click();
+    await small.getByRole('button', { name: '전달할 값 연결 삭제' }).click();
     await expect(
-      small.getByRole('button', { name: '데이터 연결 삭제' })
+      small.getByRole('button', { name: '전달할 값 연결 삭제' })
     ).toHaveCount(0);
     await small.getByRole('button', { name: '전달 항목 추가' }).click();
     const link = small.getByRole('dialog', { name: '전달 항목 추가' });
     await link.getByRole('checkbox').check();
     await link.getByRole('button', { name: '연결 적용' }).click();
     await expect(
-      small.getByRole('button', { name: '데이터 연결 삭제' })
+      small.getByRole('button', { name: '전달할 값 연결 삭제' })
     ).toBeVisible();
     await expect
       .poll(async () =>
@@ -777,7 +810,7 @@ async function verifyCopyPlacementAndTeamView(page: Page) {
   await page.locator('.ws-palette').getByRole('button', {name:'안내문 편집 담당의 동료 검토',exact:true}).click();
   await expect(clarity).toHaveText('사실 검토 담당 초안');
   await expect(facts).toHaveCount(0);
-  await page.getByRole('button', {name:'전체 보기',exact:true}).click();
+  await page.getByRole('button', {name:'캔버스에 맞추기',exact:true}).click();
   await expect.poll(scale).toBeLessThan(0.6);
   if (originalViewport) await page.setViewportSize(originalViewport);
 }
@@ -822,9 +855,7 @@ async function verifyTeamSkillSelection(page:Page){
 async function verifyRecommendedBlocks(page: Page) {
   const context = page.context();
   const project = await api(context, 'project.create', {title: '수준별 추천 확인 ' + stamp});
-  await page.goto('/?edit=' + project.id);
   const palette = page.locator('.ws-palette');
-  const levels = page.getByLabel('추천 블록 수준');
   const menuNames = palette.locator('.ws-palette-add strong');
   const addTask = palette.getByRole('button', {name: 'AI 작업 추가', exact: true});
   const inspector = page.locator('.ws-inspector');
@@ -838,10 +869,13 @@ async function verifyRecommendedBlocks(page: Page) {
     {level: '고급', count: 29, moves: ['담당자·작업 선택', '결과 평가']},
     {level: '전문가', count: 32, moves: []},
   ];
-  await expect(levels).toHaveValue('입문');
   const moved = tiers.flatMap(tier => tier.moves);
   for (const [index, tier] of tiers.entries()) {
-    await levels.selectOption(tier.level);
+    const lesson = templates.find(item => item.level === tier.level)!;
+    const copy = index === 0 ? project : await api(context, 'project.create', {lesson:lesson.id});
+    await page.goto('/?edit=' + copy.id);
+    await palette.getByRole('button', {name:'블록 추가', exact:true}).click();
+    await expect(page.getByRole('combobox', {name:'추천 블록 수준'})).toHaveCount(0);
     await expect(menuNames).toHaveCount(tier.count);
     const visible = await menuNames.allTextContents();
     assert.deepEqual(
@@ -855,10 +889,12 @@ async function verifyRecommendedBlocks(page: Page) {
       await expect(mode.locator('option')).toHaveText(['한 번 답하기', '목표까지 반복']);
       await name.fill('입문 추천으로 추가');
     }
+    await page.keyboard.press('Control+s');
+    await expect.poll(async () => (await api(context, 'project.open', {id:copy.id})).graph.nodes.length)
+      .toBe(copy.graph.nodes.length + 1);
   }
 
-  await levels.selectOption('입문');
-  await expect(mode).toHaveValue('agent.task');
+  await page.goto('/?edit=' + project.id);
   const search = palette.getByRole('searchbox', {name: '블록 이름 검색'});
   await search.fill('목표까지 반복');
   await addTask.click();
@@ -879,7 +915,7 @@ async function verifyRecommendedBlocks(page: Page) {
   await expect.poll(async () => {
     const {graph} = await api(context, 'project.open', {id: project.id}) as {graph: Graph};
     return graph.nodes.length;
-  }).toBe(tiers.length + 3);
+  }).toBe(4);
   await page.reload();
   await page.getByRole('button', {name: '반복 방식으로 검색 블록 속성', exact: true}).click();
   await expect(mode).toHaveValue('agent.task');
@@ -899,13 +935,12 @@ async function verifyMergedBlockMenus(page: Page) {
       {id:'original-data', from:'pick', to:'order', kind:'data', out:'value', input:'input', label:'선택한 담당자'},
     ],
   };
-  const project = await api(page.context(), 'project.create', {title:'이전 형식 설계 '+stamp, graph});
+  const project = await api(page.context(), 'project.create', {title:'이전 형식 설계 '+stamp, lesson:'intermediate', graph});
   await page.evaluate(() => localStorage.setItem('studio.editor.stars', JSON.stringify([
     'error.compensate', 'tool.invoke', 'agent.coordinate', 'agent.select_candidate', 'control.wait', 'input.form',
     'control.terminate',
   ])));
   await page.goto('/?edit='+project.id);
-  const level = page.getByLabel('추천 블록 수준');
   const panel = page.locator('.ws-inspector');
   const mode = panel.getByLabel('작업 방식');
   const palette = page.locator('.ws-palette');
@@ -913,25 +948,23 @@ async function verifyMergedBlockMenus(page: Page) {
   const addSelection = palette.getByRole('button', {name:'담당자·작업 선택 추가', exact:true});
   const search = palette.getByRole('searchbox', {name:'블록 이름 검색'});
 
+  await palette.getByRole('button', {name:'블록 추가', exact:true}).click();
   await palette.getByRole('button', {name:'즐겨찾기 블록'}).click();
   await expect(palette.locator('.ws-palette-row')).toHaveCount(4);
   await expect(addTool).toBeVisible();
   await expect(addSelection).toBeVisible();
   await expect(palette.getByRole('button', {name:'입력 양식·추가 질문 추가', exact:true})).toBeVisible();
   await expect(palette.getByRole('button', {name:'답변 전달 즐겨찾기', exact:true})).toHaveAttribute('aria-pressed', 'true');
-  await level.selectOption('입문');
   for (const node of graph.nodes) {
     await page.getByRole('button', {name:node.title+' 블록 속성', exact:true}).click();
     await expect(mode).toHaveValue(node.type);
   }
   await expect(panel.locator('[data-field-key="args"] textarea')).toHaveValue(/R-17/);
-  await level.selectOption('중급');
   await palette.getByRole('button', {name:'추천', exact:true}).click();
   await expect(addSelection).toHaveCount(0);
   await addTool.click();
   await expect(panel.locator('[data-field-key="tool"] input')).toBeVisible();
   await expect(mode.locator('option[value="error.compensate"]')).toHaveCount(0);
-  await level.selectOption('전문가');
   await palette.getByRole('button', {name:'전체 32종', exact:true}).click();
   await expect(palette.locator('.ws-palette-row')).toHaveCount(32);
   const category = palette.getByRole('combobox', {name:'블록 카테고리'});
@@ -1054,6 +1087,58 @@ async function verifyQuestionDeadlines(page: Page) {
   assert.deepEqual(saved.edges, graph.edges);
 }
 
+async function verifyLeavingSharedCopy() {
+  const reader = await browser.newContext({baseURL, viewport:{width:1440,height:900}});
+  try {
+    await registerBrowserAccount(reader);
+    const project = await api(desktop, 'project.create', {title:'공유 사본 이동 확인 ' + stamp, graph:policyGraph(3)});
+    const version = await api(desktop, 'versions.save', {id:project.id, revision:project.revision});
+    await api(desktop, 'versions.publish', {id:project.id, version:version.number, visibility:'public'});
+    const page = await newPage(reader);
+    await page.goto('/?view=projects');
+    const nav = page.getByRole('navigation', {name:'작업 화면'});
+    for (const succeeds of [false, true]) {
+      await nav.getByRole('button', {name:'공유 Agent', exact:true}).click();
+      await page.locator('[data-project-id="' + project.id + '"]').click();
+      const dialog = page.getByRole('dialog', {name:project.title});
+      let resume!: () => void;
+      const held = new Promise<void>(resolve => { resume = resolve; });
+      const delay = async (route: Route) => {
+        if (route.request().postDataJSON()?.action !== 'project.copy') return route.continue();
+        await held;
+        if (succeeds) return route.continue();
+        return route.fulfill({status:503, json:{error:'사본 생성 응답 확인용 오류'}});
+      };
+      await page.route('**/api/studio', delay);
+      try {
+        const requested = page.waitForRequest(req => req.url().endsWith('/api/studio') && req.postDataJSON()?.action === 'project.copy');
+        await dialog.getByRole('button', {name:'내 사본 만들기'}).click();
+        await requested;
+        await expect(dialog.getByRole('button', {name:'닫기', exact:true})).toBeDisabled();
+        await page.goBack();
+        await expect(page.getByRole('heading', {name:'내 Agent', exact:true})).toBeVisible();
+        const result = page.waitForResponse(res => res.url().endsWith('/api/studio') && res.request().postDataJSON()?.action === 'project.copy');
+        resume();
+        assert.equal((await result).status(), succeeds ? 200 : 503);
+        // The busy state clears after the application consumes the response.
+        await expect(nav.getByRole('button', {name:'Workflow 편집기', exact:true})).toBeEnabled();
+        await expect(page).toHaveURL(url => url.search === '?view=projects');
+        await expect(page.getByRole('alert').filter({hasText:'사본 생성 응답 확인용 오류'})).toHaveCount(0);
+        if (succeeds) {
+          await expect(page.getByText(project.title + ' 사본', {exact:true})).toBeVisible();
+          const copies = (await api(reader, 'project.list')).filter((p: {title:string; mine:boolean}) => p.mine && p.title === project.title + ' 사본');
+          assert.equal(copies.length, 1);
+        }
+      } finally {
+        resume();
+        await page.unroute('**/api/studio', delay);
+      }
+    }
+  } finally {
+    await reader.close();
+  }
+}
+
 async function verifyTerminalAndErrorSettings(page: Page) {
   const graph: Graph = {
     nodes: [
@@ -1168,8 +1253,8 @@ async function checkRoutingWires(context: BrowserContext, page: Page) {
   await page.goto('/?edit=' + project.id);
   const canvas = page.locator('.ws-wires');
   const wire = (from: string, to: string) => canvas.locator(`[role="button"][data-from="${from}"][data-to="${to}"]`);
-  const when = page.getByRole('region', { name: '실행 조건', exact: true });
-  const values = page.getByRole('region', { name: '전달값', exact: true });
+  const when = page.getByRole('region', { name: '실행 순서', exact: true });
+  const values = page.getByRole('region', { name: '전달할 값', exact: true });
   const searchRoute = wire('intent', 'search');
   const searchBlock = page.locator('[data-workflow-node="search"]');
   await expect(searchBlock.locator('.ws-port-in')).toHaveCount(1);
@@ -1185,7 +1270,7 @@ async function checkRoutingWires(context: BrowserContext, page: Page) {
   await expect(page.locator('.ws-wire-endpoint[data-endpoint="target"][data-node-id="search"]')).toHaveCount(1);
   await expect(when).toContainText('규정');
   await expect(when).toContainText('미분류');
-  await expect(values).toContainText('전달값이 없습니다');
+  await expect(values).toContainText('전달할 값이 없습니다');
 
   const questionData = wire('input', 'search');
   const dataStroke = questionData.locator('path[marker-end]');
@@ -1251,6 +1336,12 @@ async function verifyNamedOutputs(page: Page) {
   await chooser.getByRole('button', { name: '연결 적용' }).click();
   await expect(wire(gate.id, receipt.id)).toBeVisible();
   await route(classify.id, 'category:예약').dragTo(card(booking.id).getByRole('button', { name: '예약 안내 블록 속성' }));
+  await expect(chooser.getByText('출발 블록 · 질문 분류 · 예약 경로', { exact: true })).toBeVisible();
+  await expect(chooser.getByLabel('도착 블록')).toHaveValue(booking.id);
+  await expect(chooser.getByRole('checkbox', { name: '예약 → 실행 시작', exact: true })).toBeChecked();
+  await expect(chooser.getByRole('checkbox', { name: '결과 → 입력값', exact: true })).toBeChecked();
+  await expect(chooser.getByRole('checkbox', { name: '선택한 범주 → 입력값', exact: true })).not.toBeChecked();
+  await chooser.getByRole('button', { name: '연결 적용', exact: true }).click();
   await expect(wire(classify.id, booking.id)).toBeVisible();
 
   // A second logical route may intentionally lead to the same block and share its arrow.
@@ -1287,7 +1378,7 @@ async function verifyNamedOutputs(page: Page) {
     await chooser.getByRole('button', { name: '취소' }).click();
     await page.getByRole('button', { name: '목록으로 편집' }).click();
     await page.locator('.ws-graph-list').getByRole('button', { name: /질문 분류 → 예약 안내/ }).click();
-    const conditions = page.getByRole('region', { name: '실행 조건', exact: true });
+    const conditions = page.getByRole('region', { name: '실행 순서', exact: true });
     await expect(conditions).toContainText('예약');
     await expect(conditions).toContainText('미분류');
     await noOverflow(page);
@@ -1415,7 +1506,7 @@ async function checkEditorNavigation() {
     }
 
     await page.goto('/');
-    await expect(page.getByRole('heading', { name: '내 자료로 안내하기' })).toBeVisible({ timeout: 60000 });
+    await expect(page.getByRole('heading', { name: '내 작업실', exact: true })).toBeVisible({ timeout: 60000 });
     await checkBreakpoint('작업실 홈');
     for (const label of ['작업실 홈', '내 Agent', '도구 및 자료', '수준별 템플릿', '공유 도구 및 자료', '공유 Agent']) {
       await menu(label).click();
@@ -1626,11 +1717,13 @@ async function checkResumeHome() {
     await registerBrowserAccount(context);
     const page = await newPage(context);
     await page.goto('/');
-    await expect(page.locator('.lh-blueprint')).toBeVisible();
+    const start = page.getByRole('region', {name:'작업 시작 방법'});
+    await expect(start.getByRole('button', {name:'새 Agent 만들기'})).toBeInViewport();
+    await expect(start.getByRole('button', {name:'예제로 배우기'})).toBeInViewport();
     await page.getByRole('button', { name: '입문 실습 보기' }).click();
     await expect(page.getByRole('dialog')).toContainText('입문');
     await page.keyboard.press('Escape');
-    await page.getByRole('button', { name: '실습 시작하기' }).click();
+    await page.getByRole('button', { name: '도서관 실습 시작하기', exact: true }).click();
     const rule = page.getByRole('button', { name: '도서관 이용규정 블록 속성', exact: true });
     await expect(rule).toHaveAttribute('aria-pressed', 'true');
     const id = new URL(page.url()).searchParams.get('edit');
@@ -1787,7 +1880,7 @@ try {
   const p = await newPage(desktop);
   await p.goto('/');
   await signUpFromLogin(p, 'owner-' + stamp);
-  await expect(p.getByRole('heading', { name: '내 자료로 안내하기' })).toBeVisible(
+  await expect(p.getByRole('heading', { name: '내 작업실', exact: true })).toBeVisible(
     { timeout: 60000 }
   );
   await shot(p, 'workspace-desktop');
@@ -1798,7 +1891,7 @@ try {
   await expect(p.locator('.lesson-tile')).toHaveCount(13);
   await p.goBack();
   await expect(
-    p.getByRole('heading', { name: '내 자료로 안내하기' })
+    p.getByRole('heading', { name: '내 작업실', exact: true })
   ).toBeVisible();
   await p.goForward();
   await expect(p.locator('.lesson-tile')).toHaveCount(13);
@@ -1829,7 +1922,7 @@ try {
   await visitor.goto('/');
   await signUpFromLogin(visitor, 'reader-' + stamp);
   await expect(
-    visitor.getByRole('heading', { name: '내 자료로 안내하기' })
+    visitor.getByRole('heading', { name: '내 작업실', exact: true })
   ).toBeVisible();
   await shot(visitor, 'workspace-mobile');
   await noOverflow(visitor);
@@ -1968,6 +2061,13 @@ try {
   await expect(confirm.getByText(/공유 주소/)).toBeVisible();
   await expect(confirm.getByText(/휴지통에서 복구/)).toBeVisible();
   await expect(confirm.getByRole('button', { name:'취소' })).toBeFocused();
+  assert.equal(await p.evaluate(() => getComputedStyle(document.documentElement).overflowY), 'hidden');
+  await p.keyboard.press('Shift+Tab');
+  await expect(confirm.getByRole('button', { name:'닫기', exact:true })).toBeFocused();
+  await p.keyboard.press('Shift+Tab');
+  await expect(confirm.getByRole('button', { name:'프로젝트 삭제', exact:true })).toBeFocused();
+  await p.keyboard.press('Tab');
+  await expect(confirm.getByRole('button', { name:'닫기', exact:true })).toBeFocused();
   await p.keyboard.press('Escape');
   await expect(confirm).toHaveCount(0);
   await expect(remove).toBeFocused();
@@ -2031,6 +2131,7 @@ try {
   await verifyEditorLessonGuides();
   await verifyQuestionDeadlines(p);
   await verifyTerminalAndErrorSettings(p);
+  await verifyLeavingSharedCopy();
   assert.deepEqual(errors, []);
   console.log(
     'PASS full Windows app: login gate, shared-link return, logout, signup, thirteen templates, desktop keyboard & mobile layout, two accounts, published versions 3→5→3, pinned conversation, link revocation, trash recovery and purge, independent copy, five recommendation levels, saved AI task modes, 32 block menus, optional question deadlines, legacy waits, four terminal modes and two error strategies'

@@ -16,7 +16,9 @@ async function openCopy(page: Page, dynamic: boolean) {
   await page.getByRole('button', {name:dynamic ? '전문가' : '고급', exact:true}).click();
   await page.getByRole('button', {name:dynamic ? /지점 조사팀의 생성 한도/ : /동료 Agent와 초안 검토하기/}).click();
   const detail = page.getByRole('dialog');
-  await expect(detail.getByRole('heading', {name:'선택 실습', exact:true})).toBeVisible();
+  const optional = detail.getByText('선택 실습', {exact:true});
+  await optional.focus();
+  await optional.press('Enter');
   await expect(detail.getByRole('listitem').filter({hasText:dynamic ? '도구 및 자료 → 참고 자료' : '전달받을 상위 Skill'})).toBeVisible();
   if (dynamic) {
     await detail.getByLabel('총 생성 한도').selectOption('4');
@@ -48,7 +50,7 @@ async function closeProperties(page: Page) {
 }
 
 async function openBlockList(page: Page) {
-  await expect(page.getByRole('button', {name:/^(목록으로 편집|캔버스로 보기)$/})).toBeAttached();
+  await expect(page.getByRole('group', {name:'캔버스 보기 방식'})).toBeAttached();
   await closeProperties(page);
   const list = page.getByRole('button', {name:'목록으로 편집', exact:true});
   if (await list.isVisible()) await list.click();

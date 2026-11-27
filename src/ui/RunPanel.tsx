@@ -1,6 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
+import { Download, FileText, History, MessageSquare, Play, Settings2 } from 'lucide-react';
+import { cycleDialogFocus } from './dialog-focus';
 import type { EngineEvent, Prompt } from '../engine/types';
 import type { Graph } from '../domain/types';
 import {beginnerRuleSource} from '../domain/source-preview';
@@ -13,6 +15,9 @@ import {useConversationComposer} from './use-conversation-composer';
 import {clearReplyDraft,useReplyDraft} from './use-reply-draft';
 import {intentHash, StudioApiError} from './client';
 import {FormattedAnswer} from './FormattedAnswer';
+import {PromptTextarea} from './PromptTextarea';
+import ProjectNameHeading from './ProjectNameHeading';
+import {evidenceResultLabel} from './evidence-result';
 
 type RunState = 'queued' | 'running' | 'waiting' | 'completed' | 'failed' | 'stopped';
 type Run = {
@@ -60,6 +65,15 @@ function EditionSummary({run}:{run:Run}){
   if(!run.usedEditions?.length)return null;
   return <small className="run-editions">사용한 자료판 · {run.usedEditions.map(item=>item.title+' '+item.version+'판').join(' · ')}</small>;
 }
+function EvidenceSummary({run}:{run:Run}) {
+  const counts = new Map<string, number>();
+  for (const event of run.events ?? []) {
+    const label = evidenceResultLabel(event);
+    if (label) counts.set(label, (counts.get(label) ?? 0) + 1);
+  }
+  if (!counts.size) return null;
+  return <small className="run-editions">근거 확인 · {[...counts].map(([label,count])=>count > 1 ? label+' '+count+'건' : label).join(' · ')}</small>;
+}
 function CaseEvidence({run}:{run:Run}){
   const sample=run.testCase;
   if(!sample)return null;
@@ -92,6 +106,7 @@ function MobileRunHistory({children, onClose, opener}: {
     };
   },[onClose,opener]);
   return <dialog ref={ref} className="run-history-dialog" aria-label="실행 기록"
+    onKeyDown={cycleDialogFocus}
     onClick={event=>{if(event.target===event.currentTarget)onClose();}}
     onCancel={event=>{event.preventDefault();event.stopPropagation();onClose();}}>
     <div className="run-history-sheet">
@@ -108,7 +123,7 @@ function Trace({run}:{run:Run}) {
       const stop=item.kind==='stop' && item.blockType==='agent.create_dynamic'
         ? item.data as {notStarted?:string[];excluded?:string[]}|undefined : undefined;
       return <li key={item.id}><strong>{item.title}</strong><i>{eventKind[item.kind]||item.kind}</i>
-        <small>{item.detail}</small>
+        <small>{evidenceResultLabel(item) ?? item.detail}</small>
         {stop?.notStarted && <small>선택 후 미시작 · {stop.notStarted.join(', ')||'없음'}</small>}
         {stop?.excluded && <small>선택 제외 · {stop.excluded.join(', ')||'없음'}</small>}
         {item.data!==undefined&&<details><summary>입출력 보기</summary><pre>{show(item.data)}</pre></details>}
@@ -121,15 +136,36 @@ function Operations({run}:{run:Run}){
   return <section className="run-ops"><h4>전송한 작업</h4>{run.operations.map(op=>
     <details key={op.id}><summary>{toolName(op.tool)} · {({confirmed:'처리 확인',unknown:'결과 미확인',rejected:'거절됨'}[op.status]||op.status)}</summary><pre>{show(op.result??'처리 결과 확인 중')}</pre></details>)}</section>;
 }
+function ResultFile({file}:{file:NonNullable<Run['files']>[number]}) {
+  const [preview,setPreview]=useState(false);
+  function download() {
+    const url=URL.createObjectURL(new Blob([file.content],{type:'application/octet-stream'}));
+    const link=document.createElement('a');
+    link.download=file.fileName.replace(/[\\/]/g,'_');
+    link.href=url;
+    link.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+  return <div className="run-result-file">
+    <details onToggle={event=>setPreview(event.currentTarget.open)}>
+      <summary><FileText size={17} aria-hidden="true"/><strong>{file.fileName}</strong><span>미리보기</span></summary>
+      {preview&&<pre tabIndex={0} aria-label={file.fileName+' 내용'}>{file.content||'파일 내용이 비어 있습니다.'}</pre>}
+    </details>
+    <button type="button" onClick={download} aria-label={file.fileName+' 내려받기'}><Download size={16} aria-hidden="true"/>내려받기</button>
+  </div>;
+}
 function Files({run}:{run:Run}){
-  const files=(run.files??[]).map(file=>({id:file.path,name:file.fileName,content:file.content}));
+  const files=run.files??[];
   if(!files.length)return null;
-  return <div className="run-row">{files.filter((f,i)=>files.findIndex(t=>t.name===f.name&&t.content===f.content)===i).map(f=><button key={f.id}
-    onClick={()=>{const url=URL.createObjectURL(new Blob([f.content],{type:'application/octet-stream'}));const a=document.createElement('a');a.download=f.name.replace(/[\\/]/g,'_');a.href=url;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}}>
-    {f.name} 내려받기</button>)}</div>;
+  return <section className="run-files" aria-label="결과 파일"><h4>결과 파일</h4>
+    {files.filter((f,i)=>files.findIndex(t=>t.fileName===f.fileName&&t.content===f.content)===i)
+      .map(file=><ResultFile key={file.path} file={file}/>)}
+  </section>;
 }
 function PromptReply({prompt,draftKey,disabled,send}:{prompt:Prompt;draftKey:string;disabled:boolean;send:(value:string,approved?:boolean)=>void}){
   const {draft,update}=useReplyDraft(draftKey);
+  const replyId=useId();
+  const replyLabel=prompt.kind==='review'?'검토 의견':'대기 중인 요청에 답하기';
   const {value='',selected=[]}=draft,answers=new Map(draft.answers??[]);
   const fields=prompt.fields??[];
   const selectionReady=prompt.selectionCount?selected.length===prompt.selectionCount:selected.length>0;
@@ -170,9 +206,11 @@ function PromptReply({prompt,draftKey,disabled,send}:{prompt:Prompt;draftKey:str
                   update({answers:[...answers.set(field.name,answer)]});
                 }}/></label>)}
             {prompt.fieldError&&<p role="alert">{prompt.fieldError}</p>}
-          </fieldset>:prompt.kind==='review'
-          ?<label>검토 의견<textarea disabled={disabled} value={value} onChange={e=>update({value:e.target.value})} required rows={3}/></label>
-          :<textarea disabled={disabled} aria-label="대기 중인 요청에 답하기" value={value} onChange={e=>update({value:e.target.value})} required rows={3}/>}
+          </fieldset>:<>
+            {prompt.kind==='review'&&<label htmlFor={replyId}>{replyLabel}</label>}
+            <PromptTextarea id={replyId} expandLabel={replyLabel} aria-label={prompt.kind==='review'?undefined:replyLabel}
+              disabled={disabled} value={value} onChange={e=>update({value:e.target.value})} required rows={5}/>
+          </>}
         <button className="run-primary" disabled={disabled||(prompt.kind==='selection'?!selectionReady:!fields.length&&!value.trim())}>같은 실행 이어가기</button>
       </form>}
   </div>;
@@ -206,6 +244,10 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
   const [fileError,setFileError]=useState('');
   const fileInput=useRef<HTMLInputElement>(null);
   const fileStatusId=useId();
+  const questionId=useId();
+  const settingsId=useId(), historyId=useId();
+  const composerHintId=useId();
+  const inputLimitId=useId();
   const [mode,setMode]=useState<'test'|'live'>(initialMode);
   const testingRelease = Boolean(project.mine && project.releaseExercise && initialMode === 'test');
   const [version,setVersion]=useState(''),[selectedCase,setSelectedCase]=useState(initialCase||'');
@@ -344,8 +386,9 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
   useEffect(()=>{
     if(!current || current.id!==focusRestoredReply.current || active(current) || restoringRun)return;
     focusRestoredReply.current=undefined;
-    const prompt=transcript.current?.querySelector<HTMLElement>('.run-wait input:not(:disabled), .run-wait textarea:not(:disabled), .run-wait button:not(:disabled)');
-    (prompt ?? transcript.current?.querySelector<HTMLElement>('.run-answer'))?.focus();
+    const reply=transcript.current?.querySelector('.run-wait');
+    const target=reply?.querySelector<HTMLElement>('input:not(:disabled), textarea:not(:disabled)') ?? reply?.querySelector<HTMLElement>('button:not(:disabled)');
+    (target ?? transcript.current?.querySelector<HTMLElement>('.run-answer'))?.focus();
   },[current,restoringRun]);
   async function openRecord(run:Run){
     const generation=contextGeneration.current;
@@ -696,25 +739,34 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
         {group.turns.length>1&&<details><summary>문답 {group.turns.length}개</summary>{group.turns.map(historyRecord)}</details>}
       </div>)}
     </>;
-  const historyPanel=<aside className={'run-sidebar '+(embedded&&selectedHistory?'show':'')}><h3>내 실행 기록</h3>{historyContents}</aside>;
+  const historyPanel=<aside id={historyId} aria-label="내 실행 기록" className={'run-sidebar '+(embedded&&selectedHistory?'show':'')}><h3>내 실행 기록</h3>{historyContents}</aside>;
   const sendingBlocked=runActionsDisabled||Boolean(restoreError)||fileLoading||Boolean(draftIssue)||accept===undefined||Boolean(active(current))||current?.state==='waiting'||Boolean(pendingTurn);
   const composingNext=Boolean(nextConversation || (sending && !sending.failed));
+  const questionLabel=composingNext?'같은 대화의 새 질문':'Agent에게 보낼 질문';
+  const preparing=accept===undefined&&!draftIssue&&!sharingRevoked&&!inputSetupError&&!restoreError&&!restoringRun;
+  const executionMode=current?.mode??mode;
+  const sourceVersion=current?current.version:executionMode==='live'?project.publicVersion:Number(version);
+  const designSource=sourceVersion?'설계 '+sourceVersion+'판':executionMode==='live'?'게시된 설계':current?'실행 시점 초안':'현재 초안';
   const composerHint=pendingTurn && pendingTurn.id!==current?.id?'진행 중인 문답을 열어 상태를 확인하세요.':current?.state==='waiting'?'위 요청에 회신하면 다음 질문을 이어서 보낼 수 있습니다.'
     :active(current)||(sending && !sending.failed)?'다음 질문을 미리 작성할 수 있습니다.'
+    :preparing?'입력 환경을 준비하고 있습니다.':fileLoading?'첨부 파일을 읽고 있습니다.'
     :nextConversation?'대화의 시작 버전으로 실행합니다.':draftChanged?'수정한 초안으로 실행합니다.':mode==='test'?'시험 실행':'실제 사용';
   const body=<div className="run-grid">
     {!embedded&&historyPanel}
     <div className="run-main">
+      {embedded&&<header className="run-context"><h3>{executionMode==='test'?'시험 실행':'Agent 실행'}</h3>
+        <p>{executionMode==='test'?'시험 데이터':'실제 사용'}<span aria-hidden="true"> · </span>{designSource}</p>
+      </header>}
       {embedded&&<div className="run-editor-tools">
-        <button type="button" aria-expanded={selectedHistory} onClick={()=>setSelectedHistory(!selectedHistory)}>실행 기록</button>
-        <button type="button" aria-expanded={showSettings} onClick={()=>setShowSettings(!showSettings)}>실행 설정</button>
+        <button type="button" aria-expanded={selectedHistory} aria-controls={selectedHistory?historyId:undefined} onClick={()=>setSelectedHistory(!selectedHistory)}><History size={15} aria-hidden="true"/>실행 기록</button>
+        <button type="button" aria-expanded={showSettings} aria-controls={showSettings?settingsId:undefined} onClick={()=>setShowSettings(!showSettings)}><Settings2 size={15} aria-hidden="true"/>실행 설정</button>
       </div>}
       {embedded&&selectedHistory&&historyPanel}
       {restoringRun&&<p role="status">진행하던 실행을 여는 중입니다.</p>}
       {restoreError&&<div className="run-reconnect" role="alert">{restoreError}
         <button type="button" onClick={()=>{setRestoreError('');setRestoringRun(true);setRestoreAttempt(n=>n+1);}}>진행하던 실행 다시 열기</button>
       </div>}
-      {(!embedded||showSettings)&&<div className="run-bar">{!embedded&&<button type="button" ref={historyToggle} className="run-history-toggle" aria-haspopup="dialog" aria-expanded={selectedHistory} onClick={()=>setSelectedHistory(true)}>실행 기록</button>}
+      {(!embedded||showSettings)&&<div className="run-bar" id={settingsId}>{!embedded&&<button type="button" ref={historyToggle} className="run-history-toggle" aria-haspopup="dialog" aria-expanded={selectedHistory} onClick={()=>setSelectedHistory(true)}>실행 기록</button>}
         {project.mine?<label>실행 환경 <select value={mode} disabled={busy||fileLoading||Boolean(conversation)} onChange={e=>{
           const next=e.target.value as 'test'|'live';
           if(embedded)clearAttachment();else{resetPicker();enter('new/'+next);}
@@ -723,8 +775,10 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
           <option value="test">시험 데이터</option><option value="live" disabled={!project.publicVersion}>실제 사용 · 게시 버전</option></select></label>:<span>게시된 Agent</span>}
         {project.mine&&mode==='test'&&!conversation&&<label>설계 <select aria-label="실행할 설계 버전" value={version} disabled={busy} onChange={e=>{clearAttachment();setVersion(e.target.value);if(compareWith===(e.target.value||'draft'))setCompareWith('');}}><option value="">현재 초안</option>
           {versions.map(v=><option key={v.number} value={v.number}>{v.number}판 · {v.title}</option>)}</select></label>}
-        {project.mine&&<button onClick={()=>setShowTests(!showTests)} aria-expanded={showTests}>시험 사례</button>}
-        {project.mine&&<button onClick={()=>setShowTriggers(!showTriggers)} aria-expanded={showTriggers}>자동 시작</button>}
+        {project.mine&&<div className="run-settings-actions">
+          <button onClick={()=>setShowTests(!showTests)} aria-expanded={showTests}>시험 사례</button>
+          <button onClick={()=>setShowTriggers(!showTriggers)} aria-expanded={showTriggers}>자동 시작</button>
+        </div>}
       </div>}
       {draftIssue&&<div className="run-draft-issue" role="alert">
         <strong>초안을 실행하려면 설계를 수정하세요.</strong><p>{draftIssue}</p>
@@ -736,7 +790,10 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
         <select aria-label="시험 사례 선택" value={selectedCase} disabled={busy} onChange={e=>chooseCase(cases.find(x=>x.id===e.target.value))}>
           <option value="">직접 작성</option>{cases.map(c=><option key={c.id} value={c.id}>{c.title}</option>)}</select>
         <label>사례 이름<input disabled={busy} value={caseTitle} onChange={e=>setCaseTitle(e.target.value)}/></label>
-        <label>기대 결과<textarea disabled={busy} value={expected} onChange={e=>editCase(()=>setExpected(e.target.value))} rows={2}/></label>
+        {embedded
+          ? <PromptTextarea id={questionId+'-expected'} label="기대 결과" expandLabel="기대 결과" disabled={busy}
+              value={expected} onChange={e=>editCase(()=>setExpected(e.target.value))} />
+          : <label>기대 결과<textarea disabled={busy} value={expected} onChange={e=>editCase(()=>setExpected(e.target.value))} rows={2}/></label>}
         <details><summary>시험 초기 데이터</summary><textarea disabled={busy} value={fixture} aria-label="시험 초기 데이터 JSON" onChange={e=>editCase(()=>setFixture(e.target.value))} rows={3}/></details>
         {storedCase&&mode==='test'&&<>
           {editedCase&&<p className="run-note">저장 전 변경이 있습니다. 각 시험은 새 대화에서 시작합니다.</p>}
@@ -751,24 +808,28 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
           <button disabled={busy||fileLoading||accept===undefined||Boolean(editorDraft?.issue&&(!version||compareWith==='draft'))||!compareWith||compareWith===(version||'draft')||!caseInput||oversized||!selectedCase} onClick={()=>void action(()=>start({compare:true}))}>같은 사례로 두 번 시험</button></>}</div>
       </section>}
       <div ref={transcript} className="run-transcript">
-        {!embedded&&!current&&!sharingRevoked&&<div className="run-empty"><strong>Agent에게 첫 질문을 보내세요.</strong><p>{mode==='test'?'시험 실행은 분리된 데이터에서 처리합니다.':'승인이 필요한 작업은 실행 내용을 확인한 후 진행합니다.'}</p></div>}
+        {!current&&!sharingRevoked&&!draftIssue&&!restoreError&&!restoringRun&&!error&&!inputSetupError&&<div className="run-empty">
+          <MessageSquare size={21} aria-hidden="true"/><strong>{embedded?'무엇을 시험할까요?':'Agent에게 첫 질문을 보내세요.'}</strong>
+          <p>{mode==='test'?'질문을 실행하면 분리된 시험 데이터로 답변과 실행 경로를 확인할 수 있습니다.':'승인이 필요한 작업은 실행 내용을 확인한 후 진행합니다.'}</p>
+        </div>}
         {visibleTurns.map(turn=>{
           const selected=turn.id===current?.id;
           return <section key={turn.id} data-run-turn={turn.id} className="run-turn" tabIndex={-1} aria-label={embedded?'시험 문답':questionText(turn.input).slice(0,140)}>
             {embedded&&<h3>{draftChanged?'이전 실행의 질문':'보낸 질문'}</h3>}
             <div className="run-question">{questionText(turn.input)}</div>
             <article className="run-answer" tabIndex={-1} aria-live={selected?'polite':'off'}>
-              <div className="run-answer-meta"><strong>{embedded?'답변':project.title}</strong><span>{states[turn.state]}</span>
+              <div className="run-answer-meta"><strong>{embedded?'답변':project.title}</strong><span className="run-state" data-state={turn.state}>{states[turn.state]}</span>
                 {selected&&(active(turn)||turn.state==='waiting')&&<button disabled={busy} onClick={()=>void action(()=>stop(turn))}>실행 중지</button>}</div>
               {active(turn)&&!sharingRevoked&&<p className="run-note">실행 경로를 업데이트하고 있습니다.</p>}
               {turn.output&&<FormattedAnswer text={turn.output} format={turn.outputFormat}/>}{turn.error&&<p className="run-error">{turn.error}</p>}
               {turn.partialScope&&<p>요청 중 이 Agent의 업무 범위 밖인 부분은 제외했습니다.</p>}
+              <EvidenceSummary run={turn}/>
               {embedded&&<EditionSummary run={turn}/>}
               <CaseEvidence run={turn}/>
               {selected?<>
                 {turn.state==='waiting'&&(turn.prompts?.length?turn.prompts:turn.prompt?[turn.prompt]:[]).map(prompt=>{
                   const request={...turn,prompt};
-                  return prompt.kind==='file'?<RunFileReply key={prompt.id} draftKey={waitDraftKey(request)} prompt={prompt} examples={visibleExamples} disabled={runActionsDisabled}
+                  return prompt.kind==='file'?<RunFileReply key={prompt.id} draftKey={waitDraftKey(request)} prompt={prompt} examples={prompt.filePurpose==='evidenceOriginal'?[]:visibleExamples} disabled={runActionsDisabled}
                     send={value=>reply(request,value)}/>:<PromptReply key={prompt.id} draftKey={waitDraftKey(request)} prompt={prompt} disabled={runActionsDisabled}
                     send={(value,approved)=>reply(request,value,approved)}/>;
                 })}
@@ -802,7 +863,7 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
         {sending&&!sending.failed&&<div className="run-submission" role="status"><strong>접수 중인 질문</strong><span>{questionText(sending.question)}</span></div>}
         {failedQuestions.filter(q=>sending?.failed||q!==sending?.question).map(q=><div key={q} className="run-submission" role="status"><strong>접수를 확인하지 못한 질문</strong>
           <span>{questionText(q)}</span><button type="button" disabled={sendingBlocked} onClick={()=>void action(()=>submitQuestion(q))}>이 질문 다시 보내기</button></div>)}
-        {embedded&&<label className="run-input-label" htmlFor="editor-run-question">{composingNext?'다음 질문':'시험 질문'}</label>}
+        {!embedded&&<label className="run-input-label" htmlFor={questionId}>{questionLabel}</label>}
         {typeof accept==='string'&&<div><label className="run-file-picker">{attachment?'입력 파일 바꾸기':'입력 파일 첨부'}
           <input ref={fileInput} type="file" accept={accept||undefined} aria-describedby={attachment ? fileStatusId : undefined}
             onChange={e=>void chooseFile(e.target.files?.[0])}/></label>
@@ -811,17 +872,18 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
           {current?.state!=='waiting'&&<ExampleFileButtons examples={visibleExamples} disabled={busy||Boolean(active(current))}
             onPick={file=>{draftEdits.current++;clearAttachment();setAttachment(file);}}/>}</div>}
         {fileError&&<p className="run-error" role="alert">{fileError}{attachment&&' 기존 첨부 '+attachment.fileName+'을 유지했습니다.'}</p>}
-        {oversized&&<p id="run-input-limit" className="run-error" role="alert">{sizeError}</p>}
-        <textarea id={embedded?'editor-run-question':undefined} aria-label={composingNext?'같은 대화의 새 질문':'Agent에게 보낼 질문'} rows={3} placeholder={composingNext?'다음 질문 입력':'Agent에게 보낼 질문 입력'}
-          value={input} aria-invalid={oversized||undefined} aria-describedby={oversized?'run-input-limit':undefined} onChange={e=>{draftEdits.current++;setInput(e.target.value);}}/>
-        <div>{!sharingRevoked&&<small>{composerHint}</small>}<button className="run-primary" disabled={sendingBlocked||!encodedInput||oversized}>질문 실행</button></div>
+        {oversized&&<p id={inputLimitId} className="run-error" role="alert">{sizeError}</p>}
+        <PromptTextarea id={questionId} label={embedded ? questionLabel : undefined} expandLabel={questionLabel}
+          rows={5} placeholder={composingNext?'다음 질문 입력':'Agent에게 보낼 질문 입력'}
+          value={input} aria-invalid={oversized||undefined} aria-describedby={oversized?inputLimitId:sharingRevoked?undefined:composerHintId} onChange={e=>{draftEdits.current++;setInput(e.target.value);}}/>
+        <div className="run-submit-row">{!sharingRevoked&&<small id={composerHintId}>{composerHint}</small>}<button className="run-primary" disabled={sendingBlocked||!encodedInput||oversized}><Play size={15} aria-hidden="true"/>질문 실행</button></div>
       </form>
     </div></div>;
   if(editorDraft)return <div className="studio-run-panel run-editor">{body}</div>;
-  return <dialog ref={dialog} className="studio-run-panel" aria-labelledby="run-title" onCancel={e=>{
+  return <dialog ref={dialog} className="studio-run-panel" aria-labelledby="run-title" onKeyDown={cycleDialogFocus} onCancel={e=>{
     if(e.target===e.currentTarget){e.preventDefault();onClose();}
   }}>
-    <header className="run-head"><div><span>Agent 실행</span><h2 id="run-title">{project.title}</h2></div><button type="button" onClick={onClose} aria-label="실행 화면 닫기">닫기</button></header>
+    <header className="run-head"><div><span>Agent 실행</span><ProjectNameHeading as="h2" id="run-title" title={project.title}/></div><button type="button" onClick={onClose} aria-label="실행 화면 닫기">닫기</button></header>
     {body}
     {selectedHistory&&<MobileRunHistory onClose={closeHistory} opener={historyToggle}>{historyContents}</MobileRunHistory>}
   </dialog>;

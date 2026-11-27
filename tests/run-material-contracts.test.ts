@@ -50,11 +50,16 @@ test('43 반복 항목에서 question과 파일 필드가 함께 유지된다',a
 });
 test('44 압축 모델이 원래 파일 이름을 읽고 48 분해형 한글 50글자로 요약한다',async()=>{
   const graph=sequence(node('file.input','f'),node('context.compress','compress',{maxLength:50,preserve:'파일 이름'}),output());
-  const summary='한'.normalize('NFD').repeat(50);
+  const summary='회의록.txt'+'한'.normalize('NFD').repeat(43);
   const result=await run(graph,attachment('내용','회의록.txt'),{model:async q=>{
     assert.match(q.input,/회의록\.txt/);assert.match(q.input,/내용/);return {text:summary};
   }});
   assert.equal(result.output,summary,result.error??'');
+  for(const text of [summary+'한','', '파일명 누락']){
+    const invalid=await run(graph,attachment('내용','회의록.txt'),{model:async()=>({text})});
+    assert.equal(invalid.status,'failed',text);
+    assert.match(invalid.error!,/길이|비어|빠졌/);
+  }
 });
 test('45 문서 읽기의 원래 행 포트를 연결해 빈 행을 포함한 번호를 전달한다',async()=>{
   const reader=node('document.read','r',{format:'text'});
@@ -69,7 +74,7 @@ test('46 발췌 위치와 47 들여쓰기·끝 공백을 다시 색인해도 보
   assert.equal(passage.quote,line);
   const graph=sequence(node('file.input','f'),node('document.read','r',{format:'json'}),node('knowledge.manage','index',{operation:'prepare',version:'2'}),node('data.transform','p',{operation:'select',path:'index.0.passage'}),output());
   const result=await run(graph,attachment(JSON.stringify([passage])));
-  assert.deepEqual(JSON.parse(result.output),passage);
+  assert.deepEqual(JSON.parse(result.output),{...passage,indexVersion:'2'});
 });
 test('51 JSON 표시 형식이 문자열의 따옴표와 개행을 올바르게 직렬화한다',async()=>{
   const graph=sequence(node('input.user_request','i'),node('output.answer','out',{format:'json'}));

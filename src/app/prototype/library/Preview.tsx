@@ -6,6 +6,7 @@ import { ArrowUpRight, BookOpen, ChevronRight, DraftingCompass, FolderOpen, Hous
 import Home from './Home';
 import Editor from './Editor';
 import { rememberEditor, updateLibraryDraft, useLibraryDraft } from './preview-state';
+import { cycleDialogFocus } from '../../../ui/dialog-focus';
 import './preview.css';
 
 export default function LibraryPreview() {
@@ -76,7 +77,7 @@ export default function LibraryPreview() {
           )}
         </main>
       </div>
-      <dialog ref={guide} className="lp-dialog" aria-labelledby="lp-guide-title">
+      <dialog ref={guide} className="lp-dialog" aria-labelledby="lp-guide-title" onKeyDown={cycleDialogFocus}>
         <header><h2 id="lp-guide-title">내 자료로 안내하기</h2><button aria-label="실습 안내 닫기" onClick={() => guide.current?.close()}><X size={19}/></button></header>
         <ol><li>편집기에서 ‘도서관 이용규정’ 블록을 여세요.</li><li>이용규정 원문에서 ‘3권’을 ‘5권’으로 직접 고쳐 적용하세요.</li><li>예시 결과에서 답변과 원문을 대조하고 대출안내.txt를 내려받으세요.</li></ol>
       </dialog>

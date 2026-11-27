@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {existsSync} from 'node:fs';
-import {chromium,expect} from '@playwright/test';
+import {chromium,expect,type Locator} from '@playwright/test';
 import {createBlock,type Graph} from '../src/domain';
 import {registerBrowserAccount} from './browser-account';
 
@@ -149,4 +149,93 @@ try{
   await expect(page.getByText(/현재 초안이 다른 화면에서 변경되었습니다/)).toBeVisible();
   assert.equal((await api('run.list',{id:materials.id})).length,2);
   console.log('PASS #53,#54,#58 rerun with the original file and fixture, inspect selected version Q&A, reject a stale editor test');
+
+  const fields=await api('project.create',{title:'입력 항목 편집',graph:{nodes:[
+    createBlock('input.form',{id:'form',config:{fields:['부서','담당자']}}),
+    createBlock('data.validate',{id:'schema',config:{requiredFields:['이름'],types:{}}}),
+  ],edges:[]}});
+  await page.goto('/?edit='+fields.id);
+  const listView=button('목록으로 편집');
+  if(await listView.getAttribute('aria-pressed')!=='true')await listView.click();
+  await page.locator('[data-canvas-block="form"]').press('Enter');
+  await button('부서 삭제').press('Enter');await expect(button('담당자 삭제')).toBeFocused();
+  await button('담당자 삭제').press('Enter');await expect(page.getByLabel('입력 항목 새 항목')).toBeFocused();
+  await page.locator('[data-canvas-block="schema"]').press('Enter');
+  await button('이름 삭제').press('Enter');await expect(page.getByLabel('필수 항목 새 항목')).toBeFocused();
+  const json=page.getByLabel('항목별 기대 형식'),typed='{"이름": "문자열"}';
+  await json.fill(typed);
+  await expect.poll(async()=>((await api('project.open',{id:fields.id})).graph as Graph).nodes[1].config.types).toEqual({'이름':'문자열'});
+  await expect(json).toHaveValue(typed);
+  console.log('PASS field deletion retains focus and saving preserves JSON formatting');
+
+  for (const width of [1440,320]) {
+    const mobile=width===320;
+    const device=await browser.newContext({baseURL,viewport:{width,height:mobile?640:900},
+      isMobile:mobile,hasTouch:mobile,storageState:await ctx.storageState()});
+    try {
+      const ui=await device.newPage();
+      const activate=(control:Locator)=>mobile?control.tap():control.click();
+      const target=createBlock(mobile?'data.validate':'agent.task',{id:'target',title:'검사 블록'});
+      const draft=await api('project.create',{title:'속성 연결 확인',graph:{nodes:[
+        createBlock('input.user_request',{id:'source',title:'질문 입력'}),target,
+        createBlock('output.answer',{id:'answer',title:'답변 전달'}),
+      ],edges:[{id:'existing',from:'target',to:'answer',kind:'flow',out:'next',input:'in'}]}});
+      const readGraph=async():Promise<Graph>=>(await api('project.open',{id:draft.id})).graph;
+      const openTarget=async()=>{
+        const close=ui.getByRole('button',{name:'속성 닫기',exact:true});
+        if(mobile&&await close.isVisible())await activate(close);
+        const list=ui.getByRole('button',{name:'목록으로 편집',exact:true});
+        if(await list.getAttribute('aria-pressed')!=='true')await activate(list);
+        await activate(ui.locator('[data-canvas-block="target"]'));
+      };
+      await ui.goto('/?edit='+draft.id);
+      await openTarget();
+      const panel=ui.getByRole('tabpanel',{name:'속성',exact:true});
+      const advanced=panel.getByText('고급 설정',{exact:true}),position=panel.getByText('위치 조정',{exact:true});
+      const links=panel.getByRole('region',{name:'연결',exact:true});
+      const ports=links.getByText('연결 가능한 항목 보기',{exact:true});
+      const receive=panel.getByRole('button',{name:'입력값 받기',exact:true});
+      const missing=panel.getByText('입력값에 전달할 값이 필요합니다.',{exact:true});
+      await expect(position).toBeHidden();
+      await expect(links.getByRole('heading',{name:'연결',exact:true})).toBeVisible();
+      await expect(links.getByRole('button',{name:'검사 블록 → 답변 전달'})).toBeVisible();
+      await expect(links.getByRole('heading',{name:'받는 항목'})).toBeHidden();
+      await expect(receive).toBeVisible();
+      await expect(missing).toBeVisible();
+      await activate(ports);
+      for (const label of ['받는 항목','보내는 항목']) await expect(links.getByRole('heading',{name:label})).toBeVisible();
+      for (const label of ['입력값','결과']) await expect(links.getByText(label,{exact:true})).toBeVisible();
+      await activate(ports);
+      await activate(advanced);
+      if(!mobile)await expect(panel.getByLabel('최대 판단 횟수')).toBeVisible();
+      const x=panel.getByLabel('가로 위치 (X)'),y=panel.getByLabel('세로 위치 (Y)');
+      await expect(x).toBeHidden();
+      await activate(position);
+      const originalX=Number(await x.inputValue());
+      await activate(panel.getByRole('button',{name:'오른쪽 방향으로 8px 이동'}));
+      await expect(x).toHaveValue(String(originalX+8));
+      await x.fill('-26');await y.fill('308');
+      await activate(panel.getByRole('button',{name:'위치 적용'}));
+      await expect.poll(async()=>{const node=(await readGraph()).nodes.find(n=>n.id==='target')!;return [node.x,node.y];}).toEqual([-26,308]);
+      if(!mobile){
+        await ui.getByRole('button',{name:'실행 취소',exact:true}).click();
+        await expect(x).toHaveValue(String(originalX+8));
+      }
+      await activate(advanced);
+      await expect(x).toBeHidden();
+      await expect(links.getByRole('heading',{name:'받는 항목'})).toBeHidden();
+      await activate(receive);
+      const dialog=ui.getByRole('dialog',{name:'연결 추가'});
+      await dialog.getByLabel('값을 보낼 블록').selectOption('source');
+      await dialog.getByRole('checkbox',{name:'결과 → 입력값',exact:true}).check();
+      await activate(dialog.getByRole('button',{name:'연결 적용'}));
+      await expect.poll(async()=>(await readGraph()).edges.some(e=>e.from==='source'&&e.to==='target'&&e.kind==='data'&&e.input==='input')).toBe(true);
+      await openTarget();
+      await expect(receive).toHaveCount(0);
+      await expect(missing).toHaveCount(0);
+      await expect(links.getByRole('button',{name:'질문 입력 → 검사 블록'})).toBeVisible();
+      await expect(links.getByRole('button',{name:'검사 블록 → 답변 전달'})).toBeVisible();
+      console.log('PASS '+width+'px block position, available ports, and required-input repair with existing links');
+    } finally {await device.close();}
+  }
 }finally{await ctx.close();await browser.close();}

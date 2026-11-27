@@ -27,7 +27,7 @@ const groups = [
 ];
 
 export function CanvasShortcuts({onClose}:{onClose:()=>void}) {
-  return <Modal title="키보드 단축키" onClose={onClose}>
+  return <Modal title="키보드 단축키" size="settings" onClose={onClose}>
     <p className="ws-shortcut-intro">편집기의 첫 Tab에서 ‘캔버스로 바로 가기’를 선택하세요. Mac에서는 Ctrl 대신 ⌘를 사용하세요.</p>
     {groups.map(group => <section className="ws-shortcut-group" key={group.title}>
       <h3>{group.title}</h3>
