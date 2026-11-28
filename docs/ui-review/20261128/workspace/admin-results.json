@@ -1,0 +1,43 @@
+{
+  "rows": [
+    {
+      "width": 1440,
+      "enabledMcpForm": true,
+      "footerTabOrder": [
+        "취소",
+        "등록",
+        "취소",
+        "서버 자격증명 환경변수 이름"
+      ],
+      "shellFits": true,
+      "shell": [
+        1250,
+        1250
+      ],
+      "field": [
+        270,
+        1068
+      ]
+    },
+    {
+      "width": 390,
+      "enabledMcpForm": true,
+      "footerTabOrder": [
+        "취소",
+        "등록",
+        "취소",
+        "서버 자격증명 환경변수 이름"
+      ],
+      "shellFits": true,
+      "shell": [
+        390,
+        390
+      ],
+      "field": [
+        35,
+        355
+      ]
+    }
+  ],
+  "errors": []
+}

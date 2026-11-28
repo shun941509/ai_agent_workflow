@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {existsSync, mkdirSync} from 'node:fs';
 import {join} from 'node:path';
-import {chromium, expect, type BrowserContext, type Locator, type Page} from '@playwright/test';
+import {chromium, expect, type BrowserContext, type Page} from '@playwright/test';
 import {createBlock, templates} from '../src/domain';
 import {workDocumentGraph, workDocuments} from '../src/domain/work-documents';
 import {StudioError} from '../src/server/errors';
@@ -22,7 +22,7 @@ async function api(context: BrowserContext, action: string, data: unknown = {}) 
 }
 
 async function ownerDraftAndSharingRecovery() {
-  const context = await browser.newContext({baseURL, viewport:{width:390,height:844}});
+  const context = await browser.newContext({baseURL, viewport:{width:1440,height:900}});
   try {
     await registerBrowserAccount(context);
     const project = await api(context, 'project.create', {title:'미게시 업무 안내',graph:intro.graph});
@@ -68,18 +68,16 @@ async function ownerDraftAndSharingRecovery() {
   } finally { await context.close(); }
 }
 
-async function shareFromProjectList(context: BrowserContext, page: Page, mobile: boolean) {
+async function shareFromProjectList(context: BrowserContext, page: Page) {
   const first = await api(context, 'project.create', {title:'지점 안내 · 대출',graph:intro.graph});
   const second = await api(context, 'project.create', {title:'지점 안내 · 반납',graph:intro.graph});
   await api(context, 'versions.save', {id:second.id,revision:second.revision});
   await api(context, 'versions.save', {id:second.id,revision:second.revision});
   await api(context, 'editor.visit', {id:first.id,focus:{path:[],selection:null}});
   await page.goto('/?view=projects');
-  if (mobile) await page.getByRole('button', {name:'메뉴 열기'}).click();
   const navigation = page.getByRole('navigation', {name:'작업 화면'});
   await expect(navigation.getByRole('button', {name:'공유 Agent',exact:true})).toBeVisible();
   await expect(navigation.getByRole('button', {name:'내 공유 설정',exact:true})).toHaveCount(0);
-  if (mobile) await page.getByRole('button', {name:'메뉴 닫기'}).click();
 
   const search = page.getByRole('textbox', {name:'Agent 이름 검색'});
   await search.fill('지점 안내');
@@ -88,8 +86,7 @@ async function shareFromProjectList(context: BrowserContext, page: Page, mobile:
   const settings = (title: string) => page.getByRole('button', {name:title + ' 공유 설정',exact:true});
   const row = (id: string) => page.locator('[data-project-id="' + id + '"]');
   async function open(title: string) {
-    if (mobile) await settings(title).tap();
-    else await settings(title).press('Enter');
+    await settings(title).press('Enter');
     await expect(share.getByText(title, {exact:true})).toBeVisible();
     await expect(page).toHaveURL(/\?view=projects$/);
   }
@@ -132,7 +129,7 @@ async function shareFromProjectList(context: BrowserContext, page: Page, mobile:
   await search.fill('');
 }
 
-async function verifySharingAudience(owner: BrowserContext, ownerPage: Page, mobile: boolean) {
+async function verifySharingAudience(owner: BrowserContext, ownerPage: Page) {
   const title = '공개 범위 확인 ' + crypto.randomUUID().slice(0,8);
   const project = await api(owner, 'project.create', {title, graph:{
     nodes:[createBlock('input.user_request', {id:'ask'}), createBlock('output.answer', {id:'answer'})],
@@ -141,10 +138,9 @@ async function verifySharingAudience(owner: BrowserContext, ownerPage: Page, mob
       {id:'value',kind:'data',from:'ask',out:'value',to:'answer',input:'input'},
     ],
   }});
-  const options = {baseURL, viewport:ownerPage.viewportSize(), isMobile:mobile, hasTouch:mobile};
+  const options = {baseURL, viewport:ownerPage.viewportSize()};
   const received = await browser.newContext(options);
   const other = await browser.newContext(options);
-  const activate = (button: Locator) => mobile ? button.tap() : button.click();
   try {
     const [recipient, observer] = await Promise.all([received, other].map(async context => {
       await registerBrowserAccount(context);
@@ -173,14 +169,9 @@ async function verifySharingAudience(owner: BrowserContext, ownerPage: Page, mob
       await expect(page.getByRole('alert').filter({hasText:'공유 권한이 없습니다.'})).toBeVisible();
       await expect(page.getByRole('dialog', {name:title, exact:true})).toHaveCount(0);
     }
-    async function openHistory(page: Page) {
-      const run = page.locator('.studio-run-panel');
-      if (!mobile) return run.locator('.run-sidebar');
-      await activate(run.getByRole('button', {name:'실행 기록', exact:true}));
-      return page.getByRole('dialog', {name:'실행 기록', exact:true});
-    }
+    const history = (page: Page) => page.getByRole('complementary', {name:'내 실행 기록'});
     await ownerPage.goto('/?view=projects');
-    await activate(ownerPage.getByRole('button', {name:title + ' 공유 설정', exact:true}));
+    await ownerPage.getByRole('button', {name:title + ' 공유 설정', exact:true}).click();
     const settings = ownerPage.getByRole('dialog', {name:'Agent 공유 설정'});
     const state = settings.getByRole('region', {name:'현재 공유 상태'});
     const scope = settings.getByLabel('공유 범위');
@@ -192,38 +183,40 @@ async function verifySharingAudience(owner: BrowserContext, ownerPage: Page, mob
       }});
     });
     async function copyAddress() {
-      await activate(state.getByRole('button', {name:'현재 공유 주소 복사'}));
+      await state.getByRole('button', {name:'현재 공유 주소 복사'}).click();
       return ownerPage.evaluate(() => navigator.clipboard.readText());
     }
 
     await enableTestClipboard();
     const addressField = state.getByRole('textbox', {name:'현재 공유 주소', exact:true});
     await scope.selectOption('public');
-    await activate(settings.getByRole('button', {name:'선택한 버전 게시'}));
+    await settings.getByRole('button', {name:'선택한 버전 게시'}).click();
     await expect(state).toContainText('모두에게 공개');
     const publicAddress = await copyAddress();
     await expect(addressField).toHaveValue(publicAddress);
     for (const page of [recipient, observer]) {
-      await activate(await searchGallery(page, true));
+      await (await searchGallery(page, true)).click();
       await expectOpen(page, '모두에게 공개');
     }
 
     await scope.selectOption('link');
-    await activate(settings.getByRole('button', {name:'공유 설정 적용'}));
+    await settings.getByRole('button', {name:'공유 설정 적용'}).click();
     await expect(state).toContainText('비밀 링크');
     const secretAddress = await copyAddress();
     assert.ok(publicAddress !== secretAddress);
-    await ownerPage.evaluate(denied => {
-      Object.defineProperty(navigator, 'clipboard', {configurable:true, value:denied ? {
-        async writeText() { throw new DOMException('Permission denied', 'NotAllowedError'); },
-      } : undefined});
-    }, mobile);
-    await activate(state.getByRole('button', {name:'현재 공유 주소 복사'}));
-    await expect(settings.getByRole('alert')).toContainText('선택된 주소를 직접 복사하세요.');
-    await expect(addressField).toBeFocused();
-    await expect(addressField).toHaveValue(secretAddress);
-    assert.ok(await addressField.evaluate((field:HTMLInputElement) =>
-      field.readOnly && field.selectionStart === 0 && field.selectionEnd === field.value.length));
+    for (const denied of [false, true]) {
+      await ownerPage.evaluate(denied => {
+        Object.defineProperty(navigator, 'clipboard', {configurable:true, value:denied ? {
+          async writeText() { throw new DOMException('Permission denied', 'NotAllowedError'); },
+        } : undefined});
+      }, denied);
+      await state.getByRole('button', {name:'현재 공유 주소 복사'}).click();
+      await expect(settings.getByRole('alert')).toContainText('선택된 주소를 직접 복사하세요.');
+      await expect(addressField).toBeFocused();
+      await expect(addressField).toHaveValue(secretAddress);
+      assert.ok(await addressField.evaluate((field:HTMLInputElement) =>
+        field.readOnly && field.selectionStart === 0 && field.selectionEnd === field.value.length));
+    }
     await enableTestClipboard();
     for (const page of [recipient, observer]) {
       await searchGallery(page, false);
@@ -232,11 +225,11 @@ async function verifySharingAudience(owner: BrowserContext, ownerPage: Page, mob
     await recipient.goto(secretAddress);
     await expectOpen(recipient, '비밀 링크');
     const linkDocument = await recipient.evaluate(() => performance.timeOrigin);
-    await activate(recipient.getByRole('dialog', {name:title, exact:true}).getByRole('button', {name:'닫기', exact:true}));
+    await recipient.getByRole('dialog', {name:title, exact:true}).getByRole('button', {name:'닫기', exact:true}).click();
     await expect(recipient.getByRole('heading', {name:'공유 Agent', exact:true})).toBeVisible();
     await expect(galleryRow(recipient)).toBeVisible();
     assert.equal(await recipient.evaluate(() => performance.timeOrigin), linkDocument, '받은 Agent는 문서를 새로 고치지 않아도 목록에 표시되어야 합니다.');
-    await activate(galleryRow(recipient));
+    await galleryRow(recipient).click();
     await expectOpen(recipient, '비밀 링크');
     await searchGallery(observer, false);
     await expectDenied(observer, publicAddress);
@@ -249,12 +242,12 @@ async function verifySharingAudience(owner: BrowserContext, ownerPage: Page, mob
     const galleryDocument = await gallery.evaluate(() => performance.timeOrigin);
 
     await recipient.goto(secretAddress);
-    await activate(recipient.getByRole('button', {name:'Agent 사용', exact:true}));
+    await recipient.getByRole('button', {name:'Agent 사용', exact:true}).click();
     const panel = recipient.locator('.studio-run-panel');
     const send = panel.getByRole('button', {name:'질문 실행', exact:true});
     const firstQuestion = '철회 전에 받은 답변';
     await panel.getByRole('textbox', {name:'Agent에게 보낼 질문'}).fill(firstQuestion);
-    await activate(send);
+    await send.click();
     await expect(panel.locator('.run-output')).toHaveText(firstQuestion, {timeout:20000});
     const draft = panel.getByRole('textbox', {name:'같은 대화의 새 질문'});
     const followup = '보내기 전에 작성하던 질문';
@@ -266,10 +259,14 @@ async function verifySharingAudience(owner: BrowserContext, ownerPage: Page, mob
 
     // Enter from the gallery so this tab has no invitation token in its URL.
     const background = await received.newPage();
-    await activate(await searchGallery(background, true));
-    await activate(background.getByRole('button', {name:'Agent 사용', exact:true}));
-    const oldHistory = await openHistory(background);
-    await activate(oldHistory.getByRole('button').filter({has:background.getByText(firstQuestion, {exact:true})}));
+    await (await searchGallery(background, true)).click();
+    await background.getByRole('button', {name:'Agent 사용', exact:true}).click();
+    const originalSize = background.viewportSize()!;
+    await background.setViewportSize({width: 960, height: originalSize.height});
+    const oldHistory = history(background);
+    await expect(oldHistory).toBeVisible();
+    await oldHistory.getByRole('button').filter({has:background.getByText(firstQuestion, {exact:true})}).click();
+    await background.setViewportSize(originalSize);
     const backgroundPanel = background.locator('.studio-run-panel');
     await expect(backgroundPanel.locator('.run-output')).toHaveText(firstQuestion);
     const backgroundDraft = backgroundPanel.getByRole('textbox', {name:'같은 대화의 새 질문'});
@@ -293,9 +290,9 @@ async function verifySharingAudience(owner: BrowserContext, ownerPage: Page, mob
         },
       }});
     });
-    await activate(state.getByRole('button', {name:'현재 공유 주소 복사'}));
+    await state.getByRole('button', {name:'현재 공유 주소 복사'}).click();
     await expect(settings.getByRole('button', {name:'닫기'})).toBeEnabled();
-    await activate(settings.getByRole('button', {name:'공유 철회'}));
+    await settings.getByRole('button', {name:'공유 철회'}).click();
     await expect(state).toContainText('나만 사용');
     await expect(addressField).toHaveCount(0);
     const revoked = /^게시자가 공유를 철회했습니다\.?$/;
@@ -325,7 +322,7 @@ async function verifySharingAudience(owner: BrowserContext, ownerPage: Page, mob
     }
 
     await scope.selectOption('link');
-    await activate(settings.getByRole('button', {name:'공유 설정 적용'}));
+    await settings.getByRole('button', {name:'공유 설정 적용'}).click();
     await expect(state).toContainText('비밀 링크');
     await enableTestClipboard();
     const reissuedAddress = await copyAddress();
@@ -341,11 +338,11 @@ async function verifySharingAudience(owner: BrowserContext, ownerPage: Page, mob
     }
     await gallery.goto(reissuedAddress);
     await expectOpen(gallery, '비밀 링크');
-    await activate(gallery.getByRole('button', {name:'Agent 사용', exact:true}));
+    await gallery.getByRole('button', {name:'Agent 사용', exact:true}).click();
     const newPanel = gallery.locator('.studio-run-panel');
     const newQuestion = '재공유 뒤 새 링크로 보낸 질문';
     await newPanel.getByRole('textbox', {name:'Agent에게 보낼 질문'}).fill(newQuestion);
-    await activate(newPanel.getByRole('button', {name:'질문 실행', exact:true}));
+    await newPanel.getByRole('button', {name:'질문 실행', exact:true}).click();
     await expect(newPanel.locator('.run-output')).toHaveText(newQuestion, {timeout:20000});
     await expect(detail.getByText(revoked)).toBeVisible();
     await expect(detail.getByRole('button', {name:'Agent 사용', exact:true})).toBeDisabled();
@@ -374,41 +371,40 @@ async function verifySharingAudience(owner: BrowserContext, ownerPage: Page, mob
     await expect(backgroundPanel.locator('.run-output')).toHaveText(firstQuestion);
     assert.equal(await background.evaluate(() => performance.timeOrigin), backgroundDocument);
 
-    await activate(priorLinkPage.getByRole('button', {name:'Agent 사용', exact:true}));
+    await priorLinkPage.getByRole('button', {name:'Agent 사용', exact:true}).click();
     const renewedPanel = priorLinkPage.locator('.studio-run-panel');
-    const renewedHistory = await openHistory(priorLinkPage);
+    const renewedHistory = history(priorLinkPage);
     const expiredConversation = renewedHistory.getByRole('button').filter({has:priorLinkPage.getByText('공유가 종료된 대화', {exact:true})});
     await expect(expiredConversation).toBeDisabled();
-    if (mobile) await activate(renewedHistory.getByRole('button', {name:'기록 닫기', exact:true}));
     assert.deepEqual(await api(owner, 'project.stats', {id:project.id}), [{state:'completed', n:2}]);
 
     const question = '새 주소로 다시 받은 날의 첫 질문';
     const nextQuestion = '새 대화의 후속 질문';
     const renewedSend = renewedPanel.getByRole('button', {name:'질문 실행', exact:true});
     await renewedPanel.getByRole('textbox', {name:'Agent에게 보낼 질문'}).fill(question);
-    await activate(renewedSend);
+    await renewedSend.click();
     await expect(renewedPanel.locator('.run-output')).toHaveText([question], {timeout:20000});
     await renewedPanel.getByRole('textbox', {name:'같은 대화의 새 질문'}).fill(nextQuestion);
-    await activate(renewedSend);
+    await renewedSend.click();
     await expect(renewedPanel.locator('.run-output')).toHaveText([question, nextQuestion], {timeout:20000});
     assert.deepEqual(await api(owner, 'project.stats', {id:project.id}), [{state:'completed', n:4}]);
     await expect(send).toBeDisabled();
     await expect(draft).toHaveValue(followup);
-    console.log((mobile ? 'Mobile' : 'Desktop') + ' passed reissued invitation checks for old URLs, tabs, history and new conversations.');
+    console.log('Desktop passed reissued invitation checks for old URLs, tabs, history and new conversations.');
   } finally {
     await Promise.all([received.close(), other.close()]);
   }
 }
 
-async function exercise(mobile: boolean) {
+async function exercise() {
   const context = await browser.newContext({
-    baseURL, viewport:mobile ? {width:390,height:844} : {width:1440,height:900}, isMobile:mobile, hasTouch:mobile,
+    baseURL, viewport:{width:1440,height:900},
   });
   try {
     const user = await registerBrowserAccount(context);
     const page = await context.newPage();
-    await shareFromProjectList(context, page, mobile);
-    await verifySharingAudience(context, page, mobile);
+    await shareFromProjectList(context, page);
+    await verifySharingAudience(context, page);
     const dialog = page.getByRole('dialog');
     async function namedChooser(title: string) {
       await page.goto('/?view=projects');
@@ -533,10 +529,13 @@ async function exercise(mobile: boolean) {
     await dialog.getByRole('button',{name:'‘' + aiTitle + '’ 만들기'}).click();
     assert.deepEqual((await created(aiTitle)).graph.agentScope, {mode:'dedicated', purpose:meetingRequest});
 
-    if (process.env.STUDIO_TEST_DATA_DIR) {
+    const ambiguousPrompts = process.env.STUDIO_TEST_DATA_DIR ? ['안녕하세요', '프랑스의 수도는 어디인가요?'] : [];
+    for (const initialPrompt of ambiguousPrompts) {
+      const previousProposals: number = proposals.length;
+      const previousProjects = (await api(context,'project.list')).length;
+      lostAnswerKey = undefined;
       await namedChooser('');
       await dialog.getByRole('button', {name:/한 문장으로 시작/}).click();
-      const initialPrompt = mobile ? '프랑스의 수도는 어디인가요?' : '안녕하세요';
       await dialog.getByLabel('맡길 일과 원하는 결과').fill(initialPrompt);
       await dialog.getByRole('button',{name:'초안 제안받기',exact:true}).click();
       await expect(question).toBeFocused();
@@ -561,25 +560,27 @@ async function exercise(mobile: boolean) {
       await expect(preview).toBeVisible();
       await expect(dialog.locator('.proposal-preview')).toContainText('담당 업무 ' + meetingPurpose);
       await expect(question).toHaveValue(meetingRequest);
-      assert.deepEqual(proposals.slice(1),[undefined,factualQuestion,meetingRequest,meetingRequest].map(clarificationAnswer => ({prompt:initialPrompt,clarificationAnswer})));
-      assert.equal((await api(context,'project.list')).length,projectCount + 1);
+      assert.deepEqual(proposals.slice(previousProposals),[undefined,factualQuestion,meetingRequest,meetingRequest].map(clarificationAnswer => ({prompt:initialPrompt,clarificationAnswer})));
+      assert.equal((await api(context,'project.list')).length,previousProjects);
       await dialog.getByRole('button',{name:'캔버스에 적용',exact:true}).click();
       assert.deepEqual((await created(meetingRequest)).graph.agentScope, {mode:'dedicated', purpose:meetingPurpose});
     }
 
-    const lesson = templates.find(item => item.id === (mobile?'dynamic':'release'))!;
-    const name = lesson.title + ' 사서 연습';
-    await namedChooser(name);
-    await dialog.getByRole('button', {name:/수준별 템플릿에서 시작/}).click();
-    await page.reload();
-    await page.locator('.lesson-tile').filter({hasText:lesson.title}).click();
-    if (lesson.id === 'dynamic') {
-      await dialog.getByLabel('총 생성 한도').selectOption('3');
-      await dialog.getByLabel('동시 실행 한도').selectOption('1');
-      await dialog.getByLabel('지점 조사 실패 시').selectOption('stop');
+    for (const id of ['release', 'dynamic']) {
+      const lesson = templates.find(item => item.id === id)!;
+      const name = lesson.title + ' 사서 연습';
+      await namedChooser(name);
+      await dialog.getByRole('button', {name:/예제 템플릿에서 시작/}).click();
+      await page.reload();
+      await page.locator('.lesson-tile').filter({hasText:lesson.title}).click();
+      if (lesson.id === 'dynamic') {
+        await dialog.getByLabel('총 생성 한도').selectOption('3');
+        await dialog.getByLabel('동시 실행 한도').selectOption('1');
+        await dialog.getByLabel('지점 조사 실패 시').selectOption('stop');
+      }
+      await dialog.getByRole('button', {name:'‘' + name + '’ 만들기'}).click();
+      assert.equal((await created(name)).lesson, lesson.id);
     }
-    await dialog.getByRole('button', {name:'‘' + name + '’ 만들기'}).click();
-    assert.equal((await created(name)).lesson, lesson.id);
     await page.goto('/?view=templates');
     await page.locator('.lesson-tile').filter({hasText:intro.title}).click();
     await expect(dialog.getByRole('button',{name:'내 사본으로 시작',exact:true})).toBeEnabled();
@@ -608,7 +609,7 @@ async function exercise(mobile: boolean) {
     assert.equal((await api(context,'project.open',{id:shared.id})).visibility,'private');
     if (process.env.STUDIO_SCREENSHOTS) {
       mkdirSync(process.env.STUDIO_SCREENSHOTS,{recursive:true});
-      await page.screenshot({path:join(process.env.STUDIO_SCREENSHOTS,'revoked-agent-stale-window-' + (mobile?'mobile':'desktop') + '.png')});
+      await page.screenshot({path:join(process.env.STUDIO_SCREENSHOTS,'revoked-agent-stale-window-desktop.png')});
     }
     await dialog.getByLabel('공유 범위').selectOption('public');
     await dialog.getByRole('button',{name:'공유 설정 적용'}).click();
@@ -618,7 +619,7 @@ async function exercise(mobile: boolean) {
     await expect(current.getByRole('button',{name:'현재 공유 주소 복사'})).toBeVisible();
     if (process.env.STUDIO_SCREENSHOTS) {
       mkdirSync(process.env.STUDIO_SCREENSHOTS, {recursive:true});
-      await page.screenshot({path:join(process.env.STUDIO_SCREENSHOTS, 'sharing-before-apply-' + (mobile?'mobile':'desktop') + '.png')});
+      await page.screenshot({path:join(process.env.STUDIO_SCREENSHOTS, 'sharing-before-apply-desktop.png')});
     }
     assert.equal((await api(context, 'project.open',{id:shared.id})).visibility, 'public');
     await dialog.getByRole('button', {name:'공유 설정 적용'}).click();
@@ -641,9 +642,9 @@ async function exercise(mobile: boolean) {
     await context.close();
   }
 }
-async function shareAndResume(mobile: boolean) {
-  const viewport = mobile ? {width:390,height:844} : {width:1440,height:900};
-  const ctx = await browser.newContext({baseURL, viewport, isMobile:mobile, hasTouch:mobile});
+async function shareAndResume() {
+  const viewport = {width:1440,height:900};
+  const ctx = await browser.newContext({baseURL, viewport});
   try {
     await registerBrowserAccount(ctx);
     const title = '야간 개관과 휴관일에 접수된 이용자 문의를 중앙도서관과 분관의 운영 규정에서 찾아 출처를 표시하고, 예외 사항은 당직 사서에게 확인받아 회신하는 지역 도서관 안내 Agent';
@@ -651,14 +652,7 @@ async function shareAndResume(mobile: boolean) {
     await api(ctx, 'versions.save', {id:project.id, revision:project.revision});
     await api(ctx, 'versions.save', {id:project.id, revision:project.revision});
     await api(ctx, 'editor.visit', {id:project.id, focus:{path:[], selection:null}});
-    if (mobile) {
-      // Put newer projects ahead of the project selected from the full list.
-      for (let index = 1; index <= 12; index++) {
-        await api(ctx, 'project.create', {title:'분관 신규 안내 ' + index,graph:intro.graph});
-      }
-    }
     const page = await ctx.newPage();
-    const listShare = page.getByRole('button', {name:title + ' 공유 설정',exact:true});
     await page.goto('/');
     const name = page.getByRole('heading', {name:title, exact:true});
     const expand = page.getByRole('button',{name:'전체 이름 보기'});
@@ -673,51 +667,29 @@ async function shareAndResume(mobile: boolean) {
     await expect(expand).toHaveAttribute('aria-expanded','false');
     if (process.env.STUDIO_SCREENSHOTS) {
       mkdirSync(process.env.STUDIO_SCREENSHOTS,{recursive:true});
-      await page.screenshot({path:join(process.env.STUDIO_SCREENSHOTS,'resume-long-name-' + (mobile?'mobile':'desktop') + '.png')});
+      await page.screenshot({path:join(process.env.STUDIO_SCREENSHOTS,'resume-long-name-desktop.png')});
     }
     await open.click();
-    if (mobile) {
-      await page.goto('/?view=projects');
-      await listShare.tap();
-    } else {
-      await page.getByLabel('프로젝트 메뉴',{exact:true}).click();
-      await page.getByRole('button',{name:'공유 설정',exact:true}).click();
-    }
+    await page.getByLabel('프로젝트 메뉴',{exact:true}).click();
+    await page.getByRole('button',{name:'공유 설정',exact:true}).click();
     const share = page.getByRole('dialog',{name:'Agent 공유 설정'});
     await share.getByLabel('대상 버전').selectOption('1');
     await share.getByLabel('공유 범위').selectOption('link');
     await expect(share.getByLabel('대상 버전')).toHaveValue('1');
     assert.equal((await api(ctx,'project.open',{id:project.id})).visibility, 'private');
-    if (mobile) {
-      await expect(share.getByLabel('공유 범위')).toBeEnabled();
-      await page.keyboard.press('Escape');
-      await expect(listShare).toBeFocused();
-      await expect(listShare).toBeInViewport({ratio:1});
-      await listShare.tap();
-      await share.getByLabel('대상 버전').selectOption('1');
-      await share.getByLabel('공유 범위').selectOption('link');
-    }
     await share.getByRole('button',{name:'선택한 버전 게시'}).click();
     await expect(share.getByRole('region',{name:'현재 공유 상태'})).toContainText('비밀 링크');
     assert.equal((await api(ctx,'project.open',{id:project.id})).publicVersion,1);
-    if (mobile) {
-      await expect(share.getByLabel('공유 범위')).toBeEnabled();
-      await page.keyboard.press('Escape');
-      await expect(listShare).toBeFocused();
-      await expect(listShare).toBeInViewport({ratio:1});
-      await expect(page).toHaveURL(/\?view=projects$/);
-    }
   } finally { await ctx.close(); }
 }
-async function resourceSharing(mobile: boolean) {
-  const ctx = await browser.newContext({baseURL, viewport:mobile?{width:390,height:844}:{width:1440,height:900}, isMobile:mobile, hasTouch:mobile});
+async function resourceSharing(edition: 1 | 2) {
+  const ctx = await browser.newContext({baseURL, viewport:{width:1440,height:900}});
   try {
     await registerBrowserAccount(ctx);
     const asset = await api(ctx,'asset.save',{kind:'document',name:'야간 개관 시간',payload:{content:'오후 8시까지'}});
     await api(ctx,'asset.save',{id:asset.id,baseVersion:1,name:asset.name,payload:{content:'오후 9시까지'}});
     const page = await ctx.newPage();
-    const edition = mobile ? 1 : 2;
-    const url = '/?asset=' + asset.id + (mobile?'&edition=1':'');
+    const url = '/?asset=' + asset.id + (edition === 1 ? '&edition=1' : '');
     const lib = page.getByRole('region',{name:'도구 및 자료'});
     await page.goto(url);
     await lib.getByLabel('공유 범위').selectOption('link');
@@ -731,15 +703,71 @@ async function resourceSharing(mobile: boolean) {
     assert.equal((await api(ctx,'asset.read',{id:asset.id})).asset.publicVersion,edition);
   } finally { await ctx.close(); }
 }
+async function navigateInNarrowWindows() {
+  const context = await browser.newContext({baseURL, viewport:{width:390,height:900}});
+  try {
+    await registerBrowserAccount(context);
+    const name = '도서관 이용규정';
+    await api(context,'asset.save',{name,kind:'document',payload:{content:'도서관 이용 안내'}});
+    const page = await context.newPage();
+    await page.goto('/?view=projects');
+    const createAgent = page.getByRole('button',{name:'새 Agent',exact:true});
+    await createAgent.click();
+    const create = page.getByRole('dialog',{name:'새 Agent 만들기'});
+    await expect(create.getByRole('textbox',{name:'Agent 이름'})).toBeFocused();
+    await expect(create.getByRole('button',{name:'이 브라우저의 이전 시안 가져오기'})).toHaveCount(0);
+    await page.keyboard.press('Escape');
+    await expect(createAgent).toBeFocused();
+    await page.evaluate(() => localStorage.setItem('library-agent-studio.design.v2', '{'));
+    await createAgent.press('Enter');
+    await create.getByRole('button',{name:'이 브라우저의 이전 시안 가져오기'}).click();
+    await expect(create.getByRole('alert')).toHaveText('이 브라우저에 저장된 이전 시안을 읽을 수 없습니다.');
+    await page.keyboard.press('Escape');
+    const menu = page.getByRole('button',{name:'작업실 메뉴'});
+    const nav = page.getByRole('navigation',{name:'작업 화면'});
+    await expect(menu).toHaveAttribute('aria-expanded','false');
+    await expect(nav).toBeHidden();
+    await menu.press('Enter');
+    await expect(menu).toHaveAttribute('aria-expanded','true');
+    await page.keyboard.press('Tab');
+    await expect(nav.getByRole('button',{name:'작업실 홈'})).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(menu).toBeFocused();
+    await expect(nav).toBeHidden();
+    await menu.press('Enter');
+    const importDesign = nav.getByRole('button',{name:'설계 가져오기'});
+    await importDesign.press('Enter');
+    await expect(page.getByRole('dialog',{name:'프로젝트 선택'})).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(importDesign).toBeFocused();
+    await page.keyboard.press('Escape');
+    await menu.press('Enter');
+    await nav.getByRole('button',{name:'도구 및 자료',exact:true}).click();
+    await expect(nav).toBeHidden();
+    const library = page.getByRole('region',{name:'도구 및 자료',exact:true});
+    await expect(library.getByRole('heading',{name:'도구 및 자료',exact:true})).toBeVisible();
+    const remove = library.getByRole('button',{name:name + ' 삭제'});
+    await expect(remove).toBeInViewport();
+    const shellFits = await page.locator('.workspace-main').evaluate(shell => shell.scrollWidth <= shell.clientWidth);
+    assert.ok(shellFits, '좁은 작업실의 본문은 창 밖으로 넘치면 안 됩니다.');
+    await remove.click();
+    const confirm = page.getByRole('dialog').getByRole('button',{name:'취소',exact:true});
+    await expect(confirm).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(remove).toBeFocused();
+    await page.setViewportSize({width:1280,height:900});
+    await expect(menu).toBeHidden();
+    await expect(nav).toBeVisible();
+  } finally { await context.close(); }
+}
 try {
+  await navigateInNarrowWindows();
   await ownerDraftAndSharingRecovery();
-  await resourceSharing(false);
-  await resourceSharing(true);
-  await shareAndResume(false);
-  await shareAndResume(true);
-  await exercise(false);
-  await exercise(true);
-  console.log('Desktop and mobile creation, retry, import, sharing and list visibility passed.');
+  await resourceSharing(1);
+  await resourceSharing(2);
+  await shareAndResume();
+  await exercise();
+  console.log('Desktop creation, retry, import, sharing and list visibility passed.');
 } finally {
   await browser.close();
 }

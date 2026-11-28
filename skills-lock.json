@@ -85,6 +85,13 @@
       "skillPath": "skills/diagnosing-superpowers/SKILL.md",
       "computedHash": "44d0295c3d59d6418f80c96e40d8e7b7ece99513ab6e63e5d04b1cf87cc5bbab"
     },
+    "diagram": {
+      "source": "garrytan/gstack",
+      "commit": "260a5054c36a4338dfe96a2cf192cc215ee022db",
+      "sourceType": "github",
+      "skillPath": "diagram/SKILL.md",
+      "computedHash": "a1aeb609eab11021bb8163e6742c0490be84f339c4bc136fc63c28cd0944dc18"
+    },
     "dispatching-parallel-agents": {
       "source": "obra/superpowers",
       "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
@@ -112,6 +119,13 @@
       "sourceType": "github",
       "skillPath": "skills/executing-plans/SKILL.md",
       "computedHash": "58b364f6e3f64602c7cfd0b34ceaad9de95d41fe7e4b46b274843ba19fc01ccc"
+    },
+    "figma": {
+      "source": "heygen-com/hyperframes",
+      "commit": "34a77890dcbdfe8db06fd45d47b55ae6a491914d",
+      "sourceType": "github",
+      "skillPath": "skills/figma/SKILL.md",
+      "computedHash": "8b33ef0be9ae3900b94dc6ad05b592bb8be200b1ca2b70ae74b615945f4419b2"
     },
     "finishing-a-development-branch": {
       "source": "obra/superpowers",
@@ -176,6 +190,27 @@
       "skillPath": "skills/productivity/handoff/SKILL.md",
       "computedHash": "f60a2c3688379b7a306b3a7b8dd4120eab39da44c74fa2cb62d6424935f04aa7"
     },
+    "hyperframes": {
+      "source": "heygen-com/hyperframes",
+      "commit": "34a77890dcbdfe8db06fd45d47b55ae6a491914d",
+      "sourceType": "github",
+      "skillPath": "skills/hyperframes/SKILL.md",
+      "computedHash": "c1306398a0593a57fa56711d6dd809b3d0198055551c68201cccb593d6916c2d"
+    },
+    "hyperframes-cli": {
+      "source": "heygen-com/hyperframes",
+      "commit": "34a77890dcbdfe8db06fd45d47b55ae6a491914d",
+      "sourceType": "github",
+      "skillPath": "skills/hyperframes-cli/SKILL.md",
+      "computedHash": "0ea9db9323924084f7e2b24e9eb2755891ba7a74c0b706c2d3ea0e54b7b23eea"
+    },
+    "hyperframes-registry": {
+      "source": "heygen-com/hyperframes",
+      "commit": "34a77890dcbdfe8db06fd45d47b55ae6a491914d",
+      "sourceType": "github",
+      "skillPath": "skills/hyperframes-registry/SKILL.md",
+      "computedHash": "6867a66011b2cda40600cc9bff07e89197b756e6aa77861d884285ba7a869361"
+    },
     "implement": {
       "source": "mattpocock/skills",
       "commit": "abeeaf95660ba9e8b7c753eb38f441ca707a8823",
@@ -218,6 +253,13 @@
       "skillPath": "skills/mcp-builder/SKILL.md",
       "computedHash": "5a699fa929d99d7e6b1ebe10f13bf960d9ad452b70bd0733efd5d1de9524e285"
     },
+    "media-use": {
+      "source": "heygen-com/hyperframes",
+      "commit": "34a77890dcbdfe8db06fd45d47b55ae6a491914d",
+      "sourceType": "github",
+      "skillPath": "skills/media-use/SKILL.md",
+      "computedHash": "792b13481ada03ec83a2be66f6c616ce46ad3fb82cead048019e98350efc8eb0"
+    },
     "migrate-to-shoehorn": {
       "source": "mattpocock/skills",
       "commit": "abeeaf95660ba9e8b7c753eb38f441ca707a8823",
@@ -253,6 +295,13 @@
       "skillPath": "skills/receiving-code-review/SKILL.md",
       "computedHash": "528d336858d6f7d22cfcb887a249409ce682cb7d37a939cb15a82f2576a35876"
     },
+    "remotion-to-hyperframes": {
+      "source": "heygen-com/hyperframes",
+      "commit": "34a77890dcbdfe8db06fd45d47b55ae6a491914d",
+      "sourceType": "github",
+      "skillPath": "skills/remotion-to-hyperframes/SKILL.md",
+      "computedHash": "9fe6e78f8a3730a6365cf27127e393b75de28b70f1958595fe423f2b5fd2866e"
+    },
     "requesting-code-review": {
       "source": "obra/superpowers",
       "commit": "22f0b463e7a5e579904dd6211a520321035526f7",
@@ -273,6 +322,13 @@
       "sourceType": "github",
       "skillPath": "skills/engineering/retro/SKILL.md",
       "computedHash": "e260aefb7b75b3548a3ee9883afbf8808e521f2e86feec92399617894f83b7c2"
+    },
+    "reverse-any-video": {
+      "source": "heygen-com/hyperframes",
+      "commit": "34a77890dcbdfe8db06fd45d47b55ae6a491914d",
+      "sourceType": "github",
+      "skillPath": "skills/reverse-any-video/SKILL.md",
+      "computedHash": "221f106c2b350432e566d8469f91c914978a868becd7fffe72f312ae105d1297"
     },
     "scaffold-exercises": {
       "source": "mattpocock/skills",
@@ -309,12 +365,26 @@
       "skillPath": "skills/shadcn/SKILL.md",
       "computedHash": "388962d16c7a4f13aaeee0d8f128e50a87df8553d42ef7988c39c0e1c74a40e8"
     },
+    "slideshow": {
+      "source": "heygen-com/hyperframes",
+      "commit": "34a77890dcbdfe8db06fd45d47b55ae6a491914d",
+      "sourceType": "github",
+      "skillPath": "skills/slideshow/SKILL.md",
+      "computedHash": "a7d87591e3b0ff9eaba32df4ca4dc6d46fbb8824751a37f5cede2cda20d434e5"
+    },
     "software-factory": {
       "source": "mattpocock/skills",
       "commit": "abeeaf95660ba9e8b7c753eb38f441ca707a8823",
       "sourceType": "github",
       "skillPath": "skills/in-progress/software-factory/SKILL.md",
       "computedHash": "2b1ea5b8cd7d5c122f1503c71326a231791908d4f0aa107f1cec57bb6255e118"
+    },
+    "style-sampling": {
+      "source": "heygen-com/hyperframes",
+      "commit": "34a77890dcbdfe8db06fd45d47b55ae6a491914d",
+      "sourceType": "github",
+      "skillPath": "skills/style-sampling/SKILL.md",
+      "computedHash": "433d429c44c3e43028f804b4f6a933994d1a7f2c891faef26ec04d42b26cefa2"
     },
     "subagent-driven-development": {
       "source": "obra/superpowers",

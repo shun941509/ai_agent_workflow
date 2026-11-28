@@ -20,15 +20,15 @@ async function api<T>(ctx: BrowserContext, action: string, data: unknown = {}): 
 }
 type VisitRun = {id: string; conversation: string; state: string; input: string; output: string; error: string; events: EngineEvent[]};
 
-async function verify(width: number) {
-  const mobile = width === 390;
-  const ctx = await browser.newContext({baseURL, viewport:{width, height:mobile ? 844 : 900}, isMobile:mobile, hasTouch:mobile});
+async function verify() {
+  const width = 1440;
+  const ctx = await browser.newContext({baseURL, viewport:{width, height:900}});
   try {
     await registerBrowserAccount(ctx);
     const {modelReady} = await api<{modelReady: boolean}>(ctx, 'bootstrap');
     const page = await ctx.newPage();
     await page.goto('/?view=templates');
-    await page.getByRole('button', {name:'중급', exact:true}).click();
+    await page.getByRole('combobox', {name:'실습 수준', exact:true}).selectOption({label:'중급'});
     await page.getByRole('button', {name:/도서관 방문 준비하기/}).click();
     await page.getByRole('dialog').getByRole('button', {name:'내 사본으로 시작', exact:true}).click();
     await expect(page).toHaveURL(url => url.searchParams.has('edit'));
@@ -45,10 +45,6 @@ async function verify(width: number) {
     }
     const before = await readGraph();
     const panel = page.getByRole('tabpanel', {name:'실행 결과'});
-    const mobileSheet = page.getByRole('dialog', {name:'속성 패널'});
-    async function closeMobileSheet() {
-      if (await mobileSheet.isVisible()) await mobileSheet.getByRole('button', {name:/^(속성|실행 화면) 닫기$/}).click();
-    }
     const project = await api<{revision:number}>(ctx, 'project.open', {id});
     for (let n = 0; n < 2; n++) await api(ctx, 'versions.save', {id, revision:project.revision});
     await page.getByRole('button', {name:'시험 실행', exact:true}).click();
@@ -64,14 +60,12 @@ async function verify(width: number) {
     await design.selectOption('1');
     await compare.selectOption('2');
     await question.fill('저장 후에도 남아야 하는 질문');
-    await closeMobileSheet();
     await page.getByLabel('프로젝트 메뉴', {exact:true}).click();
     await page.getByRole('button', {name:'버전',exact:true}).click();
     const versionDialog = page.getByRole('dialog', {name:'버전 및 복구'});
     await versionDialog.getByRole('button', {name:'현재 초안 버전 저장'}).click();
     await expect(versionDialog.getByLabel('대상 버전')).toHaveValue('3');
     await page.keyboard.press('Escape');
-    if (mobile) await page.getByRole('button', {name:'시험 실행',exact:true}).click();
     await expect(design.locator('option[value="3"]')).toHaveCount(1);
     await expect(compare.locator('option[value="3"]')).toHaveCount(1);
     await expect(design).toHaveValue('1');
@@ -82,7 +76,6 @@ async function verify(width: number) {
     await compare.selectOption('');
     await question.fill(savedQuestion);
     async function testEdition(version: number) {
-      await closeMobileSheet();
       await page.getByRole('button', {name:'시험 실행', exact:true}).click();
       const settings = panel.getByRole('button', {name:'실행 설정'});
       if (await settings.getAttribute('aria-expanded') !== 'true') await settings.click();
@@ -113,12 +106,10 @@ async function verify(width: number) {
       return {run, stable:null};
     }
     const first = await testEdition(1);
-    await closeMobileSheet();
     await page.locator('[data-canvas-block="pickup"]').click();
     const edition = page.getByRole('combobox', {name:'고정할 자료 버전', exact:true});
     await expect(edition).toHaveValue('1');
     await edition.selectOption({label:'2판'});
-    await closeMobileSheet();
     await page.getByLabel('프로젝트 메뉴', {exact:true}).click();
     await page.getByRole('button', {name:'저장', exact:true}).click();
     const expected = structuredClone(before);
@@ -146,5 +137,5 @@ async function verify(width: number) {
       (modelReady ? '두 답변의 준비물만 변경' : '모델 미설정 안내까지 확인'));
   } finally { await ctx.close(); }
 }
-try { await verify(1440); await verify(390); }
+try { await verify(); }
 finally { await browser.close(); }

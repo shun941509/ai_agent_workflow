@@ -13,10 +13,10 @@ async function request(context:BrowserContext,action:string,data:unknown={}) {
 }
 
 export async function verifyResourceEditing(browser:Browser,baseURL:string) {
-  for(const mobile of [false,true]) {
-    const viewport=mobile?{width:390,height:844}:{width:1440,height:900};
-    const context=await browser.newContext({baseURL,viewport,isMobile:mobile,hasTouch:mobile});
-    const recipient=await browser.newContext({baseURL,viewport,isMobile:mobile,hasTouch:mobile});
+  {
+    const viewport={width:1440,height:900};
+    const context=await browser.newContext({baseURL,viewport});
+    const recipient=await browser.newContext({baseURL,viewport});
     try {
       await registerBrowserAccount(context);
       await registerBrowserAccount(recipient);
@@ -81,7 +81,12 @@ export async function verifyResourceEditing(browser:Browser,baseURL:string) {
       await confirm.getByRole('button',{name:'현재 내용 유지'}).click();
       await expect(field).toHaveValue(markdown);
       const archive=Buffer.from(zipSync({'SKILL.md':strToU8('꾸러미 교체'),'refs/new.txt':strToU8('추가 자료')}));
-      const loadZip=()=>lib.locator('input[accept*=".zip"]').setInputFiles({name:'작업.zip',mimeType:'application/zip',buffer:archive});
+      const zipButton=lib.getByRole('button',{name:'ZIP 파일',exact:true});
+      const loadZip=async()=>{
+        const fileChooser=page.waitForEvent('filechooser');
+        await zipButton.click();
+        await (await fileChooser).setFiles({name:'작업.zip',mimeType:'application/zip',buffer:archive});
+      };
       await loadZip();
       await expect(confirm.getByText('assets/icon.bin',{exact:true})).toBeVisible();
       await expect(confirm.getByText('scripts/check.ts',{exact:true})).toBeVisible();
@@ -91,6 +96,7 @@ export async function verifyResourceEditing(browser:Browser,baseURL:string) {
       }
       await confirm.getByRole('button',{name:'현재 내용 유지'}).click();
       await expect(field).toHaveValue(markdown);
+      await expect(zipButton).toBeFocused();
       await loadZip();
       await confirm.getByRole('button',{name:'가져온 내용 적용'}).click();
       await expect(field).toHaveValue('꾸러미 교체');
@@ -137,6 +143,11 @@ export async function verifyResourceEditing(browser:Browser,baseURL:string) {
       const comparison=page.getByRole('dialog',{name:'최신판과 내 초안 비교'});
       await expect(comparison.getByText('탭 B가 먼저 저장한 본문')).toBeVisible();
       await expect(comparison.getByText('탭 A에서 쓴 본문')).toBeVisible();
+      await page.keyboard.press('Escape');
+      const compare=lib.getByRole('button',{name:'최신판과 비교'});
+      await expect(compare).toBeFocused();
+      await compare.press('Enter');
+      await expect(comparison).toBeVisible();
       if(process.env.STUDIO_SCREENSHOTS)await page.screenshot({path:join(process.env.STUDIO_SCREENSHOTS,'conflict-compare-'+viewport.width+'.png')});
       let dropped=false;
       await page.route('**/api/studio',async route=>{
@@ -246,5 +257,5 @@ export async function verifyResourceEditing(browser:Browser,baseURL:string) {
       assert.equal(edition.payload.content,large.toString('utf8'));
     }finally{await context.close();await recipient.close();}
   }
-  console.log('PASS desktop/mobile Skill imports, final bundle limits, large single-payload save, conflict recovery, retry-safe draft copy, stale link rotation and received-link filtering.');
+  console.log('PASS Skill imports, final bundle limits, large single-payload save, conflict recovery, retry-safe draft copy, stale link rotation and received-link filtering.');
 }

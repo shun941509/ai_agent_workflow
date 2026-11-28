@@ -1,0 +1,46 @@
+[
+  {
+    "phase": "after",
+    "theme": "light",
+    "candidateStyleInjected": false,
+    "geometry": {
+      "x": 334,
+      "y": 267.5625,
+      "width": 44,
+      "height": 44,
+      "hitTest": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    "audit": [],
+    "errors": [],
+    "mouseClose": true,
+    "keyboardClose": true,
+    "focusRestored": true
+  },
+  {
+    "phase": "after",
+    "theme": "dark",
+    "candidateStyleInjected": false,
+    "geometry": {
+      "x": 334,
+      "y": 267.5625,
+      "width": 44,
+      "height": 44,
+      "hitTest": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    "audit": [],
+    "errors": [],
+    "mouseClose": true,
+    "keyboardClose": true,
+    "focusRestored": true
+  }
+]

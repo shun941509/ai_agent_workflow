@@ -54,7 +54,7 @@ function releaseNotesGraph() {
 
 export const swStarterTemplates: Lesson[] = [
   {
-    id: 'sw-requirements', title: '사용자 요청을 기능 요구사항으로 바꾸기', level: '입문',
+    id: 'sw-requirements', title: '사용자 요청을 기능 요구사항으로 바꾸기', level: '입문', topic: '소프트웨어 개발',
     description: '할 일 앱 사용자의 말을 읽고, 개발한 기능을 목록 화면에서 어떻게 시험할지 적습니다.',
     goal: '같은 사용자 요청에서 기능의 한 줄 요약과 직접 시험할 수 있는 확인 조건을 얻습니다.',
     task: '요구사항 작성 Agent의 작업 지시 한 문장을 바꿔, 숨겼던 완료 항목이 다시 보이는 조건을 작성하세요.',
@@ -73,7 +73,7 @@ export const swStarterTemplates: Lesson[] = [
     examples: [], graph: requirementsGraph(),
   },
   {
-    id: 'sw-release-notes', title: '변경 기록으로 업데이트 안내 만들기', level: '초급',
+    id: 'sw-release-notes', title: '변경 기록으로 업데이트 안내 만들기', level: '초급', topic: '소프트웨어 개발',
     description: '할 일 앱의 변경 기록과 작성 Skill을 이용해, 지금 쓸 수 있는 기능과 예정된 기능을 안내합니다.',
     goal: '기능의 상태 한 칸이 업데이트 안내의 어느 목록을 바꾸는지 화면과 파일에서 확인합니다.',
     task: '‘완료 항목 숨기기’의 상태를 ‘예정’에서 ‘완료’로 바꾸고 업데이트안내.md를 내려받으세요.',

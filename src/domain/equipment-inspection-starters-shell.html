@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>장비 반납 목록과 검수 알림</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f5ef;color:#1b3027;font:16px/1.6 "Malgun Gothic","맑은 고딕",sans-serif;overflow-wrap:anywhere}
+main{max-width:1260px;margin:0 auto;padding:clamp(16px,3vw,48px)}header{border-top:6px solid #214c3c}
+h1{font-size:clamp(28px,3vw,43px);line-height:1.2;letter-spacing:-.05em;margin:22px 0}
+nav{display:flex;flex-wrap:wrap;gap:4px 8px;border-bottom:1px solid #a9b6ac;margin-bottom:22px}
+nav a{padding:8px 12px;text-decoration:none;color:#365848;border-bottom:3px solid transparent}
+nav a[aria-current=page]{border-color:#214c3c;font-weight:700;color:#153c2b}a{color:#1a563b;text-underline-offset:3px}
+h2,h3,p{margin:0 0 10px}h2{font-size:25px;letter-spacing:-.03em}h3{font-size:18px}
+.sheet{min-width:0;background:white;border:1px solid #bdc8be;padding:clamp(14px,2vw,26px);margin:16px 0}
+.scroll{max-width:100%;overflow:auto}table{width:100%;border-collapse:collapse;text-align:left;white-space:nowrap}
+th,td{padding:8px;border-bottom:1px solid #d4ddd4}th{background:#e7ece3;color:#384e40;font-size:14px}
+table input,table select{min-width:88px;width:100%}table input{width:clamp(105px,14vw,240px)}
+button,input,select,textarea{font:inherit;color:inherit}input,select,textarea{border:1px solid #a4b2a5;border-radius:3px;background:#fcfdf9;padding:6px 8px}
+textarea{min-height:80px;display:block;width:100%;resize:vertical;font:14px/1.45 Consolas,"Malgun Gothic",monospace}
+label{display:block;font-weight:700;margin:8px 0 3px}
+button{background:white;border:1px solid #718777;border-radius:3px;padding:6px 12px;cursor:pointer}
+button.main{background:#214c3c;color:white;border-color:#214c3c;font-weight:700}
+button:hover:not(:disabled){box-shadow:inset 0 0 0 1px currentColor}button:disabled{opacity:.52;cursor:default}
+.actions,.inline{display:flex;align-items:end;gap:8px 12px;flex-wrap:wrap;margin:10px 0}
+.actions a{align-self:center}.hint{color:#4e6051;font-size:14px}.status{font-weight:700;margin:10px 0}
+:focus-visible{outline:3px solid #006799;outline-offset:2px}summary{cursor:pointer;font-weight:700}
+[hidden]{display:none!important}input[type=file]{max-width:100%;padding:4px}pre{white-space:pre-wrap;font:14px/1.6 Consolas,"Malgun Gothic",monospace}
+</style>
+</head>
+<body>
+<main><header><h1>장비 반납 목록과 검수 알림</h1></header>
+<nav aria-label="실습 단계"><a href="#list">입문 · 반납 목록</a><a href="#notify">초급 · 알림 입력</a><a href="#check">중급 · 전후 검증</a></nav>
+<section id="list" aria-labelledby="list-title">
+  <h2 id="list-title" tabindex="-1">장비 반납 목록 만들기</h2>
+  <p>창구에서 받은 장비를 한 줄씩 적으세요. 검수 대기 장비를 한 대 이상 넣고 재대여 승인도 따로 기록하세요.</p>
+  <div class="sheet"><div class="scroll" tabindex="0" role="region" aria-label="장비 목록 편집"><table aria-label="반납 장비 편집">
+    <thead><tr><th>장비 번호</th><th>장비 이름</th><th>검수 상태</th><th>재대여 승인</th><th>행 편집</th></tr></thead><tbody id="edit-rows"></tbody></table></div>
+    <div class="actions"><button id="add">장비 추가</button><button id="build" class="main">반납 목록 만들기</button></div>
+  </div>
+  <p id="list-status" class="status" role="status"></p>
+  <div class="actions"><button id="save-list" disabled>장비-반납-목록.json 내려받기</button><a href="#notify" id="to-notify" hidden>이 목록으로 초급 실습하기</a></div>
+  <div id="list-evidence" hidden><label for="list-output">작성한 반납 목록</label><textarea id="list-output" readonly></textarea></div>
+</section>
+<section id="notify" aria-labelledby="notify-title" hidden>
+  <h2 id="notify-title" tabindex="-1">검수 완료 알림 한 번 입력하기</h2>
+  <div class="sheet"><label for="list-input">입문 반납 목록</label>
+    <p class="hint">입문에서 만든 JSON을 붙여 넣거나 파일을 선택하세요.</p>
+    <textarea id="list-input" spellcheck="false"></textarea>
+    <div class="actions"><input type="file" id="list-file" accept=".json,application/json" aria-label="입문 반납 목록 파일"><button id="load-list">목록 불러오기</button></div>
+    <div class="inline"><div><label for="target">대상 장비</label><select id="target" disabled></select></div>
+      <div><label for="event-id">알림 ID</label><input id="event-id" value="inspect-101" disabled></div>
+      <button id="send" class="main" disabled>검수 알림 한 번 입력</button></div>
+  </div>
+  <p id="notify-status" class="status" role="status"></p>
+  <div id="notify-result" hidden><div class="scroll" role="region" tabindex="0" aria-label="단건 수신 전후 장비 목록"></div><p id="history-detail"></p></div>
+  <div class="actions"><button id="save-receipt" disabled>검수-알림-1회-기록.json 내려받기</button><a href="#check" id="to-check" hidden>이 기록으로 중급 실습하기</a></div>
+  <div id="receipt-evidence" hidden><label for="receipt-output">검수 알림 수신 기록</label><textarea id="receipt-output" readonly></textarea></div>
+</section>
+<section id="check" aria-labelledby="check-title" hidden>
+  <h2 id="check-title" tabindex="-1">검수 알림 전후 검증하기</h2>
+  <div class="sheet"><label for="receipt-input">초급 수신 기록</label>
+    <p class="hint">초급의 JSON을 붙여 넣거나 파일을 선택해 장비별 검수 상태·재대여 승인과 처리 이력을 대조하세요.</p>
+    <textarea id="receipt-input" spellcheck="false"></textarea>
+    <div class="actions"><input type="file" id="receipt-file" accept=".json,application/json" aria-label="초급 수신 기록 파일"><button id="check-record" class="main">전후 검증하기</button></div>
+  </div>
+  <p id="check-status" class="status" role="status"></p>
+  <button id="save-report" disabled>검수-알림-전후-검증.md 내려받기</button>
+  <div id="check-result" hidden>
+    <div class="sheet"><h3>검증 결과</h3><div class="scroll" role="region" tabindex="0" aria-label="검증한 장비별 비교"></div><p id="check-history"></p></div>
+    <div class="sheet"><h3>고급 실습에서 같은 알림 두 번 보내기</h3><p id="handoff-hint"></p>
+      <label for="handoff">고급 실습용 검수 알림</label><textarea id="handoff" readonly></textarea>
+    </div>
+  </div>
+</section>
+</main>
+<!-- shared receiver -->
+<script type="module">
+/* starter module */
+const el=id=>document.getElementById(id);
+const json=value=>JSON.stringify(value,null,2);
+const text=(id,value)=>{el(id).textContent=value;};
+const stages=['list','notify','check'];
+const sampleEquipment=createInspectionSession().equipment;
+let preparedList,loadedList,receipt,checked;
+function showStage() {
+  const hash=location.hash.slice(1),active=stages.includes(hash)?hash:'list';
+  for(const stage of stages) el(stage).hidden=stage!==active;
+  for(const link of document.querySelectorAll('nav a')) {
+    if(link.hash==='#'+active) link.setAttribute('aria-current','page');
+    else link.removeAttribute('aria-current');
+  }
+  return active;
+}
+addEventListener('hashchange',()=>{
+  const active=showStage();
+  el(active+'-title').focus({preventScroll:true});
+});
+function clearCheck() {
+  checked=null;
+  el('check-result').hidden=true;
+  el('save-report').disabled=true;
+  el('handoff').value='';
+  text('check-status','');
+}
+function clearReceipt() {
+  receipt=null;
+  el('save-receipt').disabled=true;
+  for(const id of ['to-check','notify-result','receipt-evidence']) el(id).hidden=true;
+  for(const id of ['receipt-output','receipt-input','receipt-file']) el(id).value='';
+  clearCheck();
+}
+function clearLoaded() {
+  loadedList=null;
+  el('target').replaceChildren();
+  for(const id of ['send','event-id','target']) el(id).disabled=true;
+  text('notify-status','');
+  clearReceipt();
+}
+function invalidateList() {
+  preparedList=null;
+  el('to-notify').hidden=true;
+  el('list-evidence').hidden=true;
+  el('save-list').disabled=true;
+  for(const id of ['list-output','list-input','list-file']) el(id).value='';
+  text('list-status','');
+  clearLoaded();
+}
+const fields=[['equipmentId','장비 번호'],['name','장비 이름'],['inspectionStatus','검수 상태',inspectionStatuses],['rentalApproval','재대여 승인',rentalApprovals]];
+function labelRows() {
+  Array.from(el('edit-rows').rows).forEach((tr,i)=>{
+    fields.forEach(([,label],k)=>tr.cells[k].firstChild.setAttribute('aria-label',(i+1)+'행 '+label));
+    tr.lastChild.firstChild.setAttribute('aria-label',(i+1)+'행 삭제');
+  });
+}
+function addRow(values) {
+  const tr=el('edit-rows').insertRow();
+  for(const [key,,options] of fields) {
+    const field=document.createElement(options?'select':'input');
+    if(options) for(const value of options) field.add(new Option(value,value));
+    field.value=values[key];tr.insertCell().append(field);
+  }
+  const remove=document.createElement('button');remove.textContent='삭제';
+  remove.addEventListener('click',()=>{tr.remove();labelRows();invalidateList();el('add').focus();});
+  tr.insertCell().append(remove);labelRows();return tr;
+}
+for(const row of sampleEquipment) addRow(row);
+el('add').addEventListener('click',()=>{
+  const row=addRow({equipmentId:'',name:'',inspectionStatus:'검수 대기',rentalApproval:'미승인'});
+  invalidateList();row.cells[0].firstChild.focus();
+});
+el('edit-rows').addEventListener('input',invalidateList);
+el('build').addEventListener('click',()=>{
+  invalidateList();
+  try {
+    const rows=Array.from(el('edit-rows').rows,tr=>Object.fromEntries(fields.map(([key],i)=>[key,tr.cells[i].firstChild.value])));
+    preparedList=makeStarterList(rows);
+    el('list-output').value=el('list-input').value=json(preparedList);
+    el('list-evidence').hidden=el('to-notify').hidden=false;el('save-list').disabled=false;
+    text('list-status','반납 장비 '+rows.length+'대 · 수신 0건 · 처리 이력 0건');
+  } catch(error) {text('list-status',error.message);}
+});
+function requireJson(id) {
+  try {return JSON.parse(el(id).value);}
+  catch {throw Error('이전 단계의 JSON 본문을 빠짐없이 넣어 주세요.');}
+}
+el('load-list').addEventListener('click',()=>{
+  clearLoaded();
+  try {
+    loadedList=readStarterList(requireJson('list-input'));
+    for(const row of loadedList.equipment.filter(item=>item.inspectionStatus==='검수 대기')) el('target').add(new Option(row.equipmentId+' · '+row.name,row.equipmentId));
+    el('target').disabled=el('event-id').disabled=el('send').disabled=false;
+    text('notify-status','장비 '+loadedList.equipment.length+'대 · 수신 전 처리 이력 0건');
+  } catch(error) {text('notify-status',error.message);}
+});
+function showComparison(container,record) {
+  const table=document.createElement('table');
+  const headings=table.createTHead().insertRow();
+  for(const value of ['장비 번호','이름','입력 전 검수','입력 후 검수','입력 전 재대여','입력 후 재대여']) {
+    const th=document.createElement('th');th.scope='col';th.textContent=value;headings.append(th);
+  }
+  const current=new Map(record.equipment.map(row=>[row.equipmentId,row])),body=table.createTBody();
+  for(const row of record.initialEquipment) {
+    const after=current.get(row.equipmentId),tr=body.insertRow();
+    for(const value of [row.equipmentId,row.name,row.inspectionStatus,after.inspectionStatus,row.rentalApproval,after.rentalApproval]) tr.insertCell().textContent=value;
+  }
+  container.replaceChildren(table);
+}
+function historySummary(record) {
+  const event=record.history[0];
+  return '수신 1건 · 처리 이력 0건 → 1건 · '+event.eventId+' / '+event.equipmentId+' / '+event.type;
+}
+el('send').addEventListener('click',()=>{
+  if (!loadedList || receipt) return;
+  try {
+    receipt=receiveStarterInspection(loadedList,el('target').value,el('event-id').value);
+    el('target').disabled=el('event-id').disabled=el('send').disabled=true;
+    el('receipt-input').value=el('receipt-output').value=json(receipt);
+    el('save-receipt').disabled=false;
+    for(const id of ['receipt-evidence','to-check','notify-result']) el(id).hidden=false;
+    clearCheck();
+    showComparison(el('notify-result').querySelector('.scroll'),receipt);text('history-detail',historySummary(receipt));
+    text('notify-status',el('target').value+' 검수 대기 → 검수 완료 · 처리 이력 1건');
+  } catch(error) {text('notify-status',error.message);}
+});
+function bindInput(inputId,fileId,statusId,clear) {
+  const input=el(inputId),picker=el(fileId);
+  input.addEventListener('input',()=>{picker.value='';clear();});
+  picker.addEventListener('change',async()=>{
+    const file=picker.files[0];if(!file) return;
+    input.value='';clear();
+    try {
+      const content=await file.text();
+      if(picker.files[0]===file) {input.value=content;text(statusId,file.name+' 파일을 읽었습니다.');}
+    } catch {if(picker.files[0]===file) text(statusId,'파일을 읽을 수 없습니다. JSON 본문을 직접 입력하세요.');}
+  });
+}
+bindInput('list-input','list-file','notify-status',clearLoaded);
+bindInput('receipt-input','receipt-file','check-status',clearCheck);
+el('check-record').addEventListener('click',()=>{
+  clearCheck();
+  try {
+    const record=requireJson('receipt-input');checked=checkStarterInspection(record);
+    showComparison(el('check-result').querySelector('.scroll'),record);text('check-history',historySummary(record));
+    const event=checked.event;
+    const forAdvanced=advancedInspectionEvent(event);
+    el('handoff').value=json(forAdvanced);
+    text('handoff-hint',event.equipmentId===forAdvanced.equipmentId ?
+      '고급 실습의 초기 목록에서 아래 알림을 두 번 입력하세요.' :
+      '이번에 검증한 장비는 '+event.equipmentId+'입니다. 고급 실습은 기본 목록의 '+forAdvanced.equipmentId+'에서 시작하므로 새 알림 ID '+forAdvanced.eventId+'를 부여했습니다. 아래 새 알림을 두 번 입력하세요.');
+    el('check-result').hidden=el('save-report').disabled=false;
+    text('check-status','검증 통과 · '+event.equipmentId+' 검수 완료 · 처리 이력 1건');
+  } catch(error) {text('check-status','검증 실패 · '+error.message);}
+});
+function download(name,body,type) {
+  const url=URL.createObjectURL(new Blob([body],{type})),anchor=document.createElement('a');
+  anchor.href=url;anchor.download=name;document.body.append(anchor);anchor.click();anchor.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+el('save-list').addEventListener('click',()=>download('장비-반납-목록.json',json(preparedList),'application/json'));
+el('save-receipt').addEventListener('click',()=>download('검수-알림-1회-기록.json',json(receipt),'application/json'));
+el('save-report').addEventListener('click',()=>download('검수-알림-전후-검증.md',checked.report,'text/markdown;charset=utf-8'));
+showStage();
+</script>
+</body></html>

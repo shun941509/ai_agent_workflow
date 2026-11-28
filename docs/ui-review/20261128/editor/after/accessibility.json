@@ -1,0 +1,20 @@
+[
+  {
+    "width": 390,
+    "errors": [],
+    "fitAxe": [],
+    "failure": "Error: expect(locator).toHaveValue(expected) failed\n\nLocator: getByRole('tabpanel', { name: '속성', exact: true }).getByRole('textbox', { name: '블록 이름', exact: true })\nExpected: \"답변 전달\"\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toHaveValue\" getByRole('tabpanel', { name: '속성', exact: true }).getByRole('textbox', { name: '블록 이름', exact: true }) with timeout 5000ms\n  - waiting for getByRole('tabpanel', { name: '속성', exact: true }).getByRole('textbox', { name: '블록 이름', exact: true })\n"
+  },
+  {
+    "width": 1280,
+    "errors": [],
+    "fitAxe": [],
+    "failure": "Error: expect(locator).toHaveValue(expected) failed\n\nLocator: getByRole('tabpanel', { name: '속성', exact: true }).getByRole('textbox', { name: '블록 이름', exact: true })\nExpected: \"답변 전달\"\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toHaveValue\" getByRole('tabpanel', { name: '속성', exact: true }).getByRole('textbox', { name: '블록 이름', exact: true }) with timeout 5000ms\n  - waiting for getByRole('tabpanel', { name: '속성', exact: true }).getByRole('textbox', { name: '블록 이름', exact: true })\n"
+  },
+  {
+    "width": 1440,
+    "errors": [],
+    "fitAxe": [],
+    "failure": "Error: expect(locator).toHaveValue(expected) failed\n\nLocator: getByRole('tabpanel', { name: '속성', exact: true }).getByRole('textbox', { name: '블록 이름', exact: true })\nExpected: \"답변 전달\"\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toHaveValue\" getByRole('tabpanel', { name: '속성', exact: true }).getByRole('textbox', { name: '블록 이름', exact: true }) with timeout 5000ms\n  - waiting for getByRole('tabpanel', { name: '속성', exact: true }).getByRole('textbox', { name: '블록 이름', exact: true })\n"
+  }
+]

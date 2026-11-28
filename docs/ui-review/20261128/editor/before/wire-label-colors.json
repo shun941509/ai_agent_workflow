@@ -1,0 +1,24 @@
+[
+  {
+    "theme": "light",
+    "paint": {
+      "defined": "rgb(242, 246, 255)",
+      "visibleUses": 1
+    },
+    "colors": {
+      "bright": 0,
+      "legacy": 40
+    }
+  },
+  {
+    "theme": "dark",
+    "paint": {
+      "defined": "rgb(242, 246, 255)",
+      "visibleUses": 1
+    },
+    "colors": {
+      "bright": 0,
+      "legacy": 40
+    }
+  }
+]

@@ -1,0 +1,31 @@
+<template>
+  <style>
+    #root {position:absolute;inset:0;overflow:hidden;background:var(--ink,#17274b);color:var(--paper,#f6f2e8);font-family:"Studio Sans",sans-serif;}
+    .guide-brand {position:absolute;left:192px;top:118px;display:flex;align-items:center;gap:18px;font-size:34px;font-weight:660;letter-spacing:-1.1px;}
+    .guide-brand img {width:58px;height:58px;}
+    .guide-rule {position:absolute;top:209px;left:192px;right:192px;height:2px;background:#8792ac;}
+    #guide-title {position:absolute;top:305px;left:192px;font:680 95px/1.28 "Studio Serif",serif;letter-spacing:-7px;}
+    #guide-title span {display:block;}
+    #guide-route {position:absolute;top:644px;left:199px;line-height:1.6;font-size:32px;letter-spacing:-1.3px;}
+    #guide-route strong {display:block;color:var(--lime,#d9ec85);font-size:42px;letter-spacing:-2px;}
+    #guide-print {position:absolute;left:1021px;top:260px;width:698px;padding:20px;background:var(--paper,#f6f2e8);box-shadow:11px 13px 0 #0a1834;}
+    #guide-print img {display:block;width:658px;height:auto;}
+    #guide-credit {position:absolute;left:192px;top:923px;font-size:29px;line-height:1.4;letter-spacing:-0.5px;color:#cbd2e4;}
+  </style>
+  <section id="root" data-composition-id="guide" data-width="1920" data-height="1080">
+    <div class="guide-brand"><img src="assets/studio-icon.svg" alt=""><span data-var-text="brandName">AI Agent Workflow Studio</span></div><div class="guide-rule"></div>
+    <h2 id="guide-title"><span data-var-text="guideFirst">Agent에게 맡길</span><span data-var-text="guideSecond">업무를 고르세요.</span></h2>
+    <p id="guide-route"><span data-var-text="guideNav">가이드  ›  목적별로 만들기</span><strong data-var-text="guideSection">업무 문서 만들기</strong></p>
+    <figure id="guide-print"><img data-var-src="guideImage" src="assets/guide.png" alt="실제 가이드. 할 일 앱 요구사항, 회의록·업무 보고, 반도체·제조 보고를 선택할 수 있다."></figure>
+    <p id="guide-credit" data-var-text="musicCredit">음악  Galactic Rap  ·  Kevin MacLeod  ·  CC BY 4.0  ·  편집 사용</p>
+  </section>
+  <script>
+    const tl = gsap.timeline({paused:true});
+    tl.fromTo("#guide-title",{y:15},{y:0,duration:0.42,ease:"power2.out"},0);
+    tl.fromTo("#guide-print",{x:38,opacity:0},{x:0,opacity:1,duration:0.55,ease:"power2.out"},0.13);
+    tl.fromTo("#guide-route",{x:-14,opacity:0},{x:0,opacity:1,duration:0.4,ease:"power2.out"},1.82);
+    tl.fromTo("#guide-credit",{opacity:0},{opacity:1,duration:0.45,ease:"power2.out"},2.65);
+    window.__timelines = window.__timelines || {};
+    window.__timelines.guide = tl;
+  </script>
+</template>

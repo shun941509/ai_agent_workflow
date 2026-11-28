@@ -357,7 +357,7 @@ test('블록 추가는 분류 경로와 겹치는 새 카드만 같은 열의 �
   assert.equal(placeNewBlock(adjacent, [classifier, below, placed]), adjacent);
 });
 
-test('초급 연결도는 저장한 배치를 유지하며 모든 카드와 단일 출력의 터치 공간을 확보한다', () => {
+test('초급 연결도는 저장한 배치를 유지하며 모든 카드와 단일 출력을 선택할 공간을 확보한다', () => {
   const graph = templates.find(lesson => lesson.id === 'beginner')!.graph;
   const before = structuredClone(graph);
   const limits = overviewTargetLimits(graph.nodes);
@@ -406,7 +406,7 @@ test('같은 줄에서 가장자리만 겹친 카드는 위아래로 커지고 �
   for (const id of [material.id, skill.id]) assert.deepEqual(overlap.get(id), {above:0, below:0, maxPortOutside:0});
 });
 
-test('분류 경로 옆에서는 기존 출력 행의 터치 영역을 여유 공간에서 제외한다', () => {
+test('분류 경로 옆에서는 기존 출력 행의 선택 영역을 여유 공간에서 제외한다', () => {
   const branch = createBlock('ai.classify', {id:'classify', x:0, y:0, config:{categories:['예약','문의','반납']}});
   const lower = createBlock('agent.task', {id:'lower', x:W + 6, y:nodeLayout(branch).height + 12});
   const away = createBlock('agent.task', {id:'away', x:W + 6, y:lower.y + 150});
@@ -486,6 +486,9 @@ test('넓은 그래프를 축소해도 인접 분기 이름이 서로 겹치지 
   assert.deepEqual(lines, before);
 });
 
+// 편집기 양쪽 패널을 연 720 × 900 PC 분할 창에서 측정한 캔버스 영역.
+const splitEditorCanvas = {width:360, height:490};
+
 test('긴 분류 이름에서 가운데의 서로 다른 단어를 행과 합류선에 남긴다', () => {
   const terms = ['대출 연장', '예약 변경', '회원 갱신', '대출 재신청'];
   const names = terms.map(term => '시립도서관 통합 서비스에서 접수한 ' + term + ' 요청에 대한 처리 상태 확인 및 결과 안내');
@@ -498,7 +501,7 @@ test('긴 분류 이름에서 가운데의 서로 다른 단어를 행과 합류
   const groups = groupEdges(graph);
   const lines = groupedWireGeometry(groups, new Map(graph.nodes.map(node => [node.id,node])));
   const view = {x:10,y:20,zoom:.21};
-  const ports = selectedPortDirections(classifier.id,groups,lines,view,{width:390,height:625},graph.nodes);
+  const ports = selectedPortDirections(classifier.id,groups,lines,view,splitEditorCanvas,graph.nodes);
   const rows = ports.flatMap(port => port.route ? [port.route] : []);
   assert.deepEqual(rows.map(row => row.label), names);
   const captions = wireCaptions(groups,lines,graph.nodes,50,classifier.id,ports);
@@ -522,7 +525,7 @@ test('펼친 모든 경로 행이 합류·분기 선과 화살촉을 피하고 �
   })));
   const groups = groupEdges({nodes,edges});
   const lines = groupedWireGeometry(groups,new Map(nodes.map(node => [node.id,node])));
-  for (const frame of [{width:804,height:675},{width:390,height:625}]) {
+  for (const frame of [{width:804,height:675},splitEditorCanvas]) {
     const view = fittedView(nodes,frame);
     const getRows = (camera: typeof view, height: number) => selectedPortDirections(classifier.id,groups,lines,camera,
       {...frame,height},nodes).flatMap(port => port.route ? [port.route] : []);
@@ -562,9 +565,10 @@ test('넓은 팀은 입구에서 원래 글자 크기로 열고 전체 보기는
   assert.ok(overview.zoom < opening.zoom);
   assert.ok(bounds.x * overview.zoom + overview.x >= 23.9);
   assert.ok((bounds.x + bounds.w) * overview.zoom + overview.x <= frame.width - 23.9);
-  const phone = fittedView(team.nodes, {width:390, height:440});
-  assert.ok(phone.zoom < 0.17);
-  assert.ok((bounds.x + bounds.w) * phone.zoom + phone.x <= 366.1);
+  const splitOverview = fittedView(team.nodes, splitEditorCanvas);
+  assert.ok(splitOverview.zoom < overview.zoom);
+  assert.ok(bounds.x * splitOverview.zoom + splitOverview.x >= 23.9);
+  assert.ok((bounds.x + bounds.w) * splitOverview.zoom + splitOverview.x <= splitEditorCanvas.width - 23.9);
   assert.deepEqual(fittedView([entry], frame, true), fittedView([entry], frame));
 });
 

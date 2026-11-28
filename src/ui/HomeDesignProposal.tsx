@@ -170,7 +170,7 @@ export default function HomeDesignProposal({ prompt, onEdit, answer, onAnswer, c
       <p role="status">AI 설계 제안을 사용하려면 작업실 운영자가 모델을 연결해야 합니다. 직접 설계하거나 템플릿으로 시작할 수 있습니다.</p>
       <div className="row">
         <button ref={blankButton} type="button" className="btn" disabled={creating} onClick={onBlank}>빈 캔버스에서 시작</button>
-        <button type="button" className="btn" disabled={creating} onClick={onTemplates}>수준별 템플릿 보기</button>
+        <button type="button" className="btn" disabled={creating} onClick={onTemplates}>예제 템플릿 보기</button>
       </div>
     </div>}
     {workDocument && offline && !draft && !waiting && <p role="status">모델을 연결하면 AI 설계 제안을 받을 수 있습니다. 지금은 기본 설계를 열어 편집할 수 있습니다.</p>}

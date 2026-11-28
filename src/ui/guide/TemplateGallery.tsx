@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type FocusEvent, type ReactNode } from 'react';
+import { useId, useState, type ReactNode } from 'react';
 import type { Lesson } from '../../domain/types';
 import { workDocuments, type WorkPurpose } from '../../domain/work-documents';
 import { GuideFigure } from './GuideFigure';
@@ -31,8 +31,6 @@ export function TemplateGallery({ lessons, initialId, displayedPracticeId, onOpe
   returnToReference?: ReactNode;
 }) {
   const picker = useId();
-  const catalog = useRef<HTMLFieldSetElement>(null);
-  const compactPicker = useRef<HTMLSelectElement>(null);
   const [selection, setSelection] = useState<string | undefined>(() =>
     (typeof window !== 'undefined' && (new URLSearchParams(window.location.search).get('template')
       || window.history.state?.guideTemplatePreview)) || initialId);
@@ -56,6 +54,7 @@ export function TemplateGallery({ lessons, initialId, displayedPracticeId, onOpe
   const captureId = selected.id === 'intro' ? 'terms-workflow' : 'goal-' + selected.id;
   const teamCaptureId = captureId + '-team';
   const outcome = templateOutcomes[selected.id];
+  const previewId = picker + '-preview';
   function select(id: string) {
     setSelection(id);
     const url = new URL(window.location.href);
@@ -63,39 +62,27 @@ export function TemplateGallery({ lessons, initialId, displayedPracticeId, onOpe
     window.history.replaceState({ ...window.history.state, guideTemplatePreview: id }, '', url);
   }
 
-  function retainPickerFocus(event: FocusEvent<HTMLInputElement | HTMLSelectElement>) {
-    const source = event.currentTarget;
-    if (event.relatedTarget || source.getClientRects().length) return;
-    // The container query replaces the focused control when the available width changes.
-    const target = source === compactPicker.current
-      ? catalog.current?.querySelector<HTMLInputElement>('input:checked')
-      : compactPicker.current;
-    requestAnimationFrame(() => {
-      if (document.activeElement === document.body && target?.getClientRects().length) target.focus();
-    });
-  }
-
   return <div className={styles.gallery}>
-    <fieldset ref={catalog} className={styles.catalog}>
+    <label className={styles.compactPicker}>
+      만들고 싶은 결과
+      <select aria-controls={previewId} value={selected.id} onChange={event => select(event.target.value)}>
+        {groups.map(([purpose, items]) => <optgroup key={purpose} label={purpose}>
+          {items.map(item => <option key={item.id} value={item.id}>{item.title}</option>)}
+        </optgroup>)}
+      </select>
+    </label>
+    <fieldset className={styles.catalog}>
       <legend>만들고 싶은 결과</legend>
       {groups.map(([purpose, items]) => <div key={purpose} className={styles.purpose}>
         <p>{purpose}</p>
         {items.map(item => <label className={styles.option} key={item.id}>
-          <input type="radio" name={picker} aria-label={item.title} value={item.id} aria-controls={picker + '-preview'}
-            checked={selected.id === item.id} onBlur={retainPickerFocus} onChange={() => select(item.id)} />
+          <input type="radio" name={picker} aria-label={item.title} value={item.id} aria-controls={previewId}
+            checked={selected.id === item.id} onChange={() => select(item.id)} />
           <span>{item.level && <small>{item.level}</small>}{item.title}</span>
         </label>)}
       </div>)}
     </fieldset>
-    <label className={styles.compactPicker}>만들고 싶은 결과
-      <select ref={compactPicker} value={selected.id} aria-controls={picker + '-preview'}
-        onBlur={retainPickerFocus} onChange={event => select(event.target.value)}>
-        {groups.map(([purpose, items]) => <optgroup key={purpose} label={purpose}>
-          {items.map(item => <option key={item.id} value={item.id}>{item.level && item.level + ' · '}{item.title}</option>)}
-        </optgroup>)}
-      </select>
-    </label>
-    <section id={picker + '-preview'} className={styles.preview} key={selected.id} aria-label={selected.title + ' 미리보기'}>
+    <section id={previewId} className={styles.preview} key={selected.id} aria-label={selected.title + ' 미리보기'}>
       <header className={styles.previewHeader}>
         <div>{selected.level && <p>{selected.level} 실습</p>}<h3 id="guide-template-title" tabIndex={-1}>{selected.title}</h3>
           {returnToReference}</div>

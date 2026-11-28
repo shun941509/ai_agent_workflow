@@ -3,14 +3,12 @@ import {isEditorFocus, type EditorFocus} from '../../domain/editor-focus';
 import type {CanvasBookmark} from './Canvas';
 import type {InspectorTab} from './InspectorTabs';
 
-export type HistoryPane = 'canvas' | 'inspector' | 'palette';
 export type WireChoiceSource = {node:string; output?:string};
 export type EditorDialog = 'ai' | 'issues' | 'import' | 'name' | 'scope' | 'export' | 'agent-export' | 'shortcuts' | 'copy-source' | 'attach-shared' | null;
 export type PairEdit = 'transfers' | 'conditions';
 export type ConnectionTarget = {from?:string; to?:string; input?:string; routeId?:string; edit?:PairEdit};
 export interface EditorLocation extends EditorFocus {
   project:string;
-  pane:HistoryPane;
   tab:InspectorTab;
   pendingRun?:string;
   list:boolean;
@@ -18,7 +16,6 @@ export interface EditorLocation extends EditorFocus {
   connection:ConnectionTarget|null;
   wireChoices:string[];
   wireSource?:WireChoiceSource;
-  drawer:boolean;
   bookmark?:CanvasBookmark;
 }
 export type EditorPopHandler = () => boolean;
@@ -36,18 +33,18 @@ export function editorLocation(project:string):EditorLocation|undefined {
 
 // Parent entries contain navigation and camera state only. Graph edits stay in the mounted editor.
 function layers(location:EditorLocation):EditorLocation[] {
-  const canvas:EditorLocation = {...location, pane:'canvas', dialog:null, connection:null, wireChoices:[], wireSource:undefined, drawer:false};
+  const canvas:EditorLocation = {...location, tab:'properties', dialog:null, connection:null, wireChoices:[], wireSource:undefined};
   const result = location.path.map((id,index):EditorLocation => ({
     ...canvas, path:location.path.slice(0,index), selection:{kind:'node',id}, bookmark:undefined,
   }));
   result.push(canvas);
-  if (location.pane !== 'canvas') result.push({...canvas, pane:location.pane});
-  if (location.dialog || location.connection || location.wireChoices?.length || location.drawer) result.push(location);
+  if (location.tab === 'results') result.push({...canvas, tab:'results'});
+  if (location.dialog || location.connection || location.wireChoices?.length) result.push(location);
   return result;
 }
 function sameLayer(a:EditorLocation,b:EditorLocation) {
-  return JSON.stringify([a.path,a.pane,a.dialog,a.connection,a.wireChoices ?? [],a.wireSource,!!a.drawer]) ===
-    JSON.stringify([b.path,b.pane,b.dialog,b.connection,b.wireChoices ?? [],b.wireSource,!!b.drawer]);
+  return JSON.stringify([a.path,a.tab,a.dialog,a.connection,a.wireChoices ?? [],a.wireSource]) ===
+    JSON.stringify([b.path,b.tab,b.dialog,b.connection,b.wireChoices ?? [],b.wireSource]);
 }
 function write(entry:EditorLocation, push=false) {
   const state = {...history.state, studioEditor:entry};
@@ -71,7 +68,7 @@ export function useEditorHistory(
     remember(entry);
   }
   // Closing a panel with its own button consumes the same entry as browser Back.
-  // A sibling transition (for example, inspector → child team) replaces that final entry.
+  // A sibling transition (for example, results → child team) replaces that final entry.
   function sync() {
     if (!ref || rewinding.current || new URLSearchParams(location.search).get('edit') !== current.project) return;
     const stored = editorLocation(current.project);

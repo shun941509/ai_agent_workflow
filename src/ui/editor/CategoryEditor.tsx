@@ -13,6 +13,7 @@ export function CategoryEditor({graph, node, names, onChange}: {
   const [addition, setAddition] = useState('');
   const buttons = useRef<(HTMLButtonElement | null)[]>([]);
   const addInput = useRef<HTMLInputElement>(null);
+  const cancelRemoval = useRef<HTMLButtonElement>(null);
   const duplicate = (value: string, except?: number) => names.some((name,i) => name.trim() === value.trim() && i !== except);
 
   const outgoing = (index: number) => graph.edges.filter(edge =>
@@ -81,13 +82,13 @@ export function CategoryEditor({graph, node, names, onChange}: {
       <button type="button" className="ws-btn" disabled={!addition.trim() || duplicate(addition)} onClick={add}>추가</button>
     </div>
     {duplicate(addition) && <small role="status">이미 사용 중인 범주 이름입니다.</small>}
-    {removing !== null && <Modal title="분류 범주 삭제" size="confirm" onClose={() => setRemoving(null)}>
+    {removing !== null && <Modal title="분류 범주 삭제" size="confirm" onClose={() => setRemoving(null)} initialFocus={cancelRemoval}>
       <p>‘{names[removing]}’ 범주를 삭제할까요?</p>
       {affected.length > 0 ? <><p>함께 끊어지는 진행 연결 {affected.length}개</p>
         <ul>{affected.map(edge => <li key={edge.id}>{titleById(graph,edge.to)}</li>)}</ul></>
         : <p>함께 끊어지는 연결이 없습니다.</p>}
       <div className="ws-modal-actions">
-        <button type="button" autoFocus className="ws-btn" onClick={() => setRemoving(null)}>취소</button>
+        <button type="button" ref={cancelRemoval} className="ws-btn" onClick={() => setRemoving(null)}>취소</button>
         <button type="button" className="ws-btn ws-danger" onClick={() => remove(removing)}>범주 삭제</button>
       </div>
     </Modal>}

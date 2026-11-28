@@ -1,0 +1,71 @@
+[
+  {
+    "width": 390,
+    "errors": [],
+    "fitAxe": [
+      {
+        "id": "target-size",
+        "nodes": [
+          {
+            "target": [
+              "button[data-canvas-block=\"question\"]"
+            ],
+            "failureSummary": "Fix any of the following:\n  Target has insufficient size (14.7px by 16.5px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 3.4px instead of at least 24px."
+          },
+          {
+            "target": [
+              "button[aria-label=\"사용자 질문에서 연결 추가\"]"
+            ],
+            "failureSummary": "Fix any of the following:\n  Target has insufficient size (12.6px by 16.5px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 3.4px instead of at least 24px."
+          },
+          {
+            "target": [
+              "button[data-canvas-block=\"task\"]"
+            ],
+            "failureSummary": "Fix any of the following:\n  Target has insufficient size (14.7px by 16.5px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 3.4px instead of at least 24px."
+          },
+          {
+            "target": [
+              "button[aria-label=\"도서관 안내 Agent에서 연결 추가\"]"
+            ],
+            "failureSummary": "Fix any of the following:\n  Target has insufficient size (12.6px by 16.5px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 3.4px instead of at least 24px."
+          }
+        ]
+      }
+    ],
+    "keyboard": [
+      "전체 보기 열기와 복귀 초점",
+      "블록 선택과 속성 열기",
+      "연결 추가와 저장",
+      "목록에서 연결선 선택",
+      "프로젝트 메뉴 Tab·Escape"
+    ],
+    "listAxe": []
+  },
+  {
+    "width": 1280,
+    "errors": [],
+    "fitAxe": [],
+    "keyboard": [
+      "전체 보기 열기와 복귀 초점",
+      "블록 선택과 속성 열기",
+      "연결 추가와 저장",
+      "목록에서 연결선 선택",
+      "프로젝트 메뉴 Tab·Escape"
+    ],
+    "listAxe": []
+  },
+  {
+    "width": 1440,
+    "errors": [],
+    "fitAxe": [],
+    "keyboard": [
+      "전체 보기 열기와 복귀 초점",
+      "블록 선택과 속성 열기",
+      "연결 추가와 저장",
+      "목록에서 연결선 선택",
+      "프로젝트 메뉴 Tab·Escape"
+    ],
+    "listAxe": []
+  }
+]

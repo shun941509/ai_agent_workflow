@@ -47,7 +47,7 @@ export default function LibraryPreview() {
         </nav>
         <div className="lp-resources">
           <button onClick={() => guide.current?.showModal()}><BookOpen/>실습 안내</button>
-          <a href="/?view=templates" target="_blank" rel="noreferrer"><Layers3/>수준별 템플릿<ArrowUpRight className="lp-external"/></a>
+          <a href="/?view=templates" target="_blank" rel="noreferrer"><Layers3/>예제 템플릿<ArrowUpRight className="lp-external"/></a>
         </div>
         <a href="/" target="_blank" rel="noreferrer" className="lp-back"><FolderOpen/>실제 작업실 열기<ArrowUpRight className="lp-external"/></a>
       </aside>

@@ -1,11 +1,13 @@
-import {useId, useLayoutEffect, useRef, type ReactNode} from 'react';
+import {useId, useLayoutEffect, useRef, type ReactNode, type RefObject} from 'react';
 import {Icon} from './Icons';
 import {cycleDialogFocus} from '../dialog-focus';
 
-export function Modal({title, size = 'standard', children, onClose}: {
+export function Modal({title, size = 'standard', children, footer, initialFocus, onClose}: {
   title: string;
   size?: 'confirm' | 'standard' | 'form' | 'settings';
   children: ReactNode;
+  footer?: ReactNode;
+  initialFocus?: RefObject<HTMLElement | null>;
   onClose: () => void;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -15,12 +17,13 @@ export function Modal({title, size = 'standard', children, onClose}: {
     const dialog = ref.current!;
     const opener = document.activeElement;
     dialog.showModal();
+    initialFocus?.current?.focus();
     return () => {
       dialog.close();
       if ((opener instanceof HTMLElement || opener instanceof SVGElement) && opener.isConnected && document.activeElement === document.body)
         opener.focus({preventScroll:true});
     };
-  }, []);
+  }, [initialFocus]);
   return <dialog className="ws-modal" data-size={size} ref={ref} aria-labelledby={headingId} onKeyDown={cycleDialogFocus}
     onCancel={event => {event.preventDefault(); onClose();}}
     onPointerDown={event => {
@@ -30,8 +33,8 @@ export function Modal({title, size = 'standard', children, onClose}: {
     }}
     onPointerCancel={() => { pressedBackdrop.current = false; }}
     onClick={event => {
-      // A touch on a canvas output opens this dialog on pointerup. Its trailing
-      // click can land on the new backdrop without starting a dismissal there.
+      // Opening from a canvas output also produces a click after pointerup.
+      // Only dismiss when the press itself started on the backdrop.
       const startedOutside = pressedBackdrop.current;
       pressedBackdrop.current = false;
       if (!startedOutside || event.target !== event.currentTarget) return;
@@ -45,5 +48,6 @@ export function Modal({title, size = 'standard', children, onClose}: {
     <div className="ws-modal-content" role={size === 'settings' ? 'region' : undefined}
       aria-label={size === 'settings' ? title + ' 내용' : undefined}
       tabIndex={size === 'settings' ? 0 : undefined}>{children}</div>
+    {footer && <footer className="ws-modal-footer">{footer}</footer>}
   </dialog>;
 }

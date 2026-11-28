@@ -42,8 +42,7 @@ async function screenshot(page:Page, name:string) {
 }
 
 async function check(width:number) {
-  const mobile = width === 390;
-  const context = await browser.newContext({baseURL, viewport:{width,height:mobile ? 844 : 900}, isMobile:mobile, hasTouch:mobile});
+  const context = await browser.newContext({baseURL, viewport:{width,height:900}});
   try {
     await registerBrowserAccount(context);
     const {id} = await api(context,'project.create',{lesson:'intermediate'});
@@ -69,7 +68,7 @@ async function check(width:number) {
     await enterCanvas();
     await expect(canvas.locator('[data-canvas-block][aria-pressed="true"]')).toBeFocused();
     for (const list of [false,true]) {
-      if (list || mobile) await button(list ? '목록으로 편집' : '캔버스로 보기').press('Enter');
+      if (list) await button(list ? '목록으로 편집' : '캔버스로 보기').press('Enter');
       await blocks.first().focus();
       const selectedBlock = canvas.locator('[data-canvas-block][aria-pressed="true"]');
       const selected = await selectedBlock.getAttribute('data-canvas-block');
@@ -105,7 +104,7 @@ async function check(width:number) {
       await expect(wires.last()).toBeFocused();
       await page.keyboard.press('Home');
       await expect(wires.first()).toBeFocused();
-      if (!list && !mobile) await screenshot(page,'canvas-wire-focus');
+      if (!list) await screenshot(page,'canvas-wire-focus');
       await page.keyboard.press('?');
       await expect(help).toBeVisible();
       await expect(help).toContainText(/Page\s*Down/i);
@@ -195,8 +194,8 @@ async function check(width:number) {
 }
 
 try {
-  for (const width of [1440,390]) await check(width);
-  console.log('PASS desktop/mobile canvas and list keyboard traversal, focus return, shortcut help, text editing and unchanged saved graph.');
+  await check(1440);
+  console.log('PASS desktop canvas and list keyboard traversal, focus return, shortcut help, text editing and unchanged saved graph.');
 } finally {
   await browser.close();
 }

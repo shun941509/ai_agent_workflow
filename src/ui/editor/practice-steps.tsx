@@ -20,7 +20,7 @@ export const practiceSteps: Record<GuidePractice, readonly Step[]> = {
     },
     {
       title: '작업 지시 바꾸기',
-      instructions: <p><strong>도서관 안내 Agent → 속성 → 작업 지시</strong>에서 기존 지시를 다음 문장으로 바꾸세요. “{instruction}” 작은 화면에서는 <strong>실행 화면 닫기</strong>를 눌러 블록으로 돌아갈 수 있습니다.</p>,
+      instructions: <p><strong>실행 화면 닫기</strong>를 누른 뒤 <strong>도서관 안내 Agent → 속성 → 작업 지시</strong>에서 기존 지시를 다음 문장으로 바꾸세요. “{instruction}”</p>,
       check: '‘작업 지시’에 답을 쓴 뒤 원문을 인용하라는 문장이 보입니다.',
       help: '‘질문 입력’에는 이용자가 물을 내용이, ‘도서관 이용규정’에는 답변의 근거가 들어 있습니다. 답하는 방식을 바꿀 때는 ‘도서관 안내 Agent’를 선택하세요.',
     },
@@ -34,9 +34,9 @@ export const practiceSteps: Record<GuidePractice, readonly Step[]> = {
   blank: [
     {
       title: '블록 네 개 배치하기',
-      instructions: <p>빈 화면의 <strong>블록 선택</strong>에서 <strong>사용자 입력</strong>, <strong>AI 작업</strong>, <strong>답변 전달</strong>, <strong>자료 가져오기</strong>를 하나씩 추가하세요. 입문에서 AI 작업의 블록 이름은 <strong>AI 한 번 작업</strong>입니다. 작은 화면은 <strong>속성 닫기 → 블록</strong>으로 팔레트를 다시 엽니다.</p>,
+      instructions: <p>왼쪽 블록 팔레트의 <strong>블록 추가</strong>에서 <strong>사용자 입력</strong>, <strong>AI 작업</strong>, <strong>답변 전달</strong>, <strong>자료 가져오기</strong>를 하나씩 추가하세요. 입문에서 AI 작업의 블록 이름은 <strong>AI 한 번 작업</strong>입니다.</p>,
       check: '캔버스에 질문을 받는 블록, AI 작업, 답변 전달, 자료 블록이 하나씩 보입니다.',
-      help: '블록 팔레트의 ‘블록 추가’에서 ‘추천’을 누른 뒤 ‘AI 작업’을 추가하세요. 작은 화면에서 팔레트를 열려면 캔버스의 ‘블록’을 누르세요.',
+      help: '블록 팔레트의 ‘블록 추가’에서 ‘추천’을 누른 뒤 ‘AI 작업’을 추가하세요.',
     },
     {
       title: '질문과 원문 준비하기',

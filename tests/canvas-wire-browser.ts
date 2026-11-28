@@ -45,17 +45,14 @@ async function checkPortCue(cue:Locator, port:Locator, incoming:boolean) {
 }
 
 // Select at the actual fit scale, then measure in screen pixels after the trace stops.
-async function checkCrowdedOutputs(page:Page, nodeId:string, names:(string|RegExp)[], mobile:boolean) {
+async function checkCrowdedOutputs(page:Page, nodeId:string, names:(string|RegExp)[]) {
   const fit = page.getByRole('button',{name:'캔버스에 맞추기',exact:true});
   await fit.click();
   const zoom = page.locator('.ws-zoom-percent');
   const overview = await zoom.innerText();
   assert.ok(parseInt(overview) < 50, '시험 설계의 전체 보기에서 인접한 출력점 간격이 12px 미만이어야 합니다.');
   const block = page.locator(`[data-canvas-block="${nodeId}"]`);
-  if (mobile) {
-    await block.tap();
-    await page.getByRole('button',{name:'속성 닫기',exact:true}).tap();
-  } else await block.click();
+  await block.click();
   await expect(block).toHaveAttribute('aria-pressed','true');
   await expect(zoom).toHaveText(overview);
   const trace = page.locator(`[data-from="${nodeId}"] > .ws-wire-trace`).first();
@@ -116,7 +113,7 @@ async function checkCrowdedOutputs(page:Page, nodeId:string, names:(string|RegEx
   assert.deepEqual(findings, []);
   if (process.env.STUDIO_SCREENSHOTS) {
     mkdirSync(process.env.STUDIO_SCREENSHOTS,{recursive:true});
-    await page.screenshot({path:join(process.env.STUDIO_SCREENSHOTS,nodeId+'-routes-'+(mobile?'mobile':'desktop')+'.png')});
+    await page.screenshot({path:join(process.env.STUDIO_SCREENSHOTS,nodeId+'-routes-desktop.png')});
   }
 }
 
@@ -138,7 +135,7 @@ function conditionExample():Graph {
   };
 }
 
-async function checkClassifierPathSelection(ctx:BrowserContext, page:Page, mobile:boolean) {
+async function checkClassifierPathSelection(ctx:BrowserContext, page:Page) {
   const sharedPrefix = '시립도서관 통합 서비스에서 접수한 ';
   const sharedSuffix = ' 요청에 대한 처리 상태 확인 및 결과 안내';
   const routes = [
@@ -172,17 +169,9 @@ async function checkClassifierPathSelection(ctx:BrowserContext, page:Page, mobil
   };
   const project = await api(ctx,'project.create',{graph,title:'도서관 문의 경로'});
   await openDiagram(page,project.id);
-  await checkCrowdedOutputs(page,'classifier',routes.map(route=>new RegExp(route.word)),mobile);
+  await checkCrowdedOutputs(page,'classifier',routes.map(route=>new RegExp(route.word)));
   const canvas = page.locator('.ws-canvas');
   const rows = canvas.locator('button.ws-route-callout');
-  async function tapLastRoute() {
-    // Fit to the available canvas and tap the part of the row to the right of the zoom controls.
-    await page.getByRole('button',{name:'캔버스에 맞추기',exact:true}).tap();
-    const row = rows.last();
-    const box = await row.boundingBox();
-    assert.ok(box);
-    await row.tap({position:{x:box.width - 8,y:box.height / 2}});
-  }
   const overview = await canvas.locator('.ws-zoom-percent').innerText();
   const labels = await rows.locator('.ws-route-callout-label').allTextContents();
   assert.equal(new Set(labels).size,routes.length,'가운데만 다른 범주도 서로 다른 이름으로 표시해야 합니다.');
@@ -200,9 +189,7 @@ async function checkClassifierPathSelection(ctx:BrowserContext, page:Page, mobil
       await page.keyboard.press('Shift+Tab');
       await expect(row).toBeFocused();
       await page.keyboard.press(index===1 ? 'Enter' : 'Space');
-    } else if (mobile && index === routes.length - 1) await tapLastRoute();
-    else if (mobile) await row.tap();
-    else await row.click();
+    } else await row.click();
     await expect(row).toHaveAttribute('aria-pressed','true');
     const trace = canvas.locator('.ws-wire-trace');
     const rim = canvas.locator('.ws-wire-trace-rim');
@@ -252,7 +239,7 @@ async function checkClassifierPathSelection(ctx:BrowserContext, page:Page, mobil
     await assertUncoveredTraces(canvas);
     if (index === 3 && process.env.STUDIO_SCREENSHOTS) {
       await page.screenshot({
-        path:join(process.env.STUDIO_SCREENSHOTS,'traced-'+(mobile?'mobile':'desktop')+'.png'),
+        path:join(process.env.STUDIO_SCREENSHOTS,'traced-desktop.png'),
       });
     }
   }
@@ -276,14 +263,8 @@ async function checkClassifierPathSelection(ctx:BrowserContext, page:Page, mobil
   await openDiagram(page,fanout.id);
   await page.getByRole('button',{name:'캔버스에 맞추기',exact:true}).click();
   const classifier = canvas.locator('[data-canvas-block="classifier"]');
-  if (mobile) {
-    await classifier.tap();
-    await page.getByRole('button',{name:'속성 닫기',exact:true}).tap();
-    await tapLastRoute();
-  } else {
-    await classifier.click();
-    await rows.last().click();
-  }
+  await classifier.click();
+  await rows.last().click();
   await expect(canvas.locator('.ws-route-traced-path[data-output-port="other"]')).toHaveCount(2);
   assert.deepEqual(await canvas.locator('.ws-node[data-route-target="true"]').evaluateAll(nodes =>
     nodes.map(node => node.getAttribute('data-workflow-node')).sort()), ['general','help']);
@@ -323,7 +304,7 @@ async function assertUncoveredTraces(canvas:Locator) {
   assert.deepEqual(overlaps, []);
 }
 
-async function checkMergedAndSplitRoutes(ctx:BrowserContext, page:Page, mobile:boolean) {
+async function checkMergedAndSplitRoutes(ctx:BrowserContext, page:Page) {
   const routes = [
     {name:'대출 연장', to:['loans']}, {name:'대출 재신청', to:['loans']},
     {name:'대출과 예약 확인', to:['loans','holds']},
@@ -348,7 +329,7 @@ async function checkMergedAndSplitRoutes(ctx:BrowserContext, page:Page, mobile:b
   };
   const project = await api(ctx,'project.create',{graph,title:'도서관 문의 경로 확인'});
   await openDiagram(page,project.id);
-  await checkCrowdedOutputs(page,'choice',routes.map(route => route.name),mobile);
+  await checkCrowdedOutputs(page,'choice',routes.map(route => route.name));
   const canvas = page.locator('.ws-canvas');
   const rows = canvas.locator('button.ws-route-callout');
   const zoom = await canvas.locator('.ws-zoom-percent').innerText();
@@ -361,7 +342,7 @@ async function checkMergedAndSplitRoutes(ctx:BrowserContext, page:Page, mobile:b
   for (const index of [0,1,2,3,4,1]) {
     const {name,to} = routes[index];
     const button = rows.nth(index);
-    if (mobile) await button.tap(); else await button.click();
+    await button.click();
     await expect(button).toHaveAttribute('aria-pressed','true');
     await expect(page.locator('.ws-route-detail-name')).toHaveText(name);
     const traces = canvas.locator('.ws-wire-trace');
@@ -381,7 +362,7 @@ async function checkMergedAndSplitRoutes(ctx:BrowserContext, page:Page, mobile:b
     await assertUncoveredTraces(canvas);
     if (process.env.STUDIO_SCREENSHOTS && (index===2 || index===3)) {
       await page.screenshot({path:join(process.env.STUDIO_SCREENSHOTS,
-        'clear-'+(mobile?'mobile':'desktop')+'-'+to.join('-')+'.png')});
+        'clear-desktop-'+to.join('-')+'.png')});
     }
   }
 }
@@ -431,7 +412,7 @@ async function openLastClassifierRoute(ctx:BrowserContext, page:Page, fallback:{
   return {canvas,rows,last,zoom,overview};
 }
 
-async function checkOffscreenDestinations(ctx:BrowserContext, page:Page, mobile:boolean) {
+async function checkOffscreenDestinations(ctx:BrowserContext, page:Page) {
   const fallback = [
     {id:'holds',title:'예약 변경 및 지점 간 수령 상담',y:0},
     {id:'member',title:'회원 자격 확인 및 이용증 재발급',y:230},
@@ -487,7 +468,7 @@ async function checkOffscreenDestinations(ctx:BrowserContext, page:Page, mobile:
     await expect(canvas.locator('.ws-node[data-route-viewed="true"]')).toHaveAttribute('data-workflow-node',target.id);
     await assertTracePreserved();
     if (process.env.STUDIO_SCREENSHOTS) await page.screenshot({
-      path:join(process.env.STUDIO_SCREENSHOTS,'destination-'+(mobile?'mobile':'desktop')+'-'+target.id+'.png'),
+      path:join(process.env.STUDIO_SCREENSHOTS,'destination-desktop-'+target.id+'.png'),
     });
   }
   await page.keyboard.press('Tab');
@@ -501,15 +482,8 @@ async function checkOffscreenDestinations(ctx:BrowserContext, page:Page, mobile:
   await expect(canvas.locator('.ws-node[data-route-viewed="true"]')).toHaveCount(0);
   await assertTracePreserved();
   if (process.env.STUDIO_SCREENSHOTS) await page.screenshot({
-    path:join(process.env.STUDIO_SCREENSHOTS,'return-'+(mobile?'mobile':'desktop')+'.png'),
+    path:join(process.env.STUDIO_SCREENSHOTS,'return-desktop.png'),
   });
-  if (mobile) {
-    await actions.first().tap();
-    await expect.poll(() => insideCanvas(targetFor(original[0].target!))).toBe(true);
-    await back.tap();
-    await expect(last).toBeFocused();
-    assert.ok(await insideCanvas(last));
-  }
   await page.keyboard.press('Shift+Tab');
   const previous = rows.nth(-2);
   await expect(previous).toBeFocused();
@@ -525,7 +499,7 @@ async function checkOffscreenDestinations(ctx:BrowserContext, page:Page, mobile:
   await expect(canvas.locator('[data-route-target="true"]')).toHaveAttribute('data-workflow-node','desk');
 }
 
-async function checkLongDestinationNames(ctx:BrowserContext, page:Page, mobile:boolean) {
+async function checkLongDestinationNames(ctx:BrowserContext, page:Page) {
   const prefix = '시립도서관 통합 상담 창구에서 접수한 자료 이용 문의를 해당 지점에서 처리하기 위해 접수자의 요청 사항과 기존 안내 이력을 확인하고 분관별 지원 기준에 따라 이용 일자와 신청 내용을 검토한 뒤 직원에게 전달하는 정기 업무 가운데 접수 대장에 등록된 요청 유형 ';
   const suffix = ' 건에 대해 이전 회신 내용과 지점별 업무 시간을 대조하고, 이용자에게 필요한 증빙과 신청 절차를 안내한 다음 담당 부서와 협의하여 처리 결과를 기록하고, 접수 순서에 맞춰 통합 상담 창구에서 확인할 수 있도록 정리하는 최종 안내 담당 창구';
   const keywords = ['야간반납','상호대차','분실신고','주소변경','열람예약','대출연장','회원갱신','도서기증','희망도서','단체방문','복사신청','주말예약'];
@@ -599,7 +573,7 @@ async function checkLongDestinationNames(ctx:BrowserContext, page:Page, mobile:b
   await expect(canvas.locator('[data-route-viewed="true"]')).toHaveCount(0);
   const capture = async (state:string) => {
     if (process.env.STUDIO_SCREENSHOTS) await page.screenshot({path:join(process.env.STUDIO_SCREENSHOTS,
-      'long-names-'+(mobile?'mobile':'desktop')+'-'+state+'.png')});
+      'long-names-desktop-'+state+'.png')});
   };
   await capture('focus');
   await page.keyboard.press('Enter');
@@ -621,8 +595,7 @@ async function checkLongDestinationNames(ctx:BrowserContext, page:Page, mobile:b
   const restored = (await last.boundingBox())!;
   assert.ok(Math.hypot(restored.x-origin.x,restored.y-origin.y)<1,'복귀 후 32번째 경로 행 위치가 바뀌었습니다.');
   await capture('return');
-  if (mobile) await wantedButton.tap();
-  else await wantedButton.click();
+  await wantedButton.click();
   await expect(wantedButton).toBeFocused();
   await expect(preview).toHaveText(wanted.title);
   await expect(viewed).toHaveAttribute('data-workflow-node',wanted.id);
@@ -631,7 +604,7 @@ async function checkLongDestinationNames(ctx:BrowserContext, page:Page, mobile:b
   await expect(viewed).toHaveCount(0);
 }
 
-async function checkNumberedDestinations(ctx:BrowserContext, page:Page, mobile:boolean) {
+async function checkNumberedDestinations(ctx:BrowserContext, page:Page) {
   const named = (name:string) => '시립도서관 야간 자료 문의를 접수하는 통합 서비스의 ' + name +
     ' 담당 직원 확인과 이용자별 방문 안내 결과를 기록하는 전담 창구';
   const shared = named('동일한 이름으로 등록한 상담실');
@@ -673,7 +646,7 @@ async function checkNumberedDestinations(ctx:BrowserContext, page:Page, mobile:b
   assert.ok(traces.every(path => path.line && path.marker?.includes('trace-arrow')));
   const capture = async (state:string) => {
     if (process.env.STUDIO_SCREENSHOTS) await page.screenshot({path:join(process.env.STUDIO_SCREENSHOTS,
-      'numbered-'+(mobile?'mobile':'desktop')+'-'+state+'.png')});
+      'numbered-desktop-'+state+'.png')});
   };
   async function checkReturn() {
     await expect(last).toBeFocused();
@@ -726,7 +699,7 @@ async function checkNumberedDestinations(ctx:BrowserContext, page:Page, mobile:b
 }
 
 async function checkShortViewportScroll(ctx:BrowserContext, page:Page) {
-  await page.setViewportSize({width:390,height:520});
+  await page.setViewportSize({width:1280,height:600});
   const title = (serial:string) =>
     '지역 공공도서관 통합 민원 접수 및 처리 현황을 점검하는 권역별 전담 운영 창구 '.repeat(3) +
     '통합요청번호'+serial+'호처리이력' +
@@ -775,13 +748,13 @@ async function checkShortViewportScroll(ctx:BrowserContext, page:Page) {
     return true;
   });
   assert.ok(remainsVisible,'원문 끝에서 Enter와 Tab을 누른 뒤 다음 버튼 전체가 목록 안에 보여야 합니다.');
-  if (process.env.STUDIO_SCREENSHOTS) await page.screenshot({path:join(process.env.STUDIO_SCREENSHOTS,'short-mobile-next-focus.png')});
+  if (process.env.STUDIO_SCREENSHOTS) await page.screenshot({path:join(process.env.STUDIO_SCREENSHOTS,'short-window-next-focus.png')});
   await page.keyboard.press('Escape');
   await expect(last).toBeFocused();
 }
 
-async function verify(mobile:boolean) {
-  const ctx = await browser.newContext({baseURL, viewport:mobile ? {width:390,height:844} : {width:1440,height:900}, isMobile:mobile, hasTouch:mobile});
+async function verify() {
+  const ctx = await browser.newContext({baseURL, viewport:{width:1440,height:900}});
   try {
     await registerBrowserAccount(ctx);
     const {id} = await api(ctx,'project.create',{lesson:'intermediate'});
@@ -794,13 +767,11 @@ async function verify(mobile:boolean) {
     await page.locator('[data-canvas-block="input"]').focus();
     await expect(wire('input','answer').locator('.ws-wire-label')).toHaveCount(0);
 
-    if (!mobile) {
-      await page.getByRole('button',{name:'캔버스에 맞추기',exact:true}).click();
-      const intended = wire('input','search'), hit = await midpoint(intended);
-      await page.mouse.click(hit.x,hit.y);
-      await expect(intended).toHaveAttribute('aria-pressed','true');
-      await expect(page.locator('.ws-inspector')).toContainText('도서관 질문 → 규정과 지점 안내문 검색');
-    }
+    await page.getByRole('button',{name:'캔버스에 맞추기',exact:true}).click();
+    const intended = wire('input','search'), hit = await midpoint(intended);
+    await page.mouse.click(hit.x,hit.y);
+    await expect(intended).toHaveAttribute('aria-pressed','true');
+    await expect(page.locator('.ws-inspector')).toContainText('도서관 질문 → 규정과 지점 안내문 검색');
 
     // This recipient has incoming flow, data and reference wires, an outgoing
     // flow wire, and two named exits merging into the same incoming arrow.
@@ -810,11 +781,7 @@ async function verify(mobile:boolean) {
     const incoming = page.locator('.ws-port-direction[data-direction="incoming"]');
     const outgoing = page.locator('.ws-port-direction[data-direction="outgoing"]');
     await page.getByRole('button',{name:'캔버스에 맞추기',exact:true}).click();
-    if (mobile) {
-      await search.tap();
-      await expect(page.locator('.ws-wire-trace').first()).toHaveCSS('animation-play-state','paused');
-      await page.keyboard.press('Escape');
-    } else await search.focus();
+    await search.focus();
     await expect(search).toHaveAttribute('aria-pressed','true');
     await expect(incoming).toHaveCount(1);
     await expect(outgoing).toHaveCount(1);
@@ -846,13 +813,33 @@ async function verify(mobile:boolean) {
     await expect(trace).toHaveAttribute('d',fullPath);
     await expect(trace).toHaveCSS('pointer-events','none');
     await expect(rim).toHaveAttribute('d',fullPath);
-    await expect(rim).toHaveCSS('stroke','rgb(255, 255, 255)');
+    const traceColors = await rim.evaluate(outer => {
+      const core = outer.parentElement!.querySelector('.ws-wire-trace')!;
+      const surface = getComputedStyle(outer.closest('.ws-editor')!).backgroundColor;
+      const border = getComputedStyle(outer).stroke;
+      const sample = document.createElement('canvas');
+      sample.width = sample.height = 1;
+      const paint = sample.getContext('2d')!;
+      const [rimLight, coreLight] = [border, getComputedStyle(core).stroke].map(color => {
+        paint.clearRect(0,0,1,1);
+        paint.fillStyle = color;
+        paint.fillRect(0,0,1,1);
+        const [red, green, blue] = [...paint.getImageData(0,0,1,1).data].map(value => {
+          const channel = value / 255;
+          return channel <= .04045 ? channel / 12.92 : ((channel + .055) / 1.055) ** 2.4;
+        });
+        return red * .2126 + green * .7152 + blue * .0722;
+      });
+      return {surface, border, contrast:(Math.max(rimLight,coreLight) + .05) / (Math.min(rimLight,coreLight) + .05)};
+    });
+    assert.equal(traceColors.border, traceColors.surface, '이동 표시의 테두리는 편집기 표면 색상과 같아야 합니다.');
+    assert.ok(traceColors.contrast >= 3, '이동 표시와 바깥 테두리의 명암비는 3:1 이상이어야 합니다. 실제 ' + traceColors.contrast.toFixed(2) + ':1');
     assert.ok(await trace.evaluate(core => {
       const rim = core.parentElement!.querySelector('.ws-wire-trace-rim')!;
       const inside = getComputedStyle(core), outside = getComputedStyle(rim);
       return parseFloat(outside.strokeWidth) > parseFloat(inside.strokeWidth) &&
         outside.strokeDasharray === inside.strokeDasharray && outside.strokeDashoffset === inside.strokeDashoffset;
-    }), '밝은 테두리가 이동 표시의 위치와 간격을 따라가야 합니다.');
+    }), '바깥 테두리가 이동 표시의 위치와 간격을 따라가야 합니다.');
     // Verify the rendered dash advances from source to destination during playback.
     assert.ok(await trace.evaluate(async path => {
       let previous = parseFloat(getComputedStyle(path).strokeDashoffset);
@@ -895,7 +882,6 @@ async function verify(mobile:boolean) {
     await expect(search).toBeFocused();
     assert.deepEqual(await tracedPairs(),expectedPairs);
     await search.press('Enter');
-    if (mobile) await page.keyboard.press('Escape');
     await expect(trace).toHaveCSS('opacity','1');
 
     await page.emulateMedia({reducedMotion:'reduce'});
@@ -922,7 +908,7 @@ async function verify(mobile:boolean) {
     await expect(incoming.locator('path')).toHaveCSS('fill',systemColors.ink);
     await expect(outgoing.locator('path')).toHaveCSS('stroke',systemColors.paper);
     await page.emulateMedia({forcedColors:'none'});
-    await checkCrowdedOutputs(page,'intent',['규정','예약','미분류'],mobile);
+    await checkCrowdedOutputs(page,'intent',['규정','예약','미분류']);
     const classifier = page.locator('[data-canvas-block="intent"]');
     await classifier.focus();
     await classifier.press('0');
@@ -950,15 +936,15 @@ async function verify(mobile:boolean) {
 
     const condition = await api(ctx,'project.create',{graph:conditionExample(),title:'신청 확인과 안내'});
     await openDiagram(page,condition.id);
-    await checkCrowdedOutputs(page,'condition',['접수됨','다시 확인'],mobile);
+    await checkCrowdedOutputs(page,'condition',['접수됨','다시 확인']);
     const acceptedRoute = page.getByRole('button',{name:'접수됨 → 접수 안내',exact:true});
-    if (mobile) await acceptedRoute.tap(); else await acceptedRoute.click();
+    await acceptedRoute.click();
     await expect(page.locator('.ws-node[data-route-target="true"]')).toHaveAttribute('data-workflow-node','accepted');
     await page.locator('[data-canvas-block="request"]').focus();
     await expect(page.locator('.ws-route-callout')).toHaveCount(0);
     await expect(page.locator('.ws-route-detail')).toHaveCount(0);
 
-    // The rightmost card needs camera room for long labels, including on the first touch and a second fit.
+    // The rightmost card needs camera room for long labels, including on the first selection and a second fit.
     const categories = ['시립도서관 자료열람 및 관외대출 승인 신청','시립도서관 자료열람 및 관외대출 승인 취소'];
     const rightmost:Graph = {
       nodes:[
@@ -976,13 +962,13 @@ async function verify(mobile:boolean) {
     };
     const edgeProject = await api(ctx,'project.create',{graph:rightmost,title:'화면 오른쪽의 질문 분류'});
     await openDiagram(page,edgeProject.id);
-    await checkCrowdedOutputs(page,'rightmost',[/신청/,/취소/,'미분류'],mobile);
+    await checkCrowdedOutputs(page,'rightmost',[/신청/,/취소/,'미분류']);
 
-    await checkClassifierPathSelection(ctx,page,mobile);
-    await checkMergedAndSplitRoutes(ctx,page,mobile);
-    await checkOffscreenDestinations(ctx,page,mobile);
-    await checkLongDestinationNames(ctx,page,mobile);
-    await checkNumberedDestinations(ctx,page,mobile);
+    await checkClassifierPathSelection(ctx,page);
+    await checkMergedAndSplitRoutes(ctx,page);
+    await checkOffscreenDestinations(ctx,page);
+    await checkLongDestinationNames(ctx,page);
+    await checkNumberedDestinations(ctx,page);
 
     // Two connections have identical visible geometry. Both destinations must be selectable.
     const source = createBlock('input.user_request',{id:'source', title:'질문', x:0, y:20});
@@ -1001,8 +987,8 @@ async function verify(mobile:boolean) {
     await expect(cues).toHaveCount(0);
     await page.getByRole('button',{name:'캔버스에 맞추기',exact:true}).click();
     const point = await midpoint(first);
-    const tap = () => mobile ? page.touchscreen.tap(point.x,point.y) : page.mouse.click(point.x,point.y);
-    await tap();
+    const clickWire = () => page.mouse.click(point.x,point.y);
+    await clickWire();
     const chooser = page.getByRole('dialog',{name:'겹친 연결선 선택'});
     await expect(chooser.getByRole('button',{name:/질문 → 첫 번째 답변/})).toBeVisible();
     await expect(chooser.getByRole('button',{name:/질문 → 두 번째 답변/})).toBeVisible();
@@ -1010,33 +996,25 @@ async function verify(mobile:boolean) {
       mkdirSync(process.env.STUDIO_SCREENSHOTS,{recursive:true});
       await page.screenshot({path:join(process.env.STUDIO_SCREENSHOTS,'overlapping-wires-'+page.viewportSize()!.width+'.png')});
     }
-    if (mobile) {
-      await page.goBack();
-      await expect(chooser).toHaveCount(0);
-      await expect(first).toBeVisible();
-      await page.goForward();
-      await expect(chooser).toBeVisible();
-    }
     await page.keyboard.press('Escape');
     await expect(chooser).toHaveCount(0);
     await expect(first).toHaveAttribute('aria-pressed','false');
-    await tap();
+    await clickWire();
     const choice = chooser.getByRole('button',{name:/질문 → 첫 번째 답변/});
     await choice.focus();
     await page.keyboard.press('Enter');
     await expect(chooser).toHaveCount(0);
     await expect(first).toHaveAttribute('aria-pressed','true');
     await expect(page.locator('.ws-inspector')).toContainText('질문 → 첫 번째 답변');
-    if (mobile) await checkShortViewportScroll(ctx,page);
+    await checkShortViewportScroll(ctx,page);
   } finally {
     await ctx.close();
   }
 }
 
 try {
-  await verify(false);
-  await verify(true);
-  console.log('PASS fixed-size port cues, reduced motion, wire choices, per-output tracing and keyboard navigation to both destinations and back on desktop and mobile.');
+  await verify();
+  console.log('PASS fixed-size port cues, reduced motion, wire choices, per-output tracing and keyboard navigation to both destinations and back on desktop.');
 } finally {
   await browser.close();
 }

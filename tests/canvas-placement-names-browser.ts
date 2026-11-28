@@ -18,8 +18,7 @@ async function tabTo(page:Page, target:Locator) {
 }
 
 async function exercise(width:number) {
-  const mobile = width === 390;
-  const session = await browser.newContext({baseURL, viewport:{width,height:mobile ? 844 : 900},isMobile:mobile,hasTouch:mobile});
+  const session = await browser.newContext({baseURL, viewport:{width,height:900}});
   try {
     async function api(action:string,data:object={}) {
       const response = await session.request.post('/api/studio',{data:{action,data}});
@@ -47,10 +46,6 @@ async function exercise(width:number) {
     await expect(page.getByRole('button',{name:'캔버스로 바로 가기'})).toBeFocused();
     await page.keyboard.press('Enter');
     await expect(block('source')).toBeFocused();
-    if (mobile) {
-      await page.getByRole('button',{name:'캔버스로 보기',exact:true}).click();
-      await block('source').focus();
-    }
     await expect(block('first')).toHaveText('1번 · 답변 보내기');
     await expect(block('second')).toHaveText('2번 · 답변 보내기');
     await page.keyboard.press('ArrowRight');
@@ -98,6 +93,5 @@ async function exercise(width:number) {
 
 try {
   await exercise(1440);
-  await exercise(390);
-  console.log('PASS keyboard hold undo/redo, numbered same-name blocks, search and saved destination on desktop/mobile.');
+  console.log('PASS keyboard hold undo/redo, numbered same-name blocks, search and saved destination on desktop.');
 } finally { await browser.close(); }

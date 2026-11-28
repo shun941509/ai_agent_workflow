@@ -1,0 +1,1121 @@
+{
+  "rows": [
+    {
+      "width": 1440,
+      "name": "login",
+      "viewport": 1440,
+      "scroll": 1440,
+      "heading": "로그인"
+    },
+    {
+      "width": 1440,
+      "name": "signup",
+      "viewport": 1440,
+      "scroll": 1440,
+      "heading": "계정 만들기"
+    },
+    {
+      "width": 1440,
+      "name": "home-first",
+      "viewport": 1440,
+      "scroll": 1440,
+      "heading": "내 작업실"
+    },
+    {
+      "width": 1440,
+      "name": "chooser",
+      "viewport": 1440,
+      "scroll": 1440,
+      "heading": "Workflow 편집기"
+    },
+    {
+      "width": 1440,
+      "name": "home-return",
+      "viewport": 1440,
+      "scroll": 1440,
+      "heading": "내 작업실"
+    },
+    {
+      "width": 1440,
+      "name": "projects",
+      "viewport": 1440,
+      "scroll": 1440,
+      "heading": "내 Agent"
+    },
+    {
+      "width": 1440,
+      "name": "templates",
+      "viewport": 1440,
+      "scroll": 1440,
+      "heading": "예제 템플릿"
+    },
+    {
+      "width": 1440,
+      "name": "lesson",
+      "viewport": 1440,
+      "scroll": 1440,
+      "heading": "예제 템플릿"
+    },
+    {
+      "width": 1440,
+      "name": "assets",
+      "viewport": 1440,
+      "scroll": 1440,
+      "heading": "도구 및 자료"
+    },
+    {
+      "width": 1440,
+      "name": "shared",
+      "viewport": 1440,
+      "scroll": 1440,
+      "heading": "공유 Agent"
+    },
+    {
+      "width": 1440,
+      "name": "shared-assets",
+      "viewport": 1440,
+      "scroll": 1440,
+      "heading": "공유 도구 및 자료"
+    },
+    {
+      "width": 1440,
+      "name": "guide",
+      "viewport": 1440,
+      "scroll": 1440,
+      "heading": "Workflow 설계 가이드"
+    },
+    {
+      "width": 1440,
+      "name": "public-project",
+      "viewport": 1440,
+      "scroll": 1440,
+      "heading": "공유 Agent"
+    },
+    {
+      "width": 1440,
+      "name": "project-trash",
+      "viewport": 1440,
+      "scroll": 1440,
+      "heading": "휴지통"
+    },
+    {
+      "width": 1440,
+      "name": "resource-trash",
+      "viewport": 1440,
+      "scroll": 1440,
+      "heading": "휴지통"
+    },
+    {
+      "width": 1440,
+      "name": "resource",
+      "viewport": 1440,
+      "scroll": 1440,
+      "heading": "도서관 운영 안내 예시"
+    },
+    {
+      "width": 1440,
+      "name": "editor",
+      "viewport": 1440,
+      "scroll": 1440,
+      "heading": "내 자료로 안내하기"
+    },
+    {
+      "width": 1440,
+      "name": "editor-fit",
+      "viewport": 1440,
+      "scroll": 1440,
+      "heading": "내 자료로 안내하기"
+    },
+    {
+      "width": 1440,
+      "name": "run",
+      "viewport": 1440,
+      "scroll": 1440,
+      "heading": "내 자료로 안내하기"
+    },
+    {
+      "width": 1440,
+      "name": "run-result",
+      "viewport": 1440,
+      "scroll": 1440,
+      "heading": "브라우저 검증용 대출 안내"
+    },
+    {
+      "width": 1280,
+      "name": "login",
+      "viewport": 1280,
+      "scroll": 1280,
+      "heading": "로그인"
+    },
+    {
+      "width": 1280,
+      "name": "signup",
+      "viewport": 1280,
+      "scroll": 1280,
+      "heading": "계정 만들기"
+    },
+    {
+      "width": 1280,
+      "name": "home-first",
+      "viewport": 1280,
+      "scroll": 1280,
+      "heading": "내 작업실"
+    },
+    {
+      "width": 1280,
+      "name": "chooser",
+      "viewport": 1280,
+      "scroll": 1280,
+      "heading": "Workflow 편집기"
+    },
+    {
+      "width": 1280,
+      "name": "home-return",
+      "viewport": 1280,
+      "scroll": 1280,
+      "heading": "내 작업실"
+    },
+    {
+      "width": 1280,
+      "name": "projects",
+      "viewport": 1280,
+      "scroll": 1280,
+      "heading": "내 Agent"
+    },
+    {
+      "width": 1280,
+      "name": "templates",
+      "viewport": 1280,
+      "scroll": 1280,
+      "heading": "예제 템플릿"
+    },
+    {
+      "width": 1280,
+      "name": "lesson",
+      "viewport": 1280,
+      "scroll": 1280,
+      "heading": "예제 템플릿"
+    },
+    {
+      "width": 1280,
+      "name": "assets",
+      "viewport": 1280,
+      "scroll": 1280,
+      "heading": "도구 및 자료"
+    },
+    {
+      "width": 1280,
+      "name": "shared",
+      "viewport": 1280,
+      "scroll": 1280,
+      "heading": "공유 Agent"
+    },
+    {
+      "width": 1280,
+      "name": "shared-assets",
+      "viewport": 1280,
+      "scroll": 1280,
+      "heading": "공유 도구 및 자료"
+    },
+    {
+      "width": 1280,
+      "name": "guide",
+      "viewport": 1280,
+      "scroll": 1280,
+      "heading": "Workflow 설계 가이드"
+    },
+    {
+      "width": 1280,
+      "name": "public-project",
+      "viewport": 1280,
+      "scroll": 1280,
+      "heading": "공유 Agent"
+    },
+    {
+      "width": 1280,
+      "name": "project-trash",
+      "viewport": 1280,
+      "scroll": 1280,
+      "heading": "휴지통"
+    },
+    {
+      "width": 1280,
+      "name": "resource-trash",
+      "viewport": 1280,
+      "scroll": 1280,
+      "heading": "휴지통"
+    },
+    {
+      "width": 1280,
+      "name": "resource",
+      "viewport": 1280,
+      "scroll": 1280,
+      "heading": "도서관 운영 안내 예시"
+    },
+    {
+      "width": 1280,
+      "name": "editor",
+      "viewport": 1280,
+      "scroll": 1280,
+      "heading": "내 자료로 안내하기"
+    },
+    {
+      "width": 1280,
+      "name": "editor-fit",
+      "viewport": 1280,
+      "scroll": 1280,
+      "heading": "내 자료로 안내하기"
+    },
+    {
+      "width": 1280,
+      "name": "run",
+      "viewport": 1280,
+      "scroll": 1280,
+      "heading": "내 자료로 안내하기"
+    },
+    {
+      "width": 1280,
+      "name": "run-result",
+      "viewport": 1280,
+      "scroll": 1280,
+      "heading": "브라우저 검증용 대출 안내"
+    },
+    {
+      "width": 1024,
+      "name": "login",
+      "viewport": 1024,
+      "scroll": 1024,
+      "heading": "로그인"
+    },
+    {
+      "width": 1024,
+      "name": "signup",
+      "viewport": 1024,
+      "scroll": 1024,
+      "heading": "계정 만들기"
+    },
+    {
+      "width": 1024,
+      "name": "home-first",
+      "viewport": 1024,
+      "scroll": 1024,
+      "heading": "내 작업실"
+    },
+    {
+      "width": 1024,
+      "name": "chooser",
+      "viewport": 1024,
+      "scroll": 1024,
+      "heading": "Workflow 편집기"
+    },
+    {
+      "width": 1024,
+      "name": "home-return",
+      "viewport": 1024,
+      "scroll": 1024,
+      "heading": "내 작업실"
+    },
+    {
+      "width": 1024,
+      "name": "projects",
+      "viewport": 1024,
+      "scroll": 1024,
+      "heading": "내 Agent"
+    },
+    {
+      "width": 1024,
+      "name": "templates",
+      "viewport": 1024,
+      "scroll": 1024,
+      "heading": "예제 템플릿"
+    },
+    {
+      "width": 1024,
+      "name": "lesson",
+      "viewport": 1024,
+      "scroll": 1024,
+      "heading": "예제 템플릿"
+    },
+    {
+      "width": 1024,
+      "name": "assets",
+      "viewport": 1024,
+      "scroll": 1024,
+      "heading": "도구 및 자료"
+    },
+    {
+      "width": 1024,
+      "name": "shared",
+      "viewport": 1024,
+      "scroll": 1024,
+      "heading": "공유 Agent"
+    },
+    {
+      "width": 1024,
+      "name": "shared-assets",
+      "viewport": 1024,
+      "scroll": 1024,
+      "heading": "공유 도구 및 자료"
+    },
+    {
+      "width": 1024,
+      "name": "guide",
+      "viewport": 1024,
+      "scroll": 1024,
+      "heading": "Workflow 설계 가이드"
+    },
+    {
+      "width": 1024,
+      "name": "public-project",
+      "viewport": 1024,
+      "scroll": 1024,
+      "heading": "공유 Agent"
+    },
+    {
+      "width": 1024,
+      "name": "project-trash",
+      "viewport": 1024,
+      "scroll": 1024,
+      "heading": "휴지통"
+    },
+    {
+      "width": 1024,
+      "name": "resource-trash",
+      "viewport": 1024,
+      "scroll": 1024,
+      "heading": "휴지통"
+    },
+    {
+      "width": 1024,
+      "name": "resource",
+      "viewport": 1024,
+      "scroll": 1024,
+      "heading": "도서관 운영 안내 예시"
+    },
+    {
+      "width": 1024,
+      "name": "editor",
+      "viewport": 1024,
+      "scroll": 1024,
+      "heading": "내 자료로 안내하기"
+    },
+    {
+      "width": 1024,
+      "name": "editor-fit",
+      "viewport": 1024,
+      "scroll": 1024,
+      "heading": "내 자료로 안내하기"
+    },
+    {
+      "width": 1024,
+      "name": "run",
+      "viewport": 1024,
+      "scroll": 1024,
+      "heading": "내 자료로 안내하기"
+    },
+    {
+      "width": 1024,
+      "name": "run-result",
+      "viewport": 1024,
+      "scroll": 1024,
+      "heading": "브라우저 검증용 대출 안내"
+    },
+    {
+      "width": 768,
+      "name": "login",
+      "viewport": 768,
+      "scroll": 768,
+      "heading": "로그인"
+    },
+    {
+      "width": 768,
+      "name": "signup",
+      "viewport": 768,
+      "scroll": 768,
+      "heading": "계정 만들기"
+    },
+    {
+      "width": 768,
+      "name": "home-first",
+      "viewport": 768,
+      "scroll": 768,
+      "heading": "내 작업실"
+    },
+    {
+      "width": 768,
+      "name": "chooser",
+      "viewport": 768,
+      "scroll": 768,
+      "heading": "Workflow 편집기"
+    },
+    {
+      "width": 768,
+      "name": "home-return",
+      "viewport": 768,
+      "scroll": 768,
+      "heading": "내 작업실"
+    },
+    {
+      "width": 768,
+      "name": "projects",
+      "viewport": 768,
+      "scroll": 768,
+      "heading": "내 Agent"
+    },
+    {
+      "width": 768,
+      "name": "templates",
+      "viewport": 768,
+      "scroll": 768,
+      "heading": "예제 템플릿"
+    },
+    {
+      "width": 768,
+      "name": "lesson",
+      "viewport": 768,
+      "scroll": 768,
+      "heading": "예제 템플릿"
+    },
+    {
+      "width": 768,
+      "name": "assets",
+      "viewport": 768,
+      "scroll": 768,
+      "heading": "도구 및 자료"
+    },
+    {
+      "width": 768,
+      "name": "shared",
+      "viewport": 768,
+      "scroll": 768,
+      "heading": "공유 Agent"
+    },
+    {
+      "width": 768,
+      "name": "shared-assets",
+      "viewport": 768,
+      "scroll": 768,
+      "heading": "공유 도구 및 자료"
+    },
+    {
+      "width": 768,
+      "name": "guide",
+      "viewport": 768,
+      "scroll": 768,
+      "heading": "Workflow 설계 가이드"
+    },
+    {
+      "width": 768,
+      "name": "public-project",
+      "viewport": 768,
+      "scroll": 768,
+      "heading": "공유 Agent"
+    },
+    {
+      "width": 768,
+      "name": "project-trash",
+      "viewport": 768,
+      "scroll": 768,
+      "heading": "휴지통"
+    },
+    {
+      "width": 768,
+      "name": "resource-trash",
+      "viewport": 768,
+      "scroll": 768,
+      "heading": "휴지통"
+    },
+    {
+      "width": 768,
+      "name": "resource",
+      "viewport": 768,
+      "scroll": 768,
+      "heading": "도서관 운영 안내 예시"
+    },
+    {
+      "width": 768,
+      "name": "editor",
+      "viewport": 768,
+      "scroll": 768,
+      "heading": "내 자료로 안내하기"
+    },
+    {
+      "width": 768,
+      "name": "editor-fit",
+      "viewport": 768,
+      "scroll": 768,
+      "heading": "내 자료로 안내하기"
+    },
+    {
+      "width": 768,
+      "name": "run",
+      "viewport": 768,
+      "scroll": 768,
+      "heading": "내 자료로 안내하기"
+    },
+    {
+      "width": 768,
+      "name": "run-result",
+      "viewport": 768,
+      "scroll": 768,
+      "heading": "브라우저 검증용 대출 안내"
+    },
+    {
+      "width": 390,
+      "name": "login",
+      "viewport": 390,
+      "scroll": 390,
+      "heading": "로그인"
+    },
+    {
+      "width": 390,
+      "name": "signup",
+      "viewport": 390,
+      "scroll": 390,
+      "heading": "계정 만들기"
+    },
+    {
+      "width": 390,
+      "name": "home-first",
+      "viewport": 390,
+      "scroll": 390,
+      "heading": "내 작업실"
+    },
+    {
+      "width": 390,
+      "name": "chooser",
+      "viewport": 390,
+      "scroll": 390,
+      "heading": "Workflow 편집기"
+    },
+    {
+      "width": 390,
+      "name": "home-return",
+      "viewport": 390,
+      "scroll": 390,
+      "heading": "내 작업실"
+    },
+    {
+      "width": 390,
+      "name": "projects",
+      "viewport": 390,
+      "scroll": 390,
+      "heading": "내 Agent"
+    },
+    {
+      "width": 390,
+      "name": "templates",
+      "viewport": 390,
+      "scroll": 390,
+      "heading": "예제 템플릿"
+    },
+    {
+      "width": 390,
+      "name": "lesson",
+      "viewport": 390,
+      "scroll": 390,
+      "heading": "예제 템플릿"
+    },
+    {
+      "width": 390,
+      "name": "assets",
+      "viewport": 390,
+      "scroll": 390,
+      "heading": "도구 및 자료"
+    },
+    {
+      "width": 390,
+      "name": "shared",
+      "viewport": 390,
+      "scroll": 390,
+      "heading": "공유 Agent"
+    },
+    {
+      "width": 390,
+      "name": "shared-assets",
+      "viewport": 390,
+      "scroll": 390,
+      "heading": "공유 도구 및 자료"
+    },
+    {
+      "width": 390,
+      "name": "guide",
+      "viewport": 390,
+      "scroll": 390,
+      "heading": "Workflow 설계 가이드"
+    },
+    {
+      "width": 390,
+      "name": "public-project",
+      "viewport": 390,
+      "scroll": 390,
+      "heading": "공유 Agent"
+    },
+    {
+      "width": 390,
+      "name": "project-trash",
+      "viewport": 390,
+      "scroll": 390,
+      "heading": "휴지통"
+    },
+    {
+      "width": 390,
+      "name": "resource-trash",
+      "viewport": 390,
+      "scroll": 390,
+      "heading": "휴지통"
+    },
+    {
+      "width": 390,
+      "name": "resource",
+      "viewport": 390,
+      "scroll": 390,
+      "heading": "도서관 운영 안내 예시"
+    },
+    {
+      "width": 390,
+      "name": "editor",
+      "viewport": 390,
+      "scroll": 390,
+      "heading": "내 자료로 안내하기"
+    },
+    {
+      "width": 390,
+      "name": "editor-fit",
+      "viewport": 390,
+      "scroll": 390,
+      "heading": "내 자료로 안내하기"
+    },
+    {
+      "width": 390,
+      "name": "run",
+      "viewport": 390,
+      "scroll": 390,
+      "heading": "내 자료로 안내하기"
+    },
+    {
+      "width": 390,
+      "name": "run-result",
+      "viewport": 390,
+      "scroll": 390,
+      "heading": "브라우저 검증용 대출 안내"
+    },
+    {
+      "width": 360,
+      "name": "login",
+      "viewport": 360,
+      "scroll": 360,
+      "heading": "로그인"
+    },
+    {
+      "width": 360,
+      "name": "signup",
+      "viewport": 360,
+      "scroll": 360,
+      "heading": "계정 만들기"
+    },
+    {
+      "width": 360,
+      "name": "home-first",
+      "viewport": 360,
+      "scroll": 360,
+      "heading": "내 작업실"
+    },
+    {
+      "width": 360,
+      "name": "chooser",
+      "viewport": 360,
+      "scroll": 360,
+      "heading": "Workflow 편집기"
+    },
+    {
+      "width": 360,
+      "name": "home-return",
+      "viewport": 360,
+      "scroll": 360,
+      "heading": "내 작업실"
+    },
+    {
+      "width": 360,
+      "name": "projects",
+      "viewport": 360,
+      "scroll": 360,
+      "heading": "내 Agent"
+    },
+    {
+      "width": 360,
+      "name": "templates",
+      "viewport": 360,
+      "scroll": 360,
+      "heading": "예제 템플릿"
+    },
+    {
+      "width": 360,
+      "name": "lesson",
+      "viewport": 360,
+      "scroll": 360,
+      "heading": "예제 템플릿"
+    },
+    {
+      "width": 360,
+      "name": "assets",
+      "viewport": 360,
+      "scroll": 360,
+      "heading": "도구 및 자료"
+    },
+    {
+      "width": 360,
+      "name": "shared",
+      "viewport": 360,
+      "scroll": 360,
+      "heading": "공유 Agent"
+    },
+    {
+      "width": 360,
+      "name": "shared-assets",
+      "viewport": 360,
+      "scroll": 360,
+      "heading": "공유 도구 및 자료"
+    },
+    {
+      "width": 360,
+      "name": "guide",
+      "viewport": 360,
+      "scroll": 360,
+      "heading": "Workflow 설계 가이드"
+    },
+    {
+      "width": 360,
+      "name": "public-project",
+      "viewport": 360,
+      "scroll": 360,
+      "heading": "공유 Agent"
+    },
+    {
+      "width": 360,
+      "name": "project-trash",
+      "viewport": 360,
+      "scroll": 360,
+      "heading": "휴지통"
+    },
+    {
+      "width": 360,
+      "name": "resource-trash",
+      "viewport": 360,
+      "scroll": 360,
+      "heading": "휴지통"
+    },
+    {
+      "width": 360,
+      "name": "resource",
+      "viewport": 360,
+      "scroll": 360,
+      "heading": "도서관 운영 안내 예시"
+    },
+    {
+      "width": 360,
+      "name": "editor",
+      "viewport": 360,
+      "scroll": 360,
+      "heading": "내 자료로 안내하기"
+    },
+    {
+      "width": 360,
+      "name": "editor-fit",
+      "viewport": 360,
+      "scroll": 360,
+      "heading": "내 자료로 안내하기"
+    },
+    {
+      "width": 360,
+      "name": "run",
+      "viewport": 360,
+      "scroll": 360,
+      "heading": "내 자료로 안내하기"
+    },
+    {
+      "width": 360,
+      "name": "run-result",
+      "viewport": 360,
+      "scroll": 360,
+      "heading": "브라우저 검증용 대출 안내"
+    }
+  ],
+  "errors": [],
+  "warnings": [],
+  "accessibility": [
+    {
+      "name": "login",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "name": "signup",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "name": "home-first",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "name": "chooser",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "name": "home-return",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "name": "projects",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "name": "templates",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "name": "lesson",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "name": "assets",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "name": "shared",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "name": "shared-assets",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "name": "guide",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "name": "public-project",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "name": "project-trash",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "name": "resource-trash",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "name": "resource",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "name": "editor",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "name": "editor-fit",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "name": "run",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "name": "run-result",
+      "width": 1440,
+      "violations": []
+    },
+    {
+      "name": "login",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "name": "signup",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "name": "home-first",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "name": "chooser",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "name": "home-return",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "name": "projects",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "name": "templates",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "name": "lesson",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "name": "assets",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "name": "shared",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "name": "shared-assets",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "name": "guide",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "name": "public-project",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "name": "project-trash",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "name": "resource-trash",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "name": "resource",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "name": "editor",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "name": "editor-fit",
+      "width": 390,
+      "violations": [
+        {
+          "id": "target-size",
+          "impact": "serious",
+          "nodes": [
+            {
+              "target": [
+                "button[data-canvas-block=\"input\"]"
+              ],
+              "detail": "Fix any of the following:\n  Target has insufficient size (18.7px by 21.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 11.2px instead of at least 24px."
+            },
+            {
+              "target": [
+                "button[aria-label=\"질문 입력에서 연결 추가\"]"
+              ],
+              "detail": "Fix any of the following:\n  Target has insufficient size (16.1px by 21.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 0px instead of at least 24px."
+            },
+            {
+              "target": [
+                "button[data-canvas-block=\"agent\"]"
+              ],
+              "detail": "Fix any of the following:\n  Target has insufficient size (18.7px by 21.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 1px instead of at least 24px."
+            },
+            {
+              "target": [
+                "button[aria-label=\"도서관 안내 Agent에서 연결 추가\"]"
+              ],
+              "detail": "Fix any of the following:\n  Target has insufficient size (16.1px by 21.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 0px instead of at least 24px."
+            },
+            {
+              "target": [
+                "button[data-canvas-block=\"file\"]"
+              ],
+              "detail": "Fix any of the following:\n  Target has insufficient size (18.7px by 21.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 1px instead of at least 24px."
+            },
+            {
+              "target": [
+                "button[aria-label=\"대출 안내 파일 만들기에서 연결 추가\"]"
+              ],
+              "detail": "Fix any of the following:\n  Target has insufficient size (16.1px by 21.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 0px instead of at least 24px."
+            },
+            {
+              "target": [
+                "button[data-canvas-block=\"output\"]"
+              ],
+              "detail": "Fix any of the following:\n  Target has insufficient size (29.1px by 21.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 11.4px instead of at least 24px."
+            },
+            {
+              "target": [
+                "button[data-canvas-block=\"rules\"]"
+              ],
+              "detail": "Fix any of the following:\n  Target has insufficient size (26.1px by 21.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 0px instead of at least 24px."
+            },
+            {
+              "target": [
+                "button[aria-label=\"도서관 이용규정에서 연결 추가\"]"
+              ],
+              "detail": "Fix any of the following:\n  Target has insufficient size (16.1px by 21.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 13.2px instead of at least 24px."
+            },
+            {
+              "target": [
+                "button[data-canvas-block=\"skill\"]"
+              ],
+              "detail": "Fix any of the following:\n  Target has insufficient size (18.7px by 19.4px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 11.2px instead of at least 24px."
+            },
+            {
+              "target": [
+                "button[aria-label=\"근거 인용 Skill에서 연결 추가\"]"
+              ],
+              "detail": "Fix any of the following:\n  Target has insufficient size (16.1px by 19.4px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 11.2px instead of at least 24px."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "run",
+      "width": 390,
+      "violations": []
+    },
+    {
+      "name": "run-result",
+      "width": 390,
+      "violations": []
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "1a584236-2ba2-48d0-8bcc-e10f1b0bb523",
+  "status": "current",
+  "command": "deliver",
+  "type": "sequence",
+  "input": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\.archify\\sequence-web-cache-20261128-211846\\candidate.json",
+  "output": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\.archify\\sequence-web-cache-20261128-211846\\web-cache.html",
+  "specification": {
+    "sha256": "2bc5b039811d0da60c8cf8cd98773c42c1cb01070daa932ac3b2c5e75161e709",
+    "bytes": 2298
+  },
+  "artifact": {
+    "sha256": "4c55fc92689f21713050dda7e1b0185082ce1878bb581674edc0bc6d489f79d4",
+    "bytes": 937409
+  }
+}

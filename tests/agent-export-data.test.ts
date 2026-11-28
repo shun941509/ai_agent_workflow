@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import {mkdtempSync,rmSync} from 'node:fs';
+import {mkdtempSync,readFileSync,rmSync,writeFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
 import {tmpdir} from 'node:os';
 import {join,posix} from 'node:path';
 import {strFromU8,unzipSync} from 'fflate';
@@ -11,10 +12,10 @@ import {executeGraph,type Passage} from '../src/engine';
 import {prepareAgentExport,previewAgentExport} from '../src/server/agent-export';
 import {exportMcp,mcpConfigFiles} from '../src/server/agent-mcp-export';
 import {buildAgentZip} from '../src/server/agent-zip';
-import {assetShare,createLibraryLookupConnection,writeAsset} from '../src/server/assets';
+import {assetShare,createLibraryLookupConnection,readAsset,writeAsset} from '../src/server/assets';
 import {authenticate} from '../src/server/auth';
 import {db,set} from '../src/server/db';
-import {createProject,openProject} from '../src/server/projects';
+import {createProject,openProject,projectCopy,saveProject} from '../src/server/projects';
 import {resolveWorkflowRefs} from '../src/server/workflow-refs';
 
 const scratch=mkdtempSync(join(tmpdir(),'agent-export-'));
@@ -22,6 +23,314 @@ process.env.STUDIO_DATA_DIR=scratch;
 after(()=>{db().close();rmSync(scratch,{recursive:true,force:true});});
 const account=(name:string)=>authenticate('signup',name,'export-test-passphrase','').user;
 const b64=(text:string)=>Buffer.from(text).toString('base64');
+
+test('웹 개발 기초 세 사본의 ZIP에서 해당 실습 단계와 담당자의 원본 Skill을 연다', () => {
+  const user = account('portable-inspection-starters');
+  const page = 'equipment-inspection-starters.html';
+  for (const [lesson,section,skill,directory] of [
+    ['equipment-return-inventory','list','frontend-design','.agents/skills'],
+    ['equipment-inspection-first','notify','webhook-handler-patterns','vendor/lesson-skills'],
+    ['equipment-inspection-compare','check','test-driven-development','.agents/skills'],
+  ]) {
+    const project = createProject(user,{lesson});
+    assert.ok(project.graph,lesson);
+    const request = {id:project.id,title:project.title,graph:project.graph};
+    const preview = previewAgentExport(user,request);
+    const zip = unzipSync(buildAgentZip(prepareAgentExport(user,{...request, previewId:preview.previewId,
+      selected:preview.resources.filter(resource=>resource.available).map(resource=>resource.key)})));
+    assert.ok(zip[page],lesson);
+    assert.ok(strFromU8(zip['README.md']).includes('('+page+'#'+section+')'),lesson);
+    assert.deepEqual(preview.resources.filter(resource=>resource.kind==='skill').map(resource=>resource.name),[skill]);
+    assert.deepEqual(Buffer.from(zip['.agents/skills/'+skill+'/SKILL.md']),readFileSync(join(directory,skill,'SKILL.md')));
+    const pin = project.graph.nodes.find(node=>node.config.bundledSkill===skill);
+    assert.ok(pin,skill);
+    const {payload} = readAsset(user,pin.config.assetId,pin.config.version);
+    for (const file of payload.files ?? []) {
+      assert.deepEqual(Buffer.from(zip['.agents/skills/'+skill+'/'+file.path]),Buffer.from(file.data,'base64'),file.path);
+    }
+  }
+});
+
+test('검수 실습 사본의 ZIP에는 외부 계정 없이 여는 HTML과 실행 가능한 HTTP 시험이 들어간다', () => {
+  const user = account('portable-inspection');
+  for (const lesson of ['equipment-inspection-web', 'equipment-inspection-recovery', 'equipment-return-memo']) {
+    const project = createProject(user, {lesson});
+    const request = {id:project.id, title:project.title, graph:project.graph};
+    const preview = previewAgentExport(user, request);
+    const zip = unzipSync(buildAgentZip(prepareAgentExport(user, {...request, previewId:preview.previewId,
+      selected:preview.resources.filter(resource => resource.available).map(resource => resource.key)})));
+    if (lesson === 'equipment-return-memo') {
+      assert.equal(zip['equipment-inspection-starters.html'], undefined);
+      assert.equal(zip['equipment-inspection.html'], undefined);
+      assert.equal(zip['equipment-inspection-recovery.html'], undefined);
+      continue;
+    }
+    const recovery = lesson === 'equipment-inspection-recovery';
+    const page = recovery ? 'equipment-inspection-recovery.html' : 'equipment-inspection.html';
+    const script = recovery ? 'inspection-recovery-webhook.test.mjs' : 'inspection-webhook.test.mjs';
+    assert.ok(zip[page], '실습용 HTML을 ZIP 루트에서 바로 열 수 있어야 한다');
+    assert.match(strFromU8(zip[page]), /검수 알림/);
+    if (recovery) {
+      const stages = Object.entries(zip).filter(([name])=>name.startsWith('workflow/step-')).map(([,bytes])=>strFromU8(bytes));
+      assert.ok(stages.some(body=>body.includes('원본 Skill의 복구 점검 절 갱신') && body.includes('원래 줄바꿈과 앞뒤 내용을 보존')));
+    }
+    const readme = strFromU8(zip['README.md']);
+    assert.ok(readme.includes(page) && readme.includes(script));
+    assert.doesNotMatch(readme, /order-management\.html/);
+    const work = mkdtempSync(join(scratch,'inspection-'));
+    for (const [path, bytes] of Object.entries(zip).filter(([path])=>/^[\w-]+(?:\.test)?\.mjs$/.test(path))) {
+      writeFileSync(join(work,path), bytes);
+    }
+    // Start an independent test runner for the learner's unpacked folder.
+    const childEnv = {...process.env};
+    delete childEnv.NODE_TEST_CONTEXT;
+    const tap = execFileSync(process.execPath, ['--test','--test-reporter=tap',script],
+      {cwd:work, env:childEnv, encoding:'utf8', timeout:30000});
+    assert.match(tap, recovery ? /# pass 3\b/ : /# pass 1\b/);
+  }
+});
+
+test('웹 디자인 개선 사본의 ZIP은 단일 응답과 실제 프로젝트에서 수행할 작업을 구분한다',()=>{
+  const user = account('web-project-export');
+  for (const [lesson, expected] of [
+    ['web-design-diagnose', ['소스와 화면 조사']],
+    ['web-design-component', ['소스 수정과 화면 검증']],
+    ['web-design-flow', ['소스 수정과 화면 검증']],
+    ['web-design-shared-ui', ['소스 수정', '화면 검증']],
+    ['web-design-single-screen', ['소스와 화면 조사', '소스 수정', '화면 검증']],
+    ['web-design-tdd-review', ['실패 테스트부터 수정·재검증', '변경 차이 검토']],
+    ['web-design-review-followup', ['실패 테스트부터 수정·재검증', '변경 차이 검토']],
+    ['web-design-rollout', ['소스와 화면 조사', '소스 수정', '화면 검증']],
+  ] as const) {
+    const project = createProject(user, {lesson});
+    assert.ok(project.graph);
+    const request = {id:project.id, title:project.title, graph:project.graph};
+    const preview = previewAgentExport(user, request);
+    const pkg = prepareAgentExport(user, {...request, previewId:preview.previewId, selected:preview.resources.map(r=>r.key)});
+    const zip = unzipSync(buildAgentZip(pkg));
+    assert.match(strFromU8(zip['README.md']), /대상 프로젝트/);
+    const stages = Object.entries(zip).filter(([file])=>file === 'AGENTS.md' || file.startsWith('workflow/'))
+      .map(([,bytes])=>strFromU8(bytes)).join('\n');
+    for (const action of expected) assert.ok(stages.includes('대표 Agent의 프로젝트 작업 · '+action), lesson + ' · ' + action);
+    if (lesson === 'web-design-diagnose') assert.doesNotMatch(stages, /대표 Agent의 프로젝트 작업 · 소스 수정/);
+    if (lesson === 'web-design-tdd-review' || lesson === 'web-design-review-followup') {
+      assert.match(stages, /테스트 하나를 먼저 작성하고 실행[\s\S]*그 실패를 RED로 기록[\s\S]*같은 테스트를 다시 실행[\s\S]*GREEN으로 기록/);
+      assert.equal(stages.split('대표 Agent의 프로젝트 작업 · 변경 차이 검토').length - 1, 2);
+      assert.match(stages, /읽기 전용[\s\S]*스테이징한 변경, 작업 트리의 변경, 새 파일 내용/);
+    }
+    if (lesson === 'web-design-review-followup') {
+      assert.match(stages, /코딩 규칙만 지적받은 경우[\s\S]*수정 전에 통과[\s\S]*같은 테스트를 다시 실행/);
+    }
+  }
+});
+
+test('한 화면 개선 ZIP의 네 담당자가 맡은 단계의 원본 Skill을 읽을 수 있다', () => {
+  const user = account('web-single-screen-export');
+  const project = createProject(user, {lesson:'web-design-single-screen'});
+  const request = {id:project.id, title:project.title, graph:project.graph};
+  const preview = previewAgentExport(user, request);
+  const pkg = prepareAgentExport(user, {...request, previewId:preview.previewId, selected:preview.resources.map(r => r.key)});
+  const files = unzipSync(buildAgentZip(pkg));
+  const roles = Object.entries(files).filter(([path]) => /^agents\/.*\.md$/.test(path)).map(([,bytes]) => strFromU8(bytes));
+  const expected: Record<string, string[]> = {
+    '시각 디자인 담당':['frontend-design'], '접근성 검토 담당':['frontend-ui-engineering'],
+    'UI 개발 담당':['frontend-design', 'frontend-ui-engineering'], '화면 검증 담당':['frontend-ui-engineering'],
+  };
+  assert.equal(roles.length, Object.keys(expected).length);
+  for (const [role, skills] of Object.entries(expected)) {
+    const body = roles.find(text => text.split('\n', 1)[0] === '# ' + role);
+    assert.ok(body, role);
+    const attached = [...body.matchAll(/Skill 지침을 읽고 적용하세요 — \.agents\/skills\/(frontend-[^/]+)\/SKILL\.md/g)].map(match => match[1]);
+    assert.deepEqual(attached.sort(), skills, role);
+  }
+  for (const name of ['frontend-design', 'frontend-ui-engineering']) {
+    const path = '.agents/skills/' + name + '/SKILL.md';
+    assert.deepEqual(Buffer.from(files[path]), readFileSync(path), path);
+  }
+});
+
+test('초급 사본에서 수정한 Skill 원문을 선택해 내보내고 같은 템플릿에서 새 사본을 만들 수 있다', () => {
+  const user = account('web-skill-copy');
+  const lesson = 'web-design-component';
+  const project = createProject(user, {lesson});
+  assert.ok(project.graph);
+  const skill = project.graph.nodes.find(node => node.id === 'skill-component');
+  assert.ok(skill);
+  const original = String(skill.config.content);
+  const edited = original + '\n선택 상태를 색과 글자로 함께 표시한다.';
+  skill.config.content = edited;
+  const saved = saveProject(user, project);
+  const request = {id:saved.id, title:saved.title, graph:saved.graph};
+  const preview = previewAgentExport(user, request);
+  const selection = preview.resources.find(resource => resource.kind === 'skill' && resource.name === skill.title);
+  assert.ok(selection?.available);
+  assert.ok(selection.steps.includes('대상 컴포넌트 개선'));
+  const archive = (keys: string[]) => unzipSync(buildAgentZip(prepareAgentExport(user, {
+    ...request, selected: keys, previewId: preview.previewId,
+  })));
+  const keys = preview.resources.map(resource => resource.key);
+  const included = archive(keys);
+  const path = '.agents/skills/web-component-improvement/SKILL.md';
+  assert.equal(strFromU8(included[path]), edited);
+  const omitted = archive(keys.filter(key => key !== selection.key));
+  assert.ok(!omitted[path]);
+  const fresh = createProject(user, {lesson});
+  assert.equal(fresh.graph?.nodes.find(node => node.id === 'skill-component')?.config.content, original);
+});
+
+const originalSkillLessons = [
+  {id:'equipment-return-memo', singleTasks:true, packages:[
+    {name:'domain-modeling', paths:['SKILL.md', 'ADR-FORMAT.md', 'GLOSSARY-FORMAT.md', 'agents/openai.yaml'], agents:[['memo','용어 후보 메모 작성']]},
+  ]},
+  {id:'equipment-return-questions', singleTasks:true, packages:[
+    {name:'grilling', paths:['SKILL.md', 'agents/openai.yaml'], agents:[['interviewer','학습자에게 확인할 질문 만들기'],['confirm','답변을 되짚고 확인하기'],['handoff','중급에 보낼 질문 정리']]},
+  ]},
+  {id:'equipment-relending-agreement', packages:[
+    {name:'to-questionnaire', paths:['SKILL.md', 'agents/openai.yaml'], agents:[['writer','합의 질문 담당']]},
+    {name:'domain-modeling', paths:['SKILL.md', 'ADR-FORMAT.md', 'GLOSSARY-FORMAT.md', 'agents/openai.yaml'], agents:[['modeler','기준 갱신 담당'],['judge','사례 재판정 담당']]},
+  ]},
+  {id:'equipment-return-cases', packages:[
+    {name:'domain-modeling', paths:['SKILL.md', 'ADR-FORMAT.md', 'GLOSSARY-FORMAT.md', 'agents/openai.yaml'], agents:[['judge','사례 판정 담당'],['rejudge','회신 반영 담당']]},
+    {name:'to-questionnaire', paths:['SKILL.md', 'agents/openai.yaml'], agents:[['writer','재질문 담당']]},
+  ]},
+  {id:'equipment-return-terms', packages:[
+    {name:'to-questionnaire', paths:['SKILL.md', 'agents/openai.yaml'], agents:[['writer','질문지 작성 담당']]},
+    {name:'domain-modeling', paths:['SKILL.md', 'ADR-FORMAT.md', 'GLOSSARY-FORMAT.md', 'agents/openai.yaml'], agents:[['modeler','용어 정리 담당']]},
+  ]},
+  {id:'web-design-questions', packages:[
+    {name:'grilling', paths:['SKILL.md', 'agents/openai.yaml'], agents:[['interviewer','요구사항 확인 담당']]},
+    {name:'domain-modeling', paths:['SKILL.md', 'ADR-FORMAT.md', 'GLOSSARY-FORMAT.md', 'agents/openai.yaml'], agents:[['modeler','용어 정리 담당']]},
+  ]},
+  {id:'web-design-tdd-review', packages:[
+    {name:'tdd', paths:['SKILL.md', 'tests.md', 'mocking.md', 'agents/openai.yaml'], agents:[['developer','TDD 개발 담당']]},
+    {name:'code-review', paths:['SKILL.md', 'agents/openai.yaml'], agents:[['standards','코딩 규칙 검토 담당'], ['spec','개선 기준 검토 담당']]},
+  ]},
+  {id:'web-design-review-followup', packages:[
+    {name:'tdd', paths:['SKILL.md', 'tests.md', 'mocking.md', 'agents/openai.yaml'], agents:[['developer','TDD 수정 담당']]},
+    {name:'code-review', paths:['SKILL.md', 'agents/openai.yaml'], agents:[['standards','코딩 규칙 재검토 담당'], ['spec','개선 기준 재검토 담당']]},
+  ]},
+] as const;
+
+for (const lesson of originalSkillLessons) test(lesson.id + ' 사본과 ZIP에는 각 담당자에게 배정한 원본 Skill 패키지가 들어간다', () => {
+  const user = account(lesson.id);
+  const project = createProject(user, {lesson:lesson.id});
+  assert.ok(project.graph);
+  const graph: Graph = project.graph;
+  const request = {id:project.id, title:project.title, graph};
+  const preview = previewAgentExport(user, request);
+  const pkg = prepareAgentExport(user, {...request, previewId:preview.previewId, selected:preview.resources.map(r => r.key)});
+  const files = unzipSync(buildAgentZip(pkg));
+  const roles = Object.entries(files).filter(([path]) => /^agents\/.*\.md$/.test(path)).map(([,bytes]) => strFromU8(bytes));
+  const singleTasks = 'singleTasks' in lesson;
+  const stages = Object.entries(files).filter(([path]) => path === 'AGENTS.md' || /^workflow\/step-.*\.md$/.test(path))
+    .flatMap(([,bytes]) => strFromU8(bytes).split(/^### /m));
+  assert.equal(roles.length, singleTasks ? 0 : lesson.packages.reduce((total, pkg) => total + pkg.agents.length, 0));
+  assert.deepEqual(preview.resources.filter(r => r.kind === 'skill').map(r => r.name).sort(), lesson.packages.map(p => p.name).sort());
+  for (const {name:skill, paths, agents} of lesson.packages) {
+    const pin = graph.nodes.find(node => node.config.bundledSkill === skill);
+    assert.ok(pin, skill);
+    const targets = graph.edges.filter(edge => edge.from === pin.id && edge.kind === 'reference' && edge.input === 'skill').map(edge => edge.to);
+    assert.deepEqual(targets.sort(), agents.map(([id]) => id).sort());
+    assert.equal(pin.config.version, 1);
+    const installed = readAsset(user, pin.config.assetId, pin.config.version);
+    const bundle = installed.payload.files;
+    assert.ok(bundle);
+    assert.deepEqual(bundle.map(file => file.path).sort(), [...paths].sort());
+    for (const [id, role] of agents) {
+      const body = singleTasks
+        ? stages.find(stage => stage.split('\n').includes('AI 한 번 작업 · ' + id))
+        : roles.find(text => text.split('\n', 1)[0] === '# ' + role);
+      assert.ok(body, role);
+      const instructions = [...body.matchAll(/Skill 지침을 읽고 적용하세요 — (\.agents\/skills\/[^/]+\/SKILL\.md)/g)];
+      assert.deepEqual(instructions.map(match => match[1]), ['.agents/skills/' + skill + '/SKILL.md']);
+    }
+    for (const file of bundle) {
+      const path = '.agents/skills/' + skill + '/' + file.path;
+      const expected = readFileSync(path);
+      assert.deepEqual(Buffer.from(file.data, 'base64'), expected, path);
+      assert.deepEqual(Buffer.from(files[path]), expected, path);
+    }
+  }
+});
+
+test('주제가 달라도 같은 원본 판을 재사용하고 기존 설계의 수정된 Skill 연결을 보존한다', () => {
+  const user = account('cross-topic-skill-copy');
+  const skill = (graph: Graph) => {
+    const node = graph.nodes.find(n => n.config.bundledSkill === 'domain-modeling');
+    assert.ok(node);
+    return node;
+  };
+  const web = createProject(user, {lesson:'web-design-questions'});
+  const lesson = 'equipment-return-terms';
+  const equipment = createProject(user, {lesson});
+  const graph = equipment.graph!;
+  const model = skill(graph);
+  assert.equal(model.config.assetId, skill(web.graph!).config.assetId);
+  const edited = writeAsset(user, {id:model.config.assetId, baseVersion:1, name:'업무 용어 정리', payload:{content:'우리 팀 용어집 작성법'}});
+  model.config.version = edited.version;
+  const copy = createProject(user, {lesson, graph});
+  assert.equal(skill(copy.graph!).config.version, edited.version);
+  const duplicated = projectCopy(user,{id:copy.id});
+  const copiedModel = duplicated.graph!.nodes.find(node => node.id === model.id)!;
+  assert.equal(copiedModel.config.version, 1);
+  assert.equal(copiedModel.config.bundledSkill, undefined);
+  assert.equal(duplicated.graph!.nodes.find(node => node.id === 'skill-to-questionnaire')?.config.bundledSkill, 'to-questionnaire');
+  const fresh = createProject(user, {lesson});
+  assert.equal(skill(fresh.graph!).config.version, 1);
+});
+
+test('전문가 ZIP에는 담당자별 원본 Skill과 선택한 패키지의 부속 파일이 들어간다', () => {
+  const user = account('web-skill-roles');
+  const project = createProject(user, {lesson:'web-design-rollout'});
+  const request = {id:project.id, title:project.title, graph:project.graph};
+  const preview = previewAgentExport(user, request);
+  const pkg = prepareAgentExport(user, {...request, previewId:preview.previewId, selected:preview.resources.map(r => r.key)});
+  const files = unzipSync(buildAgentZip(pkg));
+  const roles = Object.entries(files).filter(([name]) => /^agents\/.*\.md$/.test(name)).map(([,bytes]) => strFromU8(bytes));
+  assert.equal(roles.length, 3);
+  assert.equal(Object.keys(files).filter(path => /^\.agents\/skills\/[^/]+\/SKILL\.md$/.test(path)).length, 5);
+  const originals = {
+    'frontend-design': ['SKILL.md', 'LICENSE.txt'],
+    'frontend-ui-engineering': ['SKILL.md', 'references/shared/accessibility-checklist.md'],
+  };
+  for (const [name, paths] of Object.entries(originals)) {
+    const resource = preview.resources.find(r => r.kind === 'skill' && r.name === name);
+    assert.ok(resource?.available, name);
+    const selected = preview.resources.filter(r => r.key !== resource.key).map(r => r.key);
+    const omitted = unzipSync(buildAgentZip(prepareAgentExport(user, {...request, previewId:preview.previewId, selected})));
+    for (const relative of paths) {
+      const path = '.agents/skills/' + name + '/' + relative;
+      assert.deepEqual(Buffer.from(files[path]), readFileSync(path), path);
+      assert.ok(!omitted[path], path);
+    }
+  }
+  for (const role of roles) {
+    const names = [...role.matchAll(/Skill 지침을 읽고 적용하세요 — \.agents\/skills\/([^/]+)\/SKILL\.md/g)].map(match => match[1]);
+    const expected = role.startsWith('# 화면 개편 개발자')
+      ? ['web-shared-ui', 'frontend-design', 'frontend-ui-engineering']
+      : ['web-screen-verification', 'frontend-ui-engineering'];
+    assert.deepEqual(names.sort(), expected.sort(), role.split('\n')[0]);
+  }
+});
+
+test('웹 실습은 같은 계정의 원본 Skill 판을 재사용하고 다른 계정에는 사유 사본을 연결한다', () => {
+  const owner = account('web-original-owner');
+  const another = account('web-original-another');
+  const findPin = (user: typeof owner, lesson: string) => {
+    const project = createProject(user, {lesson});
+    const node = project.graph?.nodes.find(n => n.config.bundledSkill === 'frontend-ui-engineering');
+    assert.ok(node);
+    return {id:String(node.config.assetId), version:Number(node.config.version)};
+  };
+  const pin = findPin(owner, 'web-design-component');
+  const installed = readAsset(owner, pin.id, pin.version);
+  assert.equal(installed.asset.visibility, 'private');
+  assert.equal(installed.payload.content, readFileSync('.agents/skills/frontend-ui-engineering/SKILL.md', 'utf8'));
+  writeAsset(owner, {id:pin.id, baseVersion:pin.version, name:'내가 수정한 지침', payload:{content:'개인 작업 지침'}});
+  assert.deepEqual(findPin(owner, 'web-design-flow'), pin);
+  assert.notEqual(findPin(another, 'web-design-component').id, pin.id);
+  assert.throws(() => readAsset(another, pin.id, pin.version));
+});
 
 test('등록 자료와 직접 입력 원문의 1판을 7판 색인에서 찾아 등록 자료의 assetId만 읽는다',async()=>{
   const user=account('index-edition'),project=createProject(user,{title:'원문 판'});

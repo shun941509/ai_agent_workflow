@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { Download, FileText, History, MessageSquare, Play, Settings2 } from 'lucide-react';
 import { cycleDialogFocus } from './dialog-focus';
 import type { EngineEvent, Prompt } from '../engine/types';
@@ -89,33 +89,6 @@ function CaseEvidence({run}:{run:Run}){
 const eventKind:Record<EngineEvent['kind'],string>={start:'시작',result:'결과',error:'오류',wait:'대기',tool:'도구',role:'담당',lookup:'검색',stop:'중지'};
 const argName=(key:string)=>({book:'도서명',branch:'수령 지점',reservationId:'예약 번호',storeKey:'자료집',version:'버전',snapshot:'자료판 식별자'}[key]||key);
 
-function MobileRunHistory({children, onClose, opener}: {
-  children:ReactNode; onClose:()=>void; opener:RefObject<HTMLButtonElement|null>;
-}) {
-  const ref=useRef<HTMLDialogElement>(null);
-  useLayoutEffect(()=>{
-    const panel=ref.current!;
-    const breakpoint=window.matchMedia('(max-width: 700px)');
-    function resize(){if(!breakpoint.matches)onClose();}
-    panel.showModal();
-    breakpoint.addEventListener('change',resize);
-    return ()=>{
-      breakpoint.removeEventListener('change',resize);
-      panel.close();
-      opener.current?.focus({preventScroll:true});
-    };
-  },[onClose,opener]);
-  return <dialog ref={ref} className="run-history-dialog" aria-label="실행 기록"
-    onKeyDown={cycleDialogFocus}
-    onClick={event=>{if(event.target===event.currentTarget)onClose();}}
-    onCancel={event=>{event.preventDefault();event.stopPropagation();onClose();}}>
-    <div className="run-history-sheet">
-      <header><h3>내 실행 기록</h3><button type="button" onClick={onClose}>기록 닫기</button></header>
-      {children}
-    </div>
-  </dialog>;
-}
-
 function Trace({run}:{run:Run}) {
   const events=run.events||[];
   return <details className="run-trace"><summary>실행 경로 <span>{events.length}개 기록</span></summary>
@@ -136,22 +109,22 @@ function Operations({run}:{run:Run}){
   return <section className="run-ops"><h4>전송한 작업</h4>{run.operations.map(op=>
     <details key={op.id}><summary>{toolName(op.tool)} · {({confirmed:'처리 확인',unknown:'결과 미확인',rejected:'거절됨'}[op.status]||op.status)}</summary><pre>{show(op.result??'처리 결과 확인 중')}</pre></details>)}</section>;
 }
+function downloadRunText(fileName:string, content:string) {
+  const url=URL.createObjectURL(new Blob([content],{type:'application/octet-stream'}));
+  const link=document.createElement('a');
+  link.download=fileName.replace(/[\\/]/g,'_');
+  link.href=url;
+  link.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
 function ResultFile({file}:{file:NonNullable<Run['files']>[number]}) {
   const [preview,setPreview]=useState(false);
-  function download() {
-    const url=URL.createObjectURL(new Blob([file.content],{type:'application/octet-stream'}));
-    const link=document.createElement('a');
-    link.download=file.fileName.replace(/[\\/]/g,'_');
-    link.href=url;
-    link.click();
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
-  }
   return <div className="run-result-file">
     <details onToggle={event=>setPreview(event.currentTarget.open)}>
       <summary><FileText size={17} aria-hidden="true"/><strong>{file.fileName}</strong><span>미리보기</span></summary>
       {preview&&<pre tabIndex={0} aria-label={file.fileName+' 내용'}>{file.content||'파일 내용이 비어 있습니다.'}</pre>}
     </details>
-    <button type="button" onClick={download} aria-label={file.fileName+' 내려받기'}><Download size={16} aria-hidden="true"/>내려받기</button>
+    <button type="button" onClick={()=>downloadRunText(file.fileName,file.content)} aria-label={file.fileName+' 내려받기'}><Download size={16} aria-hidden="true"/>내려받기</button>
   </div>;
 }
 function Files({run}:{run:Run}){
@@ -164,10 +137,14 @@ function Files({run}:{run:Run}){
 }
 function PromptReply({prompt,draftKey,disabled,send}:{prompt:Prompt;draftKey:string;disabled:boolean;send:(value:string,approved?:boolean)=>void}){
   const {draft,update}=useReplyDraft(draftKey);
+  const {questionFileName}=prompt;
   const replyId=useId();
   const replyLabel=prompt.kind==='review'?'검토 의견':'대기 중인 요청에 답하기';
   const {value='',selected=[]}=draft,answers=new Map(draft.answers??[]);
   const fields=prompt.fields??[];
+  function setFieldAnswer(name:string, answer:string) {
+    update({answers:[...answers.set(name,answer)]});
+  }
   const selectionReady=prompt.selectionCount?selected.length===prompt.selectionCount:selected.length>0;
   const width=prompt.selectionPolicy?.simultaneous;
   function submit(){
@@ -180,6 +157,9 @@ function PromptReply({prompt,draftKey,disabled,send}:{prompt:Prompt;draftKey:str
       {prompt.reviewDraft!=null&&<div className="run-decision-detail"><strong>검토할 초안</strong><pre>{prompt.reviewDraft || '내용이 비어 있습니다.'}</pre></div>}
       <div className="run-decision-detail"><strong>검토할 사항</strong><p>{prompt.prompt}</p></div>
     </>:<strong>{prompt.operation?toolName(prompt.operation.tool)+' 작업을 승인할까요?':prompt.prompt}</strong>}
+    {prompt.kind==='question' && questionFileName && <p><button type="button"
+      aria-label={'질문지 내려받기 · '+questionFileName} onClick={()=>downloadRunText(questionFileName,prompt.prompt)}>
+      <Download size={16} aria-hidden="true"/>질문지 내려받기</button></p>}
     {prompt.operation&&prompt.showApprovalNote!==false&&<div className="run-decision-detail"><strong>승인 안내</strong><p>{prompt.prompt}</p></div>}
     {prompt.expiresAt && <p>회신 기한 <time dateTime={prompt.expiresAt}>
       {new Date(prompt.expiresAt).toLocaleString('ko-KR', {timeZoneName:'short'})}
@@ -200,11 +180,12 @@ function PromptReply({prompt,draftKey,disabled,send}:{prompt:Prompt;draftKey:str
         </fieldset>:
           fields.length?<fieldset className="run-reply-fields" disabled={disabled}><legend>회신 항목</legend>
             {fields.map(field=><label key={field.name}><span>{field.name} <small>{field.required?'필수':'선택'}</small></span>
-              <input type="text" required={field.required} pattern={field.required?'.*\\S.*':undefined}
-                value={answers.get(field.name)??''} onChange={event=>{
-                  const answer=event.target.value;
-                  update({answers:[...answers.set(field.name,answer)]});
-                }}/></label>)}
+              {field.multiline || (questionFileName && fields.length===1)
+                ? <textarea rows={5} required={field.required} value={answers.get(field.name)??''}
+                    onChange={event=>setFieldAnswer(field.name,event.target.value)}/>
+                : <input type="text" required={field.required} pattern={field.required?'.*\\S.*':undefined}
+                    value={answers.get(field.name)??''} onChange={event=>setFieldAnswer(field.name,event.target.value)}/>}
+            </label>)}
             {prompt.fieldError&&<p role="alert">{prompt.fieldError}</p>}
           </fieldset>:<>
             {prompt.kind==='review'&&<label htmlFor={replyId}>{replyLabel}</label>}
@@ -262,12 +243,10 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
   const [comparisonExpected,setComparisonExpected]=useState('');
   const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
   const [showTests,setShowTests]=useState(testingRelease),[selectedHistory,setSelectedHistory]=useState(false);
-  const historyToggle=useRef<HTMLButtonElement>(null);
   const transcript=useRef<HTMLDivElement>(null);
   const scrolledTurn=useRef('');
   const [newAnswer,setNewAnswer]=useState(''),[answerOffscreen,setAnswerOffscreen]=useState(false);
   const [jump,setJump]=useState<string|null>(null);
-  const closeHistory=useCallback(()=>setSelectedHistory(false),[]);
   const [showTriggers,setShowTriggers]=useState(false);
   const [showSettings,setShowSettings]=useState(testingRelease);
   const [testedDraft,setTestedDraft]=useState<Graph|null>(null);
@@ -407,14 +386,14 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
     if(embedded && conversation!==run.conversation)clearCase();
   }
   useLayoutEffect(()=>{
-    if(embedded || !current || selectedHistory)return;
+    if(embedded || !current)return;
     if(!jump && scrolledTurn.current===current.id)return;
     const turn=transcript.current?.querySelector<HTMLElement>('[data-run-turn="'+current.id+'"]');
     if(!turn)return;
     scrolledTurn.current=current.id;
     if(transcript.current)transcript.current.scrollTop+=turn.getBoundingClientRect().top-transcript.current.getBoundingClientRect().top-8;
     if(jump===current.id){turn.focus({preventScroll:true});setJump(null);}
-  },[embedded,current?.id,jump,selectedHistory]);
+  },[embedded,current?.id,jump]);
   useEffect(()=>{
     mounted.current=true;dialog.current?.showModal();let relevant=true;
     (async()=>{
@@ -739,7 +718,7 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
         {group.turns.length>1&&<details><summary>문답 {group.turns.length}개</summary>{group.turns.map(historyRecord)}</details>}
       </div>)}
     </>;
-  const historyPanel=<aside id={historyId} aria-label="내 실행 기록" className={'run-sidebar '+(embedded&&selectedHistory?'show':'')}><h3>내 실행 기록</h3>{historyContents}</aside>;
+  const historyPanel=<aside id={historyId} aria-label="내 실행 기록" className={'run-sidebar'+(selectedHistory?' show':'')}><h3>내 실행 기록</h3>{historyContents}</aside>;
   const sendingBlocked=runActionsDisabled||Boolean(restoreError)||fileLoading||Boolean(draftIssue)||accept===undefined||Boolean(active(current))||current?.state==='waiting'||Boolean(pendingTurn);
   const composingNext=Boolean(nextConversation || (sending && !sending.failed));
   const questionLabel=composingNext?'같은 대화의 새 질문':'Agent에게 보낼 질문';
@@ -752,7 +731,14 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
     :preparing?'입력 환경을 준비하고 있습니다.':fileLoading?'첨부 파일을 읽고 있습니다.'
     :nextConversation?'대화의 시작 버전으로 실행합니다.':draftChanged?'수정한 초안으로 실행합니다.':mode==='test'?'시험 실행':'실제 사용';
   const body=<div className="run-grid">
-    {!embedded&&historyPanel}
+    {!embedded&&<>
+      <div className="run-history-bar">
+        <button type="button" aria-expanded={selectedHistory} aria-controls={historyId} onClick={()=>setSelectedHistory(open=>!open)}>
+          <History size={15} aria-hidden="true"/>내 실행 기록
+        </button>
+      </div>
+      {historyPanel}
+    </>}
     <div className="run-main">
       {embedded&&<header className="run-context"><h3>{executionMode==='test'?'시험 실행':'Agent 실행'}</h3>
         <p>{executionMode==='test'?'시험 데이터':'실제 사용'}<span aria-hidden="true"> · </span>{designSource}</p>
@@ -766,7 +752,7 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
       {restoreError&&<div className="run-reconnect" role="alert">{restoreError}
         <button type="button" onClick={()=>{setRestoreError('');setRestoringRun(true);setRestoreAttempt(n=>n+1);}}>진행하던 실행 다시 열기</button>
       </div>}
-      {(!embedded||showSettings)&&<div className="run-bar" id={settingsId}>{!embedded&&<button type="button" ref={historyToggle} className="run-history-toggle" aria-haspopup="dialog" aria-expanded={selectedHistory} onClick={()=>setSelectedHistory(true)}>실행 기록</button>}
+      {(!embedded||showSettings)&&<div className="run-bar" id={settingsId}>
         {project.mine?<label>실행 환경 <select value={mode} disabled={busy||fileLoading||Boolean(conversation)} onChange={e=>{
           const next=e.target.value as 'test'|'live';
           if(embedded)clearAttachment();else{resetPicker();enter('new/'+next);}
@@ -885,6 +871,5 @@ export default function RunPanel({project,api,onClose,editorDraft,initialConvers
   }}>
     <header className="run-head"><div><span>Agent 실행</span><ProjectNameHeading as="h2" id="run-title" title={project.title}/></div><button type="button" onClick={onClose} aria-label="실행 화면 닫기">닫기</button></header>
     {body}
-    {selectedHistory&&<MobileRunHistory onClose={closeHistory} opener={historyToggle}>{historyContents}</MobileRunHistory>}
   </dialog>;
 }

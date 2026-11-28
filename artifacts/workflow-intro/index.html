@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="ko" data-composition-variables='[{"id":"brand","type":"string","label":"brand","default":"AI Agent Workflow Studio"},{"id":"openKicker","type":"string","label":"openKicker","default":"도서관 안내 Agent"},{"id":"openLineA","type":"string","label":"openLineA","default":"책을 몇 권까지"},{"id":"openLineB","type":"string","label":"openLineB","default":"빌릴 수 있나요?"},{"id":"openSub","type":"string","label":"openSub","default":"내 자료를 읽고 답하는 AI를 만들어 봅니다."},{"id":"connectLabel","type":"string","label":"connectLabel","default":"워크플로 캔버스"},{"id":"connectTitle","type":"string","label":"connectTitle","default":"자료와 Agent를 연결합니다"},{"id":"reviseLabel","type":"string","label":"reviseLabel","default":"도서관 이용규정"},{"id":"reviseTitle","type":"string","label":"reviseTitle","default":"대출 한도를 바꿉니다"},{"id":"reviseOld","type":"string","label":"reviseOld","default":"3권"},{"id":"reviseNew","type":"string","label":"reviseNew","default":"5권"},{"id":"canvasImage","type":"string","label":"canvasImage","default":"assets/canvas.png"},{"id":"sourceImage","type":"string","label":"sourceImage","default":"assets/source.png"},{"id":"newRuleImage","type":"string","label":"newRuleImage","default":"assets/new-rule.png"},{"id":"endKicker","type":"string","label":"endKicker","default":"도서관 · 초급 실습"},{"id":"endLineA","type":"string","label":"endLineA","default":"내 자료로 답하는"},{"id":"endLineB","type":"string","label":"endLineB","default":"Agent 만들기"},{"id":"endPath","type":"string","label":"endPath","default":"예제 템플릿  ›  내 자료로 안내하기"},{"id":"endAction","type":"string","label":"endAction","default":"내 사본으로 시작"},{"id":"paper","type":"color","label":"paper","default":"#f6f2e7"},{"id":"ink","type":"color","label":"ink","default":"#123c36"},{"id":"forest","type":"color","label":"forest","default":"#10493f"},{"id":"lime","type":"color","label":"lime","default":"#d5ef93"},{"id":"red","type":"color","label":"red","default":"#a43939"}]'>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1920, height=1080">
+  <title>AI Agent Workflow Studio · 도서관 안내 Agent</title>
+  <script src="assets/gsap.min.js"></script>
+  <style>
+    @font-face { font-family:"Studio Sans"; src:url("assets/fonts/studio-sans.woff2") format("woff2"); font-weight:100 900; font-display:block; }
+    @font-face { font-family:"Studio Serif"; src:url("assets/fonts/studio-serif.woff2") format("woff2"); font-weight:200 900; font-display:block; }
+    :root { --paper:#f6f2e7; --ink:#123c36; --forest:#10493f; --lime:#d5ef93; --red:#a43939; }
+    * { box-sizing:border-box; }
+    html,body { margin:0; width:1920px; height:1080px; overflow:hidden; background:var(--paper); }
+    body { font-family:"Studio Sans",sans-serif; color:var(--ink); }
+    #root { position:relative; width:1920px; height:1080px; overflow:hidden; }
+    [data-composition-src] { position:absolute; inset:0; }
+    h1,h2,p,figure { margin:0; }
+  </style>
+</head>
+<body>
+  <main id="root" data-composition-id="main" data-width="1920" data-height="1080" data-start="0" data-duration="30" data-fps="30">
+    <div id="opening" class="clip" data-composition-id="opening" data-composition-src="compositions/opening.html" data-width="1920" data-height="1080" data-start="0" data-duration="5" data-track-index="0" data-track-kind="graphics"></div>
+    <div id="connect" class="clip" data-composition-id="connect" data-composition-src="compositions/connect.html" data-width="1920" data-height="1080" data-start="5" data-duration="6" data-track-index="0" data-track-kind="graphics"></div>
+    <div id="revise" class="clip" data-composition-id="revise" data-composition-src="compositions/revise.html" data-width="1920" data-height="1080" data-start="11" data-duration="7" data-track-index="0" data-track-kind="graphics"></div>
+    <div id="answer" class="clip" data-composition-id="answer" data-composition-src="compositions/answer.html" data-width="1920" data-height="1080" data-start="18" data-duration="6" data-track-index="0" data-track-kind="graphics"></div>
+    <div id="ending" class="clip" data-composition-id="ending" data-composition-src="compositions/ending.html" data-width="1920" data-height="1080" data-start="24" data-duration="6" data-track-index="0" data-track-kind="graphics"></div>
+    <audio id="action-sound" class="clip" src="assets/action-sound.wav" data-start="0" data-duration="30" data-track-index="1" data-volume="1"></audio>
+  </main>
+  <script>
+    window.__timelines = window.__timelines || {};
+    window.__timelines.main = gsap.timeline({paused:true});
+  </script>
+</body>
+</html>

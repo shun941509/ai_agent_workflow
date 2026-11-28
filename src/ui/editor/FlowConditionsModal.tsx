@@ -19,7 +19,11 @@ export function FlowConditionsModal({graph, from, to, onApply, onClose}:{
   ];
   const removed = new Set(connected.filter(edge => toggled.has('edge:'+edge.id)).map(edge => edge.id));
   const added = available.filter(option => toggled.has(JSON.stringify([option.out,option.input])));
-  return <Modal title="실행 조건 변경" onClose={onClose}>
+  return <Modal title="실행 조건 변경" onClose={onClose} footer={<>
+    <button type="button" className="ws-btn" onClick={onClose}>취소</button>
+    <button type="button" className="ws-btn ws-primary" disabled={!removed.size && !added.length}
+      onClick={() => onApply(connectBlocks(graph,from,to,added),removed)}>실행 조건 적용</button>
+  </>}>
     <p>{titleById(graph,from)} → {titleById(graph,to)}</p>
     <fieldset className="ws-fieldset"><legend>도착 블록을 실행할 경로</legend>
       {rows.map(row => <label className="ws-check" key={row.key}>
@@ -30,10 +34,5 @@ export function FlowConditionsModal({graph, from, to, onApply, onClose}:{
         })}/>{row.label}
       </label>)}
     </fieldset>
-    <div className="ws-modal-actions">
-      <button type="button" className="ws-btn" onClick={onClose}>취소</button>
-      <button type="button" className="ws-btn ws-primary" disabled={!removed.size && !added.length}
-        onClick={() => onApply(connectBlocks(graph,from,to,added),removed)}>실행 조건 적용</button>
-    </div>
   </Modal>;
 }

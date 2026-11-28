@@ -35,9 +35,9 @@ export function checkVisitAnswer(output: string, pickupVersion: number) {
   assert.match(lines[0], /토요일/);
   assert.match(lines[0], /10\s*(?:시|:00)/);
   assert.match(lines[0], /(?:오후\s*4|16)\s*(?:시|:00)/);
-  const quote = pickupVersion === 1 ? '회원증이 필요합니다.' : '모바일 회원증도 가능합니다.';
+  const quote = pickupVersion === 1 ? '회원증이 필요합니다.' : '등록된 학생증도 가능합니다.';
   assert.ok(lines[1].includes(quote), '선택한 수령 규정의 원문이 필요합니다.\n' + output);
-  if (pickupVersion === 1) assert.doesNotMatch(lines[1], /모바일/);
+  if (pickupVersion === 1) assert.doesNotMatch(lines[1], /학생증/);
   assert.match(lines[2], /어린 왕자/);
   assert.match(lines[2], /중앙도서관/);
   return {hours: lines[0], reservations: lines[2]};

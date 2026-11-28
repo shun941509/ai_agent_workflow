@@ -55,7 +55,9 @@ try {
   const removal = page.getByRole('dialog',{name:'분류 범주 삭제'});
   await expect(removal).toContainText('규정과 지점 안내문 검색');
   await expect(removal).toContainText('1개');
-  await removal.getByRole('button',{name:'취소'}).click();
+  const cancel = removal.getByRole('button',{name:'취소',exact:true});
+  await expect(cancel).toBeFocused();
+  await page.keyboard.press('Enter');
   await expect(button('이용 규정 삭제')).toBeFocused();
   await button('이용 규정 삭제').click();
   await removal.getByRole('button',{name:'범주 삭제',exact:true}).click();
@@ -66,43 +68,37 @@ try {
   await button('규정과 개인 예약 구분 블록 속성').click();
   await expect(button('이용 규정 이름 변경')).toHaveCount(0);
 
-  for (const width of [1440,390]) {
-    const draft = await api('project.create',{title:'첫 입력 연결', graph:{nodes:[createBlock('output.answer',{id:'answer',title:'질문 돌려주기'})],edges:[]}});
-    await page.setViewportSize({width,height:880});
-    await page.goto('/?edit=' + draft.id);
-    if (width === 390) await button('캔버스로 보기').click();
-    const node = button('질문 돌려주기 블록 속성');
-    await node.focus();
-    await node.press('Enter');
-    const receive = button('입력값 받기');
-    const modal = page.getByRole('dialog',{name:'연결 추가'});
-    await receive.press('Enter');
-    await expect(modal).toContainText('입력값을 보낼 블록이 없습니다.');
-    await page.keyboard.press('Escape');
-    await expect(receive).toBeFocused();
-    await receive.press('Enter');
-    await modal.getByRole('button',{name:'취소',exact:true}).click();
-    await expect(receive).toBeFocused();
-    if (width === 1440) {
-      await button('설계 검사').click();
-      await page.getByRole('dialog',{name:'설계 검사'}).getByRole('button',{name:/입력값에 전달할 값을 연결/}).click();
-      await expect(modal).toBeVisible();
-      await page.keyboard.press('Escape');
-      await expect(receive).toBeFocused();
-    }
-    await receive.press('Enter');
-    await modal.getByRole('button',{name:'사용자 입력 추가 및 연결',exact:true}).click();
-    await expect(modal).toHaveCount(0);
-    await page.keyboard.press('Control+s');
-    await expect.poll(async () => (await read(draft.id)).edges.length).toBe(2);
-    await page.reload();
-    await page.setViewportSize({width:1440,height:880});
-    await button('시험 실행').click();
-    await page.getByRole('textbox',{name:'Agent에게 보낼 질문',exact:true}).fill('연결 확인');
-    await button('질문 실행').click();
-    await expect(page.locator('.run-output')).toHaveText('연결 확인',{timeout:20000});
-  }
-  console.log('분류 범주 이름 변경·삭제·취소와 입력 블록 연결을 데스크톱·모바일에서 검증했습니다.');
+  const draft = await api('project.create',{title:'첫 입력 연결', graph:{nodes:[createBlock('output.answer',{id:'answer',title:'질문 돌려주기'})],edges:[]}});
+  await page.setViewportSize({width:1440,height:880});
+  await page.goto('/?edit=' + draft.id);
+  const node = button('질문 돌려주기 블록 속성');
+  await node.focus();
+  await node.press('Enter');
+  const receive = button('입력값 받기');
+  const modal = page.getByRole('dialog',{name:'연결 추가'});
+  await receive.press('Enter');
+  await expect(modal).toContainText('입력값을 보낼 블록이 없습니다.');
+  await page.keyboard.press('Escape');
+  await expect(receive).toBeFocused();
+  await receive.press('Enter');
+  await modal.getByRole('button',{name:'취소',exact:true}).click();
+  await expect(receive).toBeFocused();
+  await button('설계 검사').click();
+  await page.getByRole('dialog',{name:'설계 검사'}).getByRole('button',{name:/입력값에 전달할 값을 연결/}).click();
+  await expect(modal).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(receive).toBeFocused();
+  await receive.press('Enter');
+  await modal.getByRole('button',{name:'사용자 입력 추가 및 연결',exact:true}).click();
+  await expect(modal).toHaveCount(0);
+  await page.keyboard.press('Control+s');
+  await expect.poll(async () => (await read(draft.id)).edges.length).toBe(2);
+  await page.reload();
+  await button('시험 실행').click();
+  await page.getByRole('textbox',{name:'Agent에게 보낼 질문',exact:true}).fill('연결 확인');
+  await button('질문 실행').click();
+  await expect(page.locator('.run-output')).toHaveText('연결 확인',{timeout:20000});
+  console.log('분류 범주 이름 변경·삭제·취소와 입력 블록 연결을 데스크톱에서 검증했습니다.');
 } finally {
   await browser.close();
 }

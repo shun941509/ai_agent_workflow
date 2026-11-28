@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ko">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>작업실 화면 전후 비교 · 2026-11-28</title>
+<style>
+  :root { color-scheme:light dark; font:16px/1.55 system-ui,"Malgun Gothic",sans-serif; background:Canvas; color:CanvasText }
+  * { box-sizing:border-box }
+  body { max-width:1600px; margin:auto; padding:clamp(16px,3vw,48px) }
+  h1 { font-size:clamp(24px,3vw,38px); margin:0 0 8px; letter-spacing:-.045em }
+  p { margin:0 0 20px }
+  .filters, .pair, nav { display:flex; flex-wrap:wrap; gap:16px }
+  .filters { padding-block:16px; border-block:1px solid GrayText; margin-block:20px }
+  label { display:grid; gap:4px; font-weight:600 }
+  select { min-height:40px; padding:4px 10px; font:inherit; border:1px solid GrayText; border-radius:5px; background:Field; color:FieldText }
+  figure { flex:1 1 330px; min-width:0; margin:0 }
+  figcaption { font-weight:650; margin:4px 0 }
+  img { display:block; max-width:100%; height:auto; border:1px solid GrayText }
+  .preview { display:block; width:fit-content; max-width:100% }
+  nav { margin-top:24px }
+  a:focus-visible,select:focus-visible {outline:3px solid Highlight;outline-offset:3px}
+</style>
+<main>
+  <h1>작업실 화면 전후 비교</h1>
+  <p>2026년 11월 28일 Windows Chrome에서 촬영했습니다. 그림을 열면 원래 크기로 볼 수 있습니다.</p>
+  <div class="filters">
+    <label>화면<select id="screen"></select></label>
+    <label>Windows 색상 설정<select id="theme"><option value="light">밝게</option><option value="dark">어둡게</option></select></label>
+    <label>창 너비<select id="width"><option>360</option><option>390</option><option>768</option><option>1024</option><option>1280</option><option selected>1440</option></select></label>
+  </div>
+  <section class="pair" aria-label="같은 창 너비의 변경 전후 화면">
+    <figure><figcaption>변경 전</figcaption><a class="preview" id="old-link"><img id="old" alt=""></a></figure>
+    <figure><figcaption>변경 후</figcaption><a class="preview" id="new-link"><img id="new" alt=""></a></figure>
+  </section>
+  <nav aria-label="상세 검증"><a href="../../QA-REPORT.md">검증 결과</a><a href="workspace/README.md">작업실·자료함</a><a href="guide/README.md">가이드</a><a href="editor/README.md">편집기</a><a href="components.md">컴포넌트 목록</a></nav>
+</main>
+<script>
+  const pages = {
+    login:'로그인',signup:'계정 만들기','home-first':'첫 방문 홈','home-return':'최근 프로젝트 홈',chooser:'편집기 시작',
+    projects:'내 Agent',templates:'예제 템플릿',lesson:'실습 상세',assets:'도구 및 자료',resource:'자료 상세',
+    shared:'공유 Agent','shared-assets':'공유 자료','public-project':'공유 Agent 사용','project-trash':'Agent 휴지통',
+    'resource-trash':'자료 휴지통',guide:'처음 시작하기',editor:'블록 편집','editor-fit':'연결도 전체 보기',
+    run:'시험 실행','run-result':'질문 실행 결과'
+  };
+  const screens=document.querySelector('#screen'), widths=document.querySelector('#width'), themes=document.querySelector('#theme');
+  for(const [value,label] of Object.entries(pages)) screens.add(new Option(label,value));
+  function show() {
+    const dark=themes.value==='dark';
+    for(const size of widths.options) size.disabled=dark && !['390','1440'].includes(size.value);
+    if(widths.selectedOptions[0].disabled) widths.value=Number(widths.value)<768?'390':'1440';
+    for(const [id,phase,label] of [['old','before','변경 전'],['new','after','변경 후']]) {
+      const url=(dark?'dark/':'screens/')+phase+'/'+widths.value+'-'+screens.value+'.webp';
+      const img=document.getElementById(id);
+      img.alt=pages[screens.value]+' '+widths.value+'px '+label;
+      img.src=url;
+      document.getElementById(id+'-link').href=url;
+    }
+  }
+  screens.addEventListener('change',show);
+  widths.addEventListener('change',show);
+  themes.addEventListener('change',show);
+  show();
+</script>
+</html>

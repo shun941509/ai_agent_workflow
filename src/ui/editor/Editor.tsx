@@ -31,7 +31,7 @@ import { placeNewBlock } from './node-layout';
 import { insertEvidenceSearch } from './evidence-search';
 import {attachAssetEdition, attachWorkflowAsset, type AssetTarget, type SharedAssetPin} from './asset-attachment';
 import {SharedAssetDialog} from './SharedAssetDialog';
-import { WorkspaceMenuButton, WorkspaceNav, type WorkspaceDestination, type WorkspaceMenuAction } from '../WorkspaceNav';
+import { WorkspaceNav, type WorkspaceDestination, type WorkspaceMenuAction } from '../WorkspaceNav';
 import PracticeCoach, { type PracticeCoachHandle } from './PracticeCoach';
 import RunPanel, { type RunProject } from '../RunPanel';
 import { PromptTextarea } from '../PromptTextarea';
@@ -251,7 +251,7 @@ export default function Editor({
     guideReturn.current = null;
     if (coachRef.current) coachRef.current.resume(step);
     else {
-      const triggers = document.querySelectorAll<HTMLButtonElement>('.ws-editor button[aria-label="실습 안내"], [data-guide-menu], .ws-editor .workspace-menu-button');
+      const triggers = document.querySelectorAll<HTMLButtonElement>('.ws-editor button[aria-label="실습 안내"], [data-guide-menu]');
       Array.from(triggers).find(button => button.getClientRects().length)?.focus();
     }
   }, []);
@@ -295,11 +295,8 @@ export default function Editor({
     return { path: [], selection: first ? {kind: 'node', id: first.id} : null };
   });
   const [selection, setSelection] = useState<Selection>(openingFocus.selection);
-  const [path, setPath] = useState<string[]>(openingFocus.path),
-    [pane, setPane] = useState<'canvas' | 'palette' | 'inspector'>(resumeRun ? 'inspector' : entry?.pane ?? 'canvas');
-  const inspectorFocus = useInspectorFocus(pane);
-  const overlayOpen = inspectorFocus.modal || inspectorFocus.paletteModal;
-  const [drawer, setDrawer] = useState(entry?.drawer ?? false);
+  const [path, setPath] = useState<string[]>(openingFocus.path);
+  const inspectorFocus = useInspectorFocus();
   const [wireSource, setWireSource] = useState(entry?.wireSource);
   const [wireChoices, setWireChoices] = useState<string[]>(() => {
     if (!entry?.wireChoices?.length) return [];
@@ -326,8 +323,7 @@ export default function Editor({
   useEffect(() => {
     focusCallback.current?.({ path, selection });
   }, [path, selection]);
-  const [list, setList] = useState(() => entry?.list ?? preferredList(user.id, project.id,
-    typeof window !== 'undefined' && window.matchMedia('(max-width:680px)').matches)),
+  const [list, setList] = useState(() => entry?.list ?? preferredList(user.id, project.id)),
     [layoutRev, setLayoutRev] = useState(0);
   const [overview, setOverview] = useState(false);
   const overviewExit = useRef<HTMLButtonElement>(null);
@@ -366,6 +362,10 @@ export default function Editor({
     [name, setName] = useState('');
   const [importWarning,setImportWarning]=useState<{text:string;missing:string[]}>();
   const importCheck=useRef(0);
+  const importWarningHeading = useRef<HTMLParagraphElement>(null);
+  useLayoutEffect(() => {
+    if (importWarning && importWarning.text === importText) importWarningHeading.current?.focus();
+  }, [importWarning, importText]);
   const durable = useRef(fingerprint({ graph, title })),
     timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const running = useRef<Promise<boolean> | null>(null),
@@ -565,7 +565,6 @@ export default function Editor({
       setPath(where);
       setSelection(selected);
       setInspectorTab('properties');
-      setPane('canvas');
       historyFocus.current = {item:selected};
       setStatus(forward ? redoText : undoText);
     } else {
@@ -631,8 +630,6 @@ export default function Editor({
       if (destination === 'guide' && practice === 'example') onLessonGuide(coachRef.current?.guideStep());
       else if (onNavigate) onNavigate(destination);
       else onHome();
-    }).then(moved => {
-      if (!moved && mounted.current) setDrawer(false);
     });
   };
   function startGuidePractice(practice: 'example' | 'blank') {
@@ -649,7 +646,6 @@ export default function Editor({
       setRunOpened(true);
     }
     setInspectorTab(tab);
-    setPane('inspector');
   };
   const chooseTestSource = (edited: boolean) => {
     if (edited) {
@@ -691,31 +687,29 @@ export default function Editor({
   useImperativeHandle(saveDraftRef, () => (includeEdited = true) => includeEdited ? saveProject() : flush());
   const launchRun = (trigger: HTMLButtonElement) => {
     selectInspectorTab('results', trigger);
-    if (!inspectorFocus.mobile) requestAnimationFrame(() => document.getElementById('ws-tab-results')?.focus());
+    requestAnimationFrame(() => {
+      const tab = document.getElementById('ws-tab-results');
+      tab?.focus();
+      if (window.matchMedia('(max-width: 1050px)').matches)
+        tab?.scrollIntoView({block: 'start', inline: 'nearest'});
+    });
   };
   const closeInspector = () => {
-    if (!inspectorFocus.mobile) {
-      setInspectorTab('properties');
-      inspectorFocus.restoreFocus('inspector');
-    }
-    setPane('canvas');
+    setInspectorTab('properties');
+    inspectorFocus.restoreFocus('inspector');
   };
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.isComposing || event.keyCode === 229 || event.defaultPrevented || dialog || connection || drawer || reopening || (event.target instanceof Element && event.target.closest('dialog'))) return;
-      if (event.key === 'Escape' && pane === 'palette' && inspectorFocus.palette.current?.contains(document.activeElement)) {
+      if (event.isComposing || event.keyCode === 229 || event.defaultPrevented || dialog || connection || reopening || (event.target instanceof Element && event.target.closest('dialog'))) return;
+      if (event.key === 'Escape' && inspectorFocus.palette.current?.contains(document.activeElement)) {
         event.preventDefault();
-        if (!inspectorFocus.paletteModal) inspectorFocus.restoreFocus('palette');
-        setPane('canvas');
+        inspectorFocus.restoreFocus('palette');
         return;
       }
-      if (event.key === 'Escape' && (overlayOpen || inspectorFocus.panel.current?.contains(document.activeElement))) {
+      if (event.key === 'Escape' && inspectorFocus.panel.current?.contains(document.activeElement)) {
         event.preventDefault();
-        if (inspectorFocus.paletteModal) setPane('canvas');
-        else {
-          if (!inspectorFocus.mobile && selection?.kind === 'edge') setSelection(null);
-          closeInspector();
-        }
+        if (selection?.kind === 'edge') setSelection(null);
+        closeInspector();
         return;
       }
       const input = (event.target as HTMLElement | null)?.closest(
@@ -739,10 +733,7 @@ export default function Editor({
       ) {
         event.preventDefault();
         undo(event.shiftKey || event.key.toLowerCase() === 'y');
-      } else if (event.key === 'Escape') {
-        if (pane === 'canvas' && selection?.kind === 'edge') setSelection(null);
-        setPane('canvas');
-      }
+      } else if (event.key === 'Escape' && selection?.kind === 'edge') setSelection(null);
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
@@ -751,8 +742,7 @@ export default function Editor({
     setOverview(false);
     inspectorFocus.rememberOpener(trigger);
     setInspectorTab('properties');
-    setPane(inspectorFocus.mobile ? 'inspector' : 'canvas');
-    if (focusTab && !inspectorFocus.mobile) requestAnimationFrame(() => {
+    if (focusTab) requestAnimationFrame(() => {
       if (!document.querySelector('dialog:modal')) document.getElementById('ws-tab-properties')?.focus();
     });
   };
@@ -781,7 +771,6 @@ export default function Editor({
       {path, before:{kind:'node', id:chosen.id}, after:item,
         undoText:chosen.title + ' 복제를 취소했습니다.', redoText:copy.title + '을 복구했습니다.'});
     setDialog(null);
-    setPane('canvas');
     setInspectorTab('properties');
     setSelection(item);
     historyFocus.current = {item};
@@ -790,7 +779,6 @@ export default function Editor({
     discard({kind:'edge', id:groupKey(from,to)});
     const item = {kind:'node', id:to} as const;
     setSelection(item);
-    setPane('canvas');
     historyFocus.current = {item};
   };
   const connect = (from: string, to?: string, routeId?: string) => {
@@ -875,8 +863,14 @@ export default function Editor({
       if (replaceSource) {
         if (target.config.assetId !== original.config.assetId || target.config.version !== original.config.version)
           throw Error('블록의 자료판이 변경되었습니다. 연결할 판을 다시 선택하세요.');
-        next = {...scope, nodes:scope.nodes.map(node => node === target
-          ? {...node, config:{...node.config, assetId:edition.id, version:edition.version, assetGrant:undefined}} : node)};
+        const config: Block['config'] = {...target.config, assetId:edition.id, version:edition.version, assetGrant:undefined};
+        let title = target.title;
+        if (config.bundledSkill && target.config.assetId !== edition.id) {
+          if (title === config.bundledSkill) title = edition.name;
+          delete config.bundledSkill;
+          delete config.skillExample;
+        }
+        next = {...scope, nodes:scope.nodes.map(node => node === target ? {...node, title, config} : node)};
       } else {
         next = attachAssetEdition(scope, id, edition).graph;
       }
@@ -901,7 +895,6 @@ export default function Editor({
     const item: Selection = {kind:'node', id:next.source.id};
     const label = asset.name + ' ' + asset.version + '판';
     setDialog(null);
-    setPane('canvas');
     setInspectorTab('properties');
     setPath(next.path);
     setSelection(item);
@@ -928,7 +921,6 @@ export default function Editor({
     setOverview(false);
     setPath(childPath);
     setSelection(next);
-    setPane('canvas');
   };
   const returnToParent = () => {
     const id = path[path.length - 1];
@@ -938,7 +930,6 @@ export default function Editor({
     setCanvasReturn({scope: JSON.stringify(parent), id, bookmark: previous?.bookmark});
     setPath(parent);
     setSelection({kind: 'node', id});
-    setPane('canvas');
   };
   const propose = async () => {
     if (!prompt.trim() || thinking || (needsChangeAnswer && !clarificationAnswer.trim())) return;
@@ -973,9 +964,8 @@ export default function Editor({
     setDialog(null);
   };
   useEditorHistory(historyRef, {
-    // An open panel remains the same history entry when a resize docks it beside the canvas.
-    project:project.id, path, selection, pane,
-    tab:inspectorTab, pendingRun, list, dialog, connection, wireChoices, wireSource:wireChoices.length ? wireSource : undefined, drawer,
+    project:project.id, path, selection,
+    tab:inspectorTab, pendingRun, list, dialog, connection, wireChoices, wireSource:wireChoices.length ? wireSource : undefined,
   }, scope => JSON.stringify(scope) === JSON.stringify(path) ? canvas.current?.bookmark() :
     parentViews.current.get(JSON.stringify(scope))?.bookmark, destination => {
     const restored = validEditorFocus(docRef.current.graph, destination);
@@ -995,13 +985,7 @@ export default function Editor({
     }
     setList(!sameScope && previous ? previous.list : destination.list);
     setOverview(false);
-    if (sameScope && pane === 'inspector' && destination.pane === 'canvas' && nextSelection &&
-        !inspectorFocus.opener.current?.isConnected) {
-      const attribute = nextSelection.kind === 'node' ? 'data-canvas-block' : 'data-canvas-wire';
-      inspectorFocus.opener.current = document.querySelector<HTMLElement|SVGElement>('[' + attribute + '="' + CSS.escape(nextSelection.id) + '"]');
-    }
     setSelection(nextSelection);
-    setPane(destination.pane);
     setInspectorTab(destination.tab);
     if (destination.tab === 'results') setRunOpened(true);
     if (dialog === 'ai' && destination.dialog !== 'ai') closeAi();
@@ -1011,7 +995,6 @@ export default function Editor({
     const choices = destination.wireChoices?.filter(id => groups.some(group => group.id === id));
     setWireChoices(choices && choices.length > 1 ? choices : []);
     setWireSource(destination.wireSource);
-    setDrawer(!!destination.drawer);
   });
   const openAi = () => {
     setRequestedProposal(false);
@@ -1063,8 +1046,8 @@ export default function Editor({
     setImportError('');
     try {
       const source = JSON.parse(importText),
-        raw = source.graph ?? source;
-      if (!Array.isArray(raw.nodes) || !Array.isArray(raw.edges))
+        raw = source?.graph ?? source;
+      if (!Array.isArray(raw?.nodes) || !Array.isArray(raw?.edges))
         throw Error('블록과 연결선 목록을 포함한 설계 JSON이 필요합니다.');
       const graph=migrateGraph(raw);
       if(importWarning?.text!==importText){
@@ -1082,7 +1065,9 @@ export default function Editor({
       setDialog(null);
       setLayoutRev((v) => v + 1);
     } catch (e) {
-      if(check===importCheck.current)setImportError(message(e));
+      if (check === importCheck.current) setImportError(e instanceof SyntaxError
+        ? '설계 JSON을 읽을 수 없습니다. 내보낸 설계 파일을 선택하거나 설계 내용을 확인하세요.'
+        : message(e));
     }
   };
   const openMenuAction = (action: WorkspaceMenuAction) => {
@@ -1152,7 +1137,6 @@ export default function Editor({
     const active = document.activeElement;
     if (active instanceof HTMLElement || active instanceof SVGElement) inspectorFocus.paletteOpener.current = active;
     setShowCatalog(catalog);
-    setPane('palette');
     requestAnimationFrame(() => {
       const field = inspectorFocus.palette.current?.querySelector<HTMLInputElement>('input[type=search]');
       field?.focus();
@@ -1162,7 +1146,6 @@ export default function Editor({
   const showPalette = () => openPalette(true);
   const goToFoundBlock = (id:string) => {
     const item = {kind:'node', id} as const;
-    setPane('canvas');
     setInspectorTab('properties');
     setSelection(item);
     requestAnimationFrame(() => {
@@ -1176,29 +1159,24 @@ export default function Editor({
   const coach = practice && <PracticeCoach ref={coachRef} practice={practice} projectId={project.id} userId={user.id}
     hasExampleAnswer={Boolean(project.hasExampleAnswer || answeredInEditor)}
     onOpenGuide={() => go('guide')} onStartBlank={() => startGuidePractice('blank')} onOpenTemplate={openNextLesson} />;
-  const coachInCanvas = inspectorFocus.mobile && !overlayOpen && Boolean(coach);
   return (
     <div className="studio-shell" inert={reopening}>
-      {!overlayOpen && !drawer && <button type="button" className="ws-skip-to-canvas" onClick={() => {
+      <button type="button" className="ws-skip-to-canvas" onClick={() => {
         const item = selection ?? (workspace.nodes[0] ? {kind:'node', id:workspace.nodes[0].id} as const : null);
         canvas.current?.focusItem(item);
         if (item?.kind === 'node') canvas.current?.revealNode(item.id);
-      }}>캔버스로 바로 가기</button>}
+      }}>캔버스로 바로 가기</button>
       <WorkspaceNav
         active="editor"
-        inert={overlayOpen}
         user={user}
-        open={drawer}
-        onClose={() => setDrawer(false)}
         onNavigate={go}
         onMenuAction={openMenuAction}
         onAccount={() => void nav(onAccount)}
       />
-      <main id="workspace-content" tabIndex={-1} className="ws-editor" data-pane={pane} data-overview={overview || undefined}>
-        <header className="ws-top" inert={overlayOpen}>
-          <WorkspaceMenuButton open={drawer} onOpen={() => setDrawer(true)} />
+      <main id="workspace-content" tabIndex={-1} className="ws-editor" data-overview={overview || undefined}>
+        <header className="ws-top">
           <button className="ws-crumb" aria-label="내 워크스페이스" onClick={() => go('projects')}>
-            <span className="ws-crumb-full">내 워크스페이스</span><span className="ws-crumb-short">작업실</span>
+            내 워크스페이스
           </button>
           <span aria-hidden="true">›</span>
           <strong>Workflow 편집기</strong>
@@ -1228,7 +1206,7 @@ export default function Editor({
             }}
           />
         </header>
-        <section className="ws-toolbar" aria-label="프로젝트 작업" inert={overlayOpen}>
+        <section className="ws-toolbar" aria-label="프로젝트 작업">
           <div className="ws-identity">
             <h1>
               <button
@@ -1264,16 +1242,15 @@ export default function Editor({
         </section>
         <div className="ws-workbench">
           <Palette level={level} tab={paletteTab} onTab={setPaletteTab} onAdd={add}
-            panelRef={inspectorFocus.palette} modal={inspectorFocus.paletteModal} inert={inspectorFocus.modal}
-            practiceCoach={inspectorFocus.paletteModal ? coach : undefined}
+            panelRef={inspectorFocus.palette}
             graph={workspace} selection={selection} showCatalog={showCatalog} onShowCatalog={setShowCatalog}
             onFind={goToFoundBlock}
             onPick={id => {
               canvas.current?.revealNode(id);
               setSelection({kind:'node',id});
               inspect();
-            }} onClose={() => setPane('canvas')} />
-          <section className={'ws-stage' + (coachInCanvas ? ' ws-stage-with-coach' : '')} inert={overlayOpen} onKeyDown={event => {
+            }} />
+          <section className="ws-stage" onKeyDown={event => {
             if (!['?', '/'].includes(event.key) || event.defaultPrevented || event.repeat || event.nativeEvent.isComposing ||
               event.nativeEvent.keyCode === 229 || event.ctrlKey || event.altKey || event.metaKey || dialog || connection || wireChoices.length ||
               !(event.target instanceof Element) || event.target.closest('dialog,[role="dialog"],[data-practice-coach],input,textarea,select,[contenteditable]:not([contenteditable="false"])')) return;
@@ -1281,7 +1258,6 @@ export default function Editor({
             if (event.key === '?') setDialog('shortcuts');
             else openPalette(false);
           }}>
-            {coachInCanvas && coach}
             <div className="ws-canvas-head ws-canvas-tools">
               <div className="ws-graph-crumb">
                 {path.length > 0 && (
@@ -1301,10 +1277,6 @@ export default function Editor({
                   title="키보드 단축키 (?)" aria-keyshortcuts="Shift+/" onClick={() => setDialog('shortcuts')}>
                   <Icon name="keyboard" />
                 </button>
-                <button className="ws-btn ws-mobile-palette" onClick={showPalette} aria-haspopup="dialog">
-                  <Icon name="plus" />
-                  블록
-                </button>
                 <button
                   className="ws-btn"
                   title="자동 정렬"
@@ -1322,10 +1294,6 @@ export default function Editor({
                   <Icon name="grid" />
                   <span>자동 정렬</span>
                 </button>
-                <button className="ws-btn ws-mobile-properties" title="속성 열기" ref={inspectorFocus.fallback}
-                  aria-haspopup="dialog" onClick={event => inspect(event.currentTarget)}>
-                  <Icon name="settings" />
-                </button>
               </div>
               <div className="ws-viewbar">
                 <div className="ws-view-modes" role="group" aria-label="캔버스 보기 방식">
@@ -1337,7 +1305,7 @@ export default function Editor({
                   </button>
                 </div>
                 {overview
-                  ? <button className="ws-return-view" type="button" ref={overviewExit} onClick={closeOverview} aria-label="편집기로 돌아가기"><Icon name="back" size={16}/><span>편집기로<span className="ws-return-tail"> 돌아가기</span></span></button>
+                  ? <button className="ws-return-view" type="button" ref={overviewExit} onClick={closeOverview} aria-label="편집기로 돌아가기"><Icon name="back" size={16}/><span>편집기로 돌아가기</span></button>
                   : <button className="ws-return-view" type="button" ref={overviewTrigger} disabled={!workspace.nodes.length} onClick={openOverview} title="전체 보기"><Icon name="fit" size={16}/>전체 보기</button>}
               </div>
             </div>
@@ -1372,10 +1340,9 @@ export default function Editor({
               }
             />
           </section>
-          <div className="ws-inspector" ref={inspectorFocus.panel} inert={inspectorFocus.paletteModal} role={inspectorFocus.modal ? 'dialog' : 'complementary'}
-            aria-modal={inspectorFocus.modal || undefined} aria-label="속성 패널">
+          <div className="ws-inspector" ref={inspectorFocus.panel} role="complementary" aria-label="속성 패널">
             <InspectorTabs selected={inspectorTab} onSelect={selectInspectorTab} onClose={closeInspector}/>
-            {!coachInCanvas && !inspectorFocus.paletteModal && coach}
+            {coach}
             <div id="ws-panel-properties" role="tabpanel" aria-labelledby="ws-tab-properties"
               className="ws-properties-content" hidden={inspectorTab !== 'properties'}>
               <Inspector
@@ -1429,10 +1396,6 @@ export default function Editor({
             {workspace.nodes.length}개 블록 · {groups.length}개 연결선
           </span>
         </footer>
-        {pane !== 'canvas' && (
-          <button className="ws-shade" aria-label="캔버스로 돌아가기" tabIndex={overlayOpen ? -1 : undefined}
-            onClick={() => setPane('canvas')} />
-        )}
         {connection?.edit === 'conditions' && connection.from && connection.to && (
           <FlowConditionsModal key={JSON.stringify(connection)} graph={workspace} from={connection.from} to={connection.to}
             onClose={() => setConnection(null)} onApply={(added,removed) => {
@@ -1547,7 +1510,13 @@ export default function Editor({
           </Modal>
         )}
         {dialog === 'import' && (
-          <Modal title="설계 가져오기" size="form" onClose={() => {importCheck.current++;setImportWarning(undefined);setDialog(null);}}>
+          <Modal title="설계 가져오기" size="form" onClose={() => {importCheck.current++;setImportWarning(undefined);setDialog(null);}}
+            footer={<>
+              {importError && <p role="alert" className="ws-danger">{importError}</p>}
+              <button className="ws-btn ws-primary" disabled={!importText.trim()} onClick={importGraph}>
+                {importWarning?.text===importText?'자료 없이 현재 초안에 적용':'현재 초안에 적용'}
+              </button>
+            </>}>
             <p>가져온 설계를 적용할 프로젝트는 <strong>{doc.title}</strong>입니다.</p>
             <label className="ws-field">
               <span>설계 JSON 파일</span>
@@ -1586,25 +1555,24 @@ export default function Editor({
             </button>
             <label className="ws-field">
               <span>설계 내용</span>
-              <textarea spellCheck={false} value={importText} onChange={(e) => {importCheck.current++;setImportText(e.target.value);}} rows={6} />
+              <textarea spellCheck={false} value={importText} onChange={(e) => {
+                importCheck.current++;
+                setImportText(e.target.value);
+                setImportError('');
+                setImportWarning(undefined);
+              }} rows={6} />
             </label>
-            {importError && (
-              <p role="alert" className="ws-danger">
-                {importError}
-              </p>
-            )}
-            {importWarning?.text===importText && <div role="alert">이 프로젝트에서 사용할 수 없는 자료가 있습니다.
+            {importWarning?.text===importText && <div role="alert">
+              <p ref={importWarningHeading} tabIndex={-1}>이 프로젝트에서 사용할 수 없는 자료가 있습니다.</p>
               <ul>{importWarning.missing.map(value=><li key={value}>{value}</li>)}</ul>
               <p>자료를 포함하려면 원본 Agent에서 내 사본 만들기를 사용하거나 이 프로젝트에서 해당 자료판을 발행하세요.</p></div>}
-            <div className="ws-modal-actions">
-              <button className="ws-btn ws-primary" disabled={!importText.trim()} onClick={importGraph}>
-                {importWarning?.text===importText?'자료 없이 현재 초안에 적용':'현재 초안에 적용'}
-              </button>
-            </div>
           </Modal>
         )}
         {dialog === 'ai' && (
-          <Modal title="AI 설계 제안" size="form" onClose={closeAi}>
+          <Modal title="AI 설계 제안" size="form" onClose={closeAi} footer={proposal && proposalMatches && <>
+            <button className="ws-btn" onClick={closeAi}>취소</button>
+            <button className="ws-btn ws-primary" onClick={applyProposal}>{proposal.issues.length ? '초안으로 적용해 수정' : '캔버스에 적용'}</button>
+          </>}>
             {parentBlock && <p className="ws-hint">‘{parentBlock.title}’ 내부 설계에 적용할 변경을 제안합니다.</p>}
             <div className="ws-field">
               <label htmlFor={proposalFormId + '-prompt'}>만들거나 바꿀 일</label>
@@ -1650,10 +1618,6 @@ export default function Editor({
                   <strong>실행 전 수정 {proposal.issues.length}곳</strong>
                   <ul className="ws-issues">{proposal.issues.map((issue, i) => <li key={i}>{issue}</li>)}</ul>
                 </div>}
-                <div className="ws-modal-actions">
-                  <button className="ws-btn" onClick={closeAi}>취소</button>
-                  <button className="ws-btn ws-primary" onClick={applyProposal}>{proposal.issues.length ? '초안으로 적용해 수정' : '캔버스에 적용'}</button>
-                </div>
               </>
             )}
           </Modal>

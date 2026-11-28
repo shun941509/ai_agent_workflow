@@ -12,15 +12,7 @@ import { overviewRouteHeadroom, overviewTargetLimits } from './node-layout';
 import { ROUTE_H, color, extent, fittedView, groupedWireGeometry, nearestWires, nodeLayout, overviewZoom, revealArea, revealBlock, route, selectedPortDirections, wireCaptions, type CanvasView, type Point } from './geometry';
 import './schematic.css';
 
-type Gesture = { kind: 'move' | 'pan' | 'wire'; pointerId: number; capture: HTMLElement; corrected?: boolean; id?: string; outputId?: string; start: Point; origin: Point };
-function touchPair(points: Map<number, Point>) {
-  const [first, second] = points.values();
-  if (!first || !second) return;
-  return {
-    x: (first.x + second.x) / 2, y: (first.y + second.y) / 2,
-    distance: Math.hypot(first.x - second.x, first.y - second.y),
-  };
-}
+type Gesture = { kind: 'move' | 'pan' | 'wire'; pointerId: number; capture: HTMLElement; id?: string; outputId?: string; start: Point; origin: Point };
 type RouteOutput = ReturnType<typeof nodeLayout>['routes'][number];
 type TracedRoute = {nodeId:string; outputId:string; visit?:{destination:string; origin:CanvasView}};
 export type CanvasBookmark = {view: CanvasView; overview: boolean; manualZoom?: boolean; scroll: number};
@@ -136,8 +128,6 @@ export function Canvas({
   const [drag, setDrag] = useState<({ id: string } & Point) | null>(null);
   const [wire, setWire] = useState<{ start: Point; end: Point } | null>(null);
   const gesture = useRef<Gesture | null>(null);
-  const touches = useRef(new Map<number, Point>());
-  const pinch = useRef<{ pair: NonNullable<ReturnType<typeof touchPair>>; view: CanvasView } | null>(null);
   const suppressPointerClick = useRef(false);
   const [dimension, setDimension] = useState({ width: 640, height: 500 });
   const fitted = useRef(false);
@@ -331,6 +321,7 @@ export function Canvas({
     revealNode,
     focusItem(item) {
       const element = item ? itemElement(item) : frame.current?.querySelector<HTMLButtonElement>('.ws-canvas-empty button');
+      if (element) frame.current?.scrollIntoView({block:'nearest', inline:'nearest'});
       element?.focus({preventScroll:true});
       if (listFrame.current) element?.scrollIntoView({block:'nearest'});
     },
@@ -465,7 +456,7 @@ export function Canvas({
   }, [selectedNodeId, focus.node?.x, focus.node?.y, list, revealSelection]);
   const changeZoom = (action: 'in' | 'out' | 'reset') => {
     const rect = frame.current?.getBoundingClientRect();
-    if (!rect?.width || !rect.height || gesture.current || pinch.current) return;
+    if (!rect?.width || !rect.height || gesture.current) return;
     if ((action === 'out' && view.zoom <= minZoom) || (action === 'in' && view.zoom >= maxZoom)) return;
     const item = zoomItem();
     const point = item && itemZoomPoint(item, rect);
@@ -499,7 +490,6 @@ export function Canvas({
       event.preventDefault();
       event.stopPropagation();
       suppressPointerClick.current = true;
-      touches.current.delete(active.pointerId);
       clearPreview();
       if (active.capture.hasPointerCapture(active.pointerId)) active.capture.releasePointerCapture(active.pointerId);
     }
@@ -509,46 +499,13 @@ export function Canvas({
   const pointerDownCapture = (event: ReactPointer<HTMLDivElement>) => {
     if ((event.target as Element).closest('dialog')) return;
     setNavigationNotice('');
+    suppressPointerClick.current = false;
     browsedItem.current = null;
-    if (list) return;
-    if (!pinch.current) suppressPointerClick.current = false;
-    if (event.pointerType !== 'touch') return;
-    const points = touches.current;
-    if (!points.size && (event.target as Element).closest('.ws-zoom,.ws-canvas-jumps')) return;
-    points.set(event.pointerId, { x:event.clientX, y:event.clientY });
-    const pair = touchPair(points);
-    if (!pair) return;
-    // Once a second finger lands, only the camera can move until every finger is lifted.
-    if (points.size === 2) pinch.current = {pair, view};
-    suppressPointerClick.current = true;
-    clearPreview();
-    for (const id of points.keys()) event.currentTarget.setPointerCapture(id);
-    event.preventDefault();
-    event.stopPropagation();
   };
   const start = (event: ReactPointer<HTMLElement>, kind: Gesture['kind'], node?: Block, output?: RouteOutput) => {
-    if (event.button !== 0 || list || pinch.current || gesture.current) return;
+    if (event.button !== 0 || list || gesture.current) return;
     event.stopPropagation();
     justMoved.current = false;
-    let capture = event.currentTarget;
-    // Chrome may target a neighbouring button even when the finger is inside
-    // this one's visible box. Preserve native targeting in wire channels and
-    // open space, and use the saved block/port under the finger between cards.
-    if (compactOverview && event.pointerType === 'touch' && node) {
-      const exact = document.elementFromPoint(event.clientX, event.clientY)
-        ?.closest<HTMLButtonElement>('.ws-world .ws-node-body,.ws-world .ws-port-out');
-      if (exact && exact !== capture && frame.current?.contains(exact)) {
-        const hit = nodes.find(item => item.id === exact.closest<HTMLElement>('[data-workflow-node]')?.dataset.workflowNode);
-        if (hit) {
-          node = hit;
-          kind = exact.classList.contains('ws-port-out') ? 'wire' : 'move';
-          output = exact.dataset.outputPort ? nodeLayout(hit).routes.find(route => route.id === exact.dataset.outputPort) : undefined;
-          capture = exact;
-          event.preventDefault();
-          suppressPointerClick.current = true;
-        }
-      }
-    }
     if (kind === 'move' && node) onSelect({ kind: 'node', id: node.id });
     let origin: Point = kind === 'pan' ? view : (node ?? { x: 0, y: 0 });
     if (kind === 'wire' && node) {
@@ -556,29 +513,10 @@ export function Canvas({
       origin = { x: node.x + layout.width, y: node.y + (output?.y ?? layout.portY) };
       setWire({ start: origin, end: relative(event.clientX, event.clientY) });
     }
-    gesture.current = { kind, pointerId:event.pointerId, capture, corrected:capture !== event.currentTarget, id: node?.id, outputId: output?.id, start: { x: event.clientX, y: event.clientY }, origin };
-    capture.setPointerCapture(event.pointerId);
+    gesture.current = { kind, pointerId:event.pointerId, capture:event.currentTarget, id: node?.id, outputId: output?.id, start: { x: event.clientX, y: event.clientY }, origin };
+    event.currentTarget.setPointerCapture(event.pointerId);
   };
   const move = (event: ReactPointer) => {
-    const points = touches.current;
-    if (points.has(event.pointerId)) {
-      points.set(event.pointerId, {x:event.clientX, y:event.clientY});
-      if (pinch.current) {
-        const next = touchPair(points);
-        if (next) {
-          const {pair, view:initial} = pinch.current;
-          const rect = event.currentTarget.getBoundingClientRect();
-          const zoom = Math.max(minZoom, Math.min(maxZoom, initial.zoom * next.distance / (pair.distance || 1)));
-          zoomMode.current = 'manual';
-          setView({
-            zoom,
-            x:next.x - rect.left - (pair.x - rect.left - initial.x) * zoom / initial.zoom,
-            y:next.y - rect.top - (pair.y - rect.top - initial.y) * zoom / initial.zoom,
-          });
-        }
-        return;
-      }
-    }
     const g = gesture.current;
     if (!g || g.pointerId !== event.pointerId) return;
     const dx = event.clientX - g.start.x,
@@ -596,16 +534,7 @@ export function Canvas({
     if (g.kind === 'wire')
       setWire({ start: g.origin, end: relative(event.clientX, event.clientY) });
   };
-  const finishTouch = (event: ReactPointer) => {
-    touches.current.delete(event.pointerId);
-    if (!pinch.current) return false;
-    const remaining = touchPair(touches.current);
-    if (remaining) pinch.current = {pair:remaining,view};
-    if (!touches.current.size) pinch.current = null;
-    return true;
-  };
   const end = (event: ReactPointer) => {
-    if (finishTouch(event)) return;
     const g = gesture.current;
     if (!g || g.pointerId !== event.pointerId) return;
     gesture.current = null;
@@ -617,10 +546,6 @@ export function Canvas({
         x: Math.round(g.origin.x + (event.clientX - g.start.x) / view.zoom),
         y: Math.round(g.origin.y + (event.clientY - g.start.y) / view.zoom),
       });
-    } else if (g.corrected && g.kind === 'move' && g.id) {
-      activateBlock(g.id);
-      revealSelection();
-      if (window.matchMedia('(max-width:680px)').matches) onInspect(g.capture);
     }
     if (g.kind === 'wire' && g.id) {
       const target = document
@@ -633,7 +558,6 @@ export function Canvas({
     setDrag(null);
   };
   const cancel = (event: ReactPointer) => {
-    if (finishTouch(event)) return;
     if (gesture.current?.pointerId === event.pointerId) {
       suppressPointerClick.current = true;
       clearPreview();
@@ -680,7 +604,7 @@ export function Canvas({
     const description = routes.length ? routes.map(route => route.label).join(' · ') + ' 경로' : connectionDescription(group);
     return (group.from === wireSource.node ? '보내는 연결 · ' : '받는 연결 · ') + description;
   }
-  function selectWire(id: string, inspect = window.matchMedia('(max-width:680px)').matches) {
+  function selectWire(id: string, inspect = false) {
     const element = frame.current?.querySelector<SVGGElement>('g[data-canvas-wire="' + CSS.escape(id) + '"]');
     if (!element) return;
     if (wireChoices.length) onWireChoicesChange([]);
@@ -863,13 +787,11 @@ export function Canvas({
     );
   }
   return (<>
-    <div className="ws-canvas-surface"
-      style={overview && !list && nodes.length ? {
-        '--ws-overview-fit-height': Math.ceil(140 + b.h * overviewZoom(b, {width:dimension.width, height:Infinity})) + 'px',
-      } as CSSProperties : undefined}>
+    <div className="ws-canvas-surface">
     <div
       ref={frame}
       className={'ws-canvas ws-schematic' + (list ? ' ws-canvas-list' : '')}
+      role="region"
       aria-label="Workflow 캔버스"
       onFocusCapture={event => {
         const target = event.target as Element;
@@ -1010,7 +932,7 @@ export function Canvas({
                       if (event.currentTarget.matches(':focus-visible')) revealConnection(event.currentTarget);
                     }}
                     onBlur={() => setFocusedTip(undefined)}
-                    onPointerEnter={event => { if (event.pointerType !== 'touch') setHoveredTip(g.id); }}
+                    onPointerEnter={() => setHoveredTip(g.id)}
                     onPointerLeave={() => setHoveredTip(undefined)}
                     onPointerDown={(e) => e.stopPropagation()}
                     onClick={(e) => {
@@ -1089,7 +1011,7 @@ export function Canvas({
               {/* A visible caption directly identifies its wire, even above a crossing. */}
               {groups.map((g, index) => captions.has(g.id) &&
                 <use key={g.id} href={'#' + labelPrefix + index} className="ws-caption-link"
-                  onPointerEnter={event => { if (event.pointerType !== 'touch') setHoveredTip(g.id); }}
+                  onPointerEnter={() => setHoveredTip(g.id)}
                   onPointerLeave={() => setHoveredTip(undefined)}
                   data-legend-muted={isMuted(g) || undefined}
                   opacity={activeRouteId && !activePaths.has(g.id) ? .48 : undefined}
@@ -1149,13 +1071,9 @@ export function Canvas({
                     type="button"
                     onFocus={e => { if (browsedItem.current !== e.currentTarget) onSelect({kind:'node', id:n.id}); }}
                     onPointerDown={(e) => start(e, 'move', n)}
-                    onClick={(e) => {
+                    onClick={() => {
                       activateBlock(n.id);
-                      if (!justMoved.current) {
-                        // Reposition after the tap reaches this button, including at the canvas edge.
-                        revealSelection();
-                        if (window.matchMedia('(max-width:680px)').matches) onInspect(e.currentTarget);
-                      }
+                      if (!justMoved.current) revealSelection();
                     }}
                     onDoubleClick={e => onInspect(e.currentTarget)}
                     onBlur={() => { heldArrow.current = null; }}
@@ -1220,7 +1138,7 @@ export function Canvas({
                 width={nodeLayout(n).width}
                 height={nodeLayout(n).height}
                 rx="4"
-                fill={selection?.id === n.id ? '#4057ac' : '#bdc6d8'}
+                fill={selection?.id === n.id ? 'var(--accent)' : 'var(--field-border)'}
               />
             ))}
           </svg>
@@ -1324,7 +1242,7 @@ export function Canvas({
       <div className="ws-legend" role="group" aria-label="연결선 종류">
         {lineKinds.map(kind => <button type="button" key={kind} aria-label={connectionKindLabels[kind] + ' 강조'}
           aria-describedby={tipKey === kind ? tipId : undefined} aria-pressed={highlightKind === kind}
-          onPointerEnter={event => { if (event.pointerType !== 'touch') setHoveredTip(kind); }}
+          onPointerEnter={() => setHoveredTip(kind)}
           onPointerLeave={() => setHoveredTip(undefined)} onFocus={() => focusTip(kind)} onBlur={() => setFocusedTip(undefined)}
           onClick={() => setHighlightKind(current => current === kind ? null : kind)}>
           <i className={'ws-swatch ws-' + kind} aria-hidden="true" />{connectionKindLabels[kind]}

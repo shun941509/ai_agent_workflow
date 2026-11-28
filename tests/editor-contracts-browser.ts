@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import {existsSync} from 'node:fs';
-import {chromium,expect,type Locator} from '@playwright/test';
+import {chromium,expect} from '@playwright/test';
 import {createBlock,type Graph} from '../src/domain';
 import {registerBrowserAccount} from './browser-account';
 
@@ -168,25 +168,21 @@ try{
   await expect(json).toHaveValue(typed);
   console.log('PASS field deletion retains focus and saving preserves JSON formatting');
 
-  for (const width of [1440,320]) {
-    const mobile=width===320;
-    const device=await browser.newContext({baseURL,viewport:{width,height:mobile?640:900},
-      isMobile:mobile,hasTouch:mobile,storageState:await ctx.storageState()});
+  for (const type of ['agent.task','data.validate'] as const) {
+    const desktop=await browser.newContext({baseURL,viewport:{width:1440,height:900},
+      storageState:await ctx.storageState()});
     try {
-      const ui=await device.newPage();
-      const activate=(control:Locator)=>mobile?control.tap():control.click();
-      const target=createBlock(mobile?'data.validate':'agent.task',{id:'target',title:'검사 블록'});
+      const ui=await desktop.newPage();
+      const target=createBlock(type,{id:'target',title:'검사 블록'});
       const draft=await api('project.create',{title:'속성 연결 확인',graph:{nodes:[
         createBlock('input.user_request',{id:'source',title:'질문 입력'}),target,
         createBlock('output.answer',{id:'answer',title:'답변 전달'}),
       ],edges:[{id:'existing',from:'target',to:'answer',kind:'flow',out:'next',input:'in'}]}});
       const readGraph=async():Promise<Graph>=>(await api('project.open',{id:draft.id})).graph;
       const openTarget=async()=>{
-        const close=ui.getByRole('button',{name:'속성 닫기',exact:true});
-        if(mobile&&await close.isVisible())await activate(close);
         const list=ui.getByRole('button',{name:'목록으로 편집',exact:true});
-        if(await list.getAttribute('aria-pressed')!=='true')await activate(list);
-        await activate(ui.locator('[data-canvas-block="target"]'));
+        if(await list.getAttribute('aria-pressed')!=='true')await list.click();
+        await ui.locator('[data-canvas-block="target"]').click();
       };
       await ui.goto('/?edit='+draft.id);
       await openTarget();
@@ -202,40 +198,95 @@ try{
       await expect(links.getByRole('heading',{name:'받는 항목'})).toBeHidden();
       await expect(receive).toBeVisible();
       await expect(missing).toBeVisible();
-      await activate(ports);
+      await ports.click();
       for (const label of ['받는 항목','보내는 항목']) await expect(links.getByRole('heading',{name:label})).toBeVisible();
       for (const label of ['입력값','결과']) await expect(links.getByText(label,{exact:true})).toBeVisible();
-      await activate(ports);
-      await activate(advanced);
-      if(!mobile)await expect(panel.getByLabel('최대 판단 횟수')).toBeVisible();
+      await ports.click();
+      await advanced.click();
+      if(type==='agent.task')await expect(panel.getByLabel('최대 판단 횟수')).toBeVisible();
       const x=panel.getByLabel('가로 위치 (X)'),y=panel.getByLabel('세로 위치 (Y)');
       await expect(x).toBeHidden();
-      await activate(position);
+      await position.click();
       const originalX=Number(await x.inputValue());
-      await activate(panel.getByRole('button',{name:'오른쪽 방향으로 8px 이동'}));
+      await panel.getByRole('button',{name:'오른쪽 방향으로 8px 이동'}).click();
       await expect(x).toHaveValue(String(originalX+8));
       await x.fill('-26');await y.fill('308');
-      await activate(panel.getByRole('button',{name:'위치 적용'}));
+      await panel.getByRole('button',{name:'위치 적용'}).click();
       await expect.poll(async()=>{const node=(await readGraph()).nodes.find(n=>n.id==='target')!;return [node.x,node.y];}).toEqual([-26,308]);
-      if(!mobile){
-        await ui.getByRole('button',{name:'실행 취소',exact:true}).click();
-        await expect(x).toHaveValue(String(originalX+8));
-      }
-      await activate(advanced);
+      await ui.getByRole('button',{name:'실행 취소',exact:true}).click();
+      await expect(x).toHaveValue(String(originalX+8));
+      await advanced.click();
       await expect(x).toBeHidden();
       await expect(links.getByRole('heading',{name:'받는 항목'})).toBeHidden();
-      await activate(receive);
+      await receive.click();
       const dialog=ui.getByRole('dialog',{name:'연결 추가'});
       await dialog.getByLabel('값을 보낼 블록').selectOption('source');
       await dialog.getByRole('checkbox',{name:'결과 → 입력값',exact:true}).check();
-      await activate(dialog.getByRole('button',{name:'연결 적용'}));
+      await dialog.getByRole('button',{name:'연결 적용'}).click();
       await expect.poll(async()=>(await readGraph()).edges.some(e=>e.from==='source'&&e.to==='target'&&e.kind==='data'&&e.input==='input')).toBe(true);
       await openTarget();
       await expect(receive).toHaveCount(0);
       await expect(missing).toHaveCount(0);
       await expect(links.getByRole('button',{name:'질문 입력 → 검사 블록'})).toBeVisible();
       await expect(links.getByRole('button',{name:'검사 블록 → 답변 전달'})).toBeVisible();
-      console.log('PASS '+width+'px block position, available ports, and required-input repair with existing links');
-    } finally {await device.close();}
+      console.log('PASS desktop '+type+' block position, available ports, and required-input repair with existing links');
+    } finally {await desktop.close();}
+  }
+  const compactOwner = await browser.newContext({baseURL, viewport:{width:390,height:540}, storageState:await ctx.storageState()});
+  const compactReader = await browser.newContext({baseURL, viewport:{width:390,height:540}});
+  try {
+    const workbench = await compactOwner.newPage();
+    await workbench.goto('/?edit=' + simple.id);
+    const projectMenu = workbench.getByLabel('프로젝트 메뉴',{exact:true});
+    await projectMenu.press('Enter');
+    const save = workbench.getByRole('button',{name:'저장',exact:true});
+    await expect(save).toBeInViewport({ratio:1});
+    await workbench.keyboard.press('Tab');
+    await expect(save).toBeFocused();
+    await workbench.keyboard.press('Escape');
+    await expect(projectMenu).toBeFocused();
+    assert.ok(await workbench.locator('.ws-workbench').evaluate(el => el.scrollWidth <= el.clientWidth + 1));
+    await workbench.setViewportSize({width:390,height:844});
+    await workbench.getByRole('button',{name:'시험 실행',exact:true}).press('Enter');
+    await expect(workbench.getByRole('tab',{name:'실행 결과',exact:true})).toBeFocused();
+    await expect(workbench.getByRole('button',{name:'질문 실행',exact:true})).toBeInViewport({ratio:1});
+    await workbench.getByRole('button',{name:'실행 화면 닫기',exact:true}).click();
+    await workbench.setViewportSize({width:390,height:540});
+
+    const navigation = workbench.getByRole('button',{name:'작업실 메뉴',exact:true});
+    if (await navigation.isVisible()) await navigation.click();
+    await workbench.getByRole('button',{name:'설계 가져오기',exact:true}).click();
+    const importer = workbench.getByRole('dialog',{name:'설계 가져오기',exact:true});
+    const content = importer.getByLabel('설계 내용');
+    const apply = importer.getByRole('button',{name:'현재 초안에 적용',exact:true});
+    await expect(apply).toBeDisabled();
+    await expect(apply).toBeInViewport({ratio:1});
+    await content.fill('{');
+    await apply.click();
+    await expect(importer.getByRole('alert')).toHaveText('설계 JSON을 읽을 수 없습니다. 내보낸 설계 파일을 선택하거나 설계 내용을 확인하세요.');
+    await expect(importer.getByRole('alert')).toBeInViewport({ratio:1});
+    await content.fill('null');
+    await expect(importer.getByRole('alert')).toHaveCount(0);
+    await workbench.keyboard.press('Escape');
+    await expect(importer).toHaveCount(0);
+
+    await registerBrowserAccount(compactReader);
+    const reader = await compactReader.newPage();
+    await reader.goto('/?agent=' + id);
+    await reader.getByRole('button',{name:'Agent 사용',exact:true}).click();
+    const run = reader.locator('dialog.studio-run-panel');
+    const history = run.getByRole('button',{name:'내 실행 기록',exact:true});
+    const historyPanel = run.getByRole('complementary',{name:'내 실행 기록'});
+    await expect(historyPanel).toBeHidden();
+    await expect(run.getByRole('textbox',{name:'Agent에게 보낼 질문',exact:true})).toBeInViewport({ratio:1});
+    assert.ok(await run.locator('.run-grid').evaluate(el => el.scrollWidth <= el.clientWidth + 1));
+    await history.press('Enter');
+    await expect(historyPanel).toBeVisible();
+    await history.press('Enter');
+    await expect(historyPanel).toBeHidden();
+    console.log('PASS compact editor menus, import footer feedback, and published run history with no horizontal overflow');
+  } finally {
+    await compactOwner.close();
+    await compactReader.close();
   }
 }finally{await ctx.close();await browser.close();}

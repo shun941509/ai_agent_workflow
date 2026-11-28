@@ -40,7 +40,10 @@ try{
   };
   const project=await api('project.create',{title:'검토와 예약 승인',graph});
   await page.goto('/?edit='+project.id);
-  await button('예약 취소 확인 블록 속성').click();
+  await button('목록으로 편집').click();
+  const approvalBlock = page.locator('.ws-graph-list [data-canvas-block="consent"]');
+  await expect(approvalBlock).toContainText('예약 취소 확인');
+  await approvalBlock.click();
   await page.getByLabel('승인 안내',{exact:true}).fill(notice);
   await page.keyboard.press('Control+s');
   await expect.poll(async()=>((await api('project.open',{id:project.id})).graph as Graph).nodes.find(n=>n.id==='consent')?.config.prompt).toBe(notice);
@@ -52,7 +55,6 @@ try{
   await expect(card.getByText('검토할 초안',{exact:true})).toBeVisible({timeout:15000});
   await expect(card.getByText(draft,{exact:true})).toBeVisible();
   await expect(card.getByText('토요일 마감 시각을 확인하세요.',{exact:true})).toBeVisible();
-  await page.setViewportSize({width:390,height:844});
   await card.getByRole('textbox',{name:'검토 의견'}).fill('시각을 확인했습니다.');
   async function reopenWait(question:string){
     await page.reload();
@@ -69,9 +71,8 @@ try{
   await expect(card.getByText(notice,{exact:true})).toBeVisible();
   await button('거절').click();
   await expect(page.locator('.run-output')).toContainText('"approved": false',{timeout:15000});
-  console.log('PASS saved approval notice, visible connected review draft, mobile feedback and rejection through the worker');
+  console.log('PASS saved approval notice, connected review draft, feedback and rejection through the worker');
 
-  await page.setViewportSize({width:1440,height:900});
   const child={nodes:[createBlock('input.user_request',{id:'source'}),createBlock('output.answer',{id:'result'})],
     edges:[flow('source','result'),data('source','result')]};
   const choice=await api('project.create',{title:'조사 지점 두 곳',graph:{
@@ -91,7 +92,7 @@ try{
   await button('같은 실행 이어가기').click();
   await expect(page.locator('.run-answer-meta span')).toHaveText('완료',{timeout:15000});
   assert.deepEqual(await page.evaluate(()=>Object.keys(sessionStorage).filter(key=>key.startsWith('studio.wait-draft.'))),[]);
-  console.log('PASS reopened mobile review and desktop dynamic-agent selection drafts and cleared accepted replies');
+  console.log('PASS reopened review and dynamic-agent selection drafts and cleared accepted replies');
 
   const table:Graph={
     nodes:[

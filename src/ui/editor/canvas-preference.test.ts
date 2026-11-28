@@ -10,14 +10,13 @@ test('작업자가 선택한 보기는 같은 계정의 같은 Workflow에서만
     setItem:(key:string, value:string) => values.set(key, value),
   }}});
   try {
-    assert.equal(preferredList('first', 'library', true), true);
-    rememberCanvasMode('first', 'library', 'diagram');
-    assert.equal(preferredList('first', 'library', true), false);
-    assert.equal(preferredList('second', 'library', true), true);
-    assert.equal(preferredList('first', 'other', true), true);
-    assert.equal(preferredList('first', 'other', false), false);
+    assert.equal(preferredList('first', 'library'), false);
     rememberCanvasMode('first', 'library', 'list');
-    assert.equal(preferredList('first', 'library', false), true);
+    assert.equal(preferredList('first', 'library'), true);
+    assert.equal(preferredList('second', 'library'), false);
+    assert.equal(preferredList('first', 'other'), false);
+    rememberCanvasMode('first', 'library', 'diagram');
+    assert.equal(preferredList('first', 'library'), false);
   } finally {
     if (previous) Object.defineProperty(globalThis, 'window', previous);
     else Reflect.deleteProperty(globalThis, 'window');

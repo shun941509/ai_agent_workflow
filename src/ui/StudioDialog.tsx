@@ -12,7 +12,7 @@ export default function StudioDialog({
   footer?: ReactNode;
   size?: 'confirm' | 'standard' | 'form' | 'settings' | 'workspace';
   wide?: boolean;
-  initialFocus?: RefObject<HTMLButtonElement | null>;
+  initialFocus?: RefObject<HTMLElement | null>;
   descriptionId?: string;
   dismissDisabled?: boolean;
 }) {

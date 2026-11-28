@@ -1,0 +1,1186 @@
+{
+  "rows": [
+    {
+      "width": 390,
+      "state": "home",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        200,
+        480
+      ],
+      "main": [
+        480,
+        480
+      ],
+      "table": null,
+      "row": [
+        446,
+        446
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "projects",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        200,
+        480
+      ],
+      "main": [
+        480,
+        480
+      ],
+      "table": null,
+      "row": [
+        442,
+        442
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "nav",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        200,
+        480
+      ],
+      "main": [
+        480,
+        480
+      ],
+      "table": [
+        442,
+        510
+      ],
+      "row": null,
+      "dialog": null,
+      "count": [
+        580,
+        631
+      ]
+    },
+    {
+      "width": 390,
+      "state": "create",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        200,
+        480
+      ],
+      "main": [
+        480,
+        480
+      ],
+      "table": null,
+      "row": [
+        442,
+        442
+      ],
+      "dialog": [
+        356,
+        356,
+        584
+      ],
+      "field": 324,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "create-ai",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        200,
+        480
+      ],
+      "main": [
+        480,
+        480
+      ],
+      "table": null,
+      "row": [
+        442,
+        442
+      ],
+      "dialog": [
+        356,
+        356,
+        429
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "project-delete",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        200,
+        480
+      ],
+      "main": [
+        480,
+        480
+      ],
+      "table": null,
+      "row": [
+        442,
+        442
+      ],
+      "dialog": [
+        356,
+        356,
+        304
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "project-share",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        200,
+        480
+      ],
+      "main": [
+        480,
+        480
+      ],
+      "table": null,
+      "row": [
+        442,
+        442
+      ],
+      "dialog": [
+        356,
+        356,
+        690
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "projects-empty",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        200,
+        480
+      ],
+      "main": [
+        480,
+        480
+      ],
+      "table": null,
+      "row": [
+        442,
+        442
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "projects-trash",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        200,
+        480
+      ],
+      "main": [
+        480,
+        480
+      ],
+      "table": null,
+      "row": [
+        442,
+        442
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "assets",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        200,
+        480
+      ],
+      "main": [
+        480,
+        480
+      ],
+      "table": [
+        442,
+        510
+      ],
+      "row": null,
+      "dialog": null,
+      "count": [
+        580,
+        631
+      ]
+    },
+    {
+      "width": 390,
+      "state": "asset-create",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        200,
+        480
+      ],
+      "main": [
+        480,
+        480
+      ],
+      "table": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "asset-dirty",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        200,
+        480
+      ],
+      "main": [
+        480,
+        480
+      ],
+      "table": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "asset-detail",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        200,
+        480
+      ],
+      "main": [
+        480,
+        480
+      ],
+      "table": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "asset-delete",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        200,
+        480
+      ],
+      "main": [
+        480,
+        480
+      ],
+      "table": null,
+      "row": null,
+      "dialog": [
+        356,
+        356,
+        406
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "asset-edit",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        200,
+        480
+      ],
+      "main": [
+        480,
+        480
+      ],
+      "table": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "assets-trash",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        200,
+        480
+      ],
+      "main": [
+        480,
+        480
+      ],
+      "table": null,
+      "row": [
+        442,
+        442
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "shared",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        200,
+        480
+      ],
+      "main": [
+        480,
+        480
+      ],
+      "table": null,
+      "row": [
+        442,
+        442
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "shared-agent",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        200,
+        480
+      ],
+      "main": [
+        480,
+        480
+      ],
+      "table": null,
+      "row": [
+        442,
+        442
+      ],
+      "dialog": [
+        356,
+        356,
+        171
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "shared-assets",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        200,
+        480
+      ],
+      "main": [
+        480,
+        480
+      ],
+      "table": [
+        442,
+        510
+      ],
+      "row": null,
+      "dialog": null,
+      "count": [
+        537,
+        588
+      ]
+    },
+    {
+      "width": 390,
+      "state": "shared-asset",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        200,
+        480
+      ],
+      "main": [
+        480,
+        480
+      ],
+      "table": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "connect",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        200,
+        480
+      ],
+      "main": [
+        480,
+        480
+      ],
+      "table": null,
+      "row": [
+        322,
+        322
+      ],
+      "dialog": [
+        356,
+        356,
+        292
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "home",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "row": [
+        1144,
+        1144
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "projects",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "row": [
+        1150,
+        1150
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "nav",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": [
+        1150,
+        1150
+      ],
+      "row": null,
+      "dialog": null,
+      "count": [
+        1319,
+        1370
+      ]
+    },
+    {
+      "width": 1440,
+      "state": "create",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "row": [
+        1150,
+        1150
+      ],
+      "dialog": [
+        638,
+        638,
+        588
+      ],
+      "field": 590,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "create-ai",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "row": [
+        1150,
+        1150
+      ],
+      "dialog": [
+        638,
+        638,
+        424
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "project-delete",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "row": [
+        1150,
+        1150
+      ],
+      "dialog": [
+        414,
+        414,
+        320
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "project-share",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "row": [
+        1150,
+        1150
+      ],
+      "dialog": [
+        862,
+        862,
+        503
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "projects-empty",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "row": [
+        1150,
+        1150
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "projects-trash",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "row": [
+        1150,
+        1150
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "assets",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": [
+        1150,
+        1150
+      ],
+      "row": null,
+      "dialog": null,
+      "count": [
+        1319,
+        1370
+      ]
+    },
+    {
+      "width": 1440,
+      "state": "asset-create",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "asset-dirty",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "asset-detail",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "asset-delete",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "row": null,
+      "dialog": [
+        502,
+        502,
+        379
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "asset-edit",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "assets-trash",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "row": [
+        1150,
+        1150
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "shared",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "row": [
+        1150,
+        1150
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "shared-agent",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "row": [
+        1150,
+        1150
+      ],
+      "dialog": [
+        502,
+        502,
+        187
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "shared-assets",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": [
+        1150,
+        1150
+      ],
+      "row": null,
+      "dialog": null,
+      "count": [
+        1319,
+        1370
+      ]
+    },
+    {
+      "width": 1440,
+      "state": "shared-asset",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "connect",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "row": [
+        452,
+        452
+      ],
+      "dialog": [
+        502,
+        502,
+        286
+      ],
+      "field": null,
+      "count": null
+    }
+  ],
+  "failures": [],
+  "errors": [],
+  "scans": [
+    {
+      "width": 390,
+      "state": "home",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "projects",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "nav",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "create",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "project-delete",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "project-share",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "projects-trash",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "assets",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "asset-create",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "asset-detail",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "asset-delete",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "assets-trash",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "shared-agent",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "shared-assets",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "shared-asset",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "connect",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "home",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "projects",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "nav",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "create",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "project-delete",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "project-share",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "projects-trash",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "assets",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "asset-create",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "asset-detail",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "asset-delete",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "assets-trash",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "shared-agent",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "shared-assets",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "shared-asset",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "connect",
+      "violations": []
+    }
+  ]
+}

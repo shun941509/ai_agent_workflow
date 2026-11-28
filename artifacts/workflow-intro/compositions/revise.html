@@ -1,0 +1,143 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: var(--paper, #f6f2e7);
+      color: var(--ink, #123c36);
+      font-family: "Studio Sans", sans-serif;
+    }
+
+    .revise-heading {
+      position: absolute;
+      top: 206px;
+      left: 192px;
+      width: 760px;
+    }
+
+    .revise-label {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      color: var(--red, #a43939);
+      font-size: 29px;
+      line-height: 36px;
+      font-weight: 700;
+    }
+
+    .revise-label::before {
+      content: "";
+      width: 45px;
+      height: 3px;
+      background: currentColor;
+    }
+
+    .revise-title {
+      margin: 19px 0 0;
+      font-size: 76px;
+      font-weight: 700;
+      letter-spacing: -0.07em;
+      line-height: 1.3;
+      white-space: nowrap;
+    }
+
+    .revise-amounts {
+      position: absolute;
+      left: 192px;
+      top: 444px;
+      height: 257px;
+      width: 730px;
+      display: flex;
+      align-items: center;
+      gap: 34px;
+      border-top: 1px solid #a6b1a5;
+      border-bottom: 1px solid #a6b1a5;
+      box-sizing: border-box;
+      font: 400 161px/1 "Studio Serif", serif;
+      letter-spacing: -0.09em;
+      white-space: nowrap;
+    }
+
+    .revise-arrow {
+      display: block;
+      width: 80px;
+      height: 31px;
+      flex: none;
+      overflow: visible;
+    }
+
+    .revise-new {
+      color: var(--red, #a43939);
+    }
+
+    .revise-test {
+      position: absolute;
+      top: 750px;
+      left: 192px;
+      font-size: 32px;
+      font-weight: 650;
+      letter-spacing: -1px;
+    }
+
+    .revise-source {
+      position: absolute;
+      top: 184px;
+      left: 1027px;
+      width: 700px;
+      height: 651px;
+      overflow: hidden;
+      background: white;
+      outline: 1px solid #a6b1a5;
+    }
+
+    .revise-panel {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .revise-field {
+      position: absolute;
+      left: 3.773585%;
+      top: 287.26px;
+      width: 92.45283%;
+      height: 363.21px;
+    }
+  </style>
+
+  <section id="root" data-composition-id="revise" data-width="1920" data-height="1080">
+    <header class="revise-heading" id="revise-heading">
+      <div class="revise-label"><span data-var-text="reviseLabel">도서관 이용규정</span></div>
+      <h2 class="revise-title" data-var-text="reviseTitle">대출 한도를 바꿉니다</h2>
+    </header>
+    <div class="revise-amounts" id="revise-amounts">
+      <span id="revise-old" data-var-text="reviseOld">3권</span>
+      <svg id="revise-arrow" class="revise-arrow" viewBox="0 0 80 31" aria-hidden="true">
+        <path d="M1 15.5h75M63 2.5l13 13-13 13" fill="none" stroke="currentColor" stroke-width="3"/>
+      </svg>
+      <span id="revise-new" class="revise-new" data-var-text="reviseNew">5권</span>
+    </div>
+    <p class="revise-test" id="revise-test">시험 실행&nbsp; › &nbsp;현재 원문 · 새 대화</p>
+    <div class="revise-source" id="revise-source" data-layout-allow-overflow data-layout-allow-overlap>
+      <img class="revise-panel" data-var-src="sourceImage" src="assets/source.png" alt="도서관 이용규정의 자료 원문. 한 사람의 대출 한도는 3권입니다.">
+      <img class="revise-field" id="revise-field" data-var-src="newRuleImage" src="assets/new-rule.png"
+        alt="수정한 자료 원문. 한 사람당 최대 5권까지 빌릴 수 있습니다.">
+    </div>
+  </section>
+
+  <script>
+    (() => {
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo("#revise-source", { x: 40 }, { x: 0, duration: 0.65, ease: "power3.out" }, 0);
+      tl.fromTo("#revise-arrow", { scaleX: 0, transformOrigin: "0% 50%" },
+        { scaleX: 1, duration: 0.38, ease: "power2.out" }, 2.14);
+      tl.fromTo("#revise-new", { y: 16, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.44, ease: "power3.out" }, 2.42);
+      tl.fromTo("#revise-field", { opacity: 0 }, { opacity: 1, duration: 0.1, ease: "none" }, 2.49);
+      tl.fromTo("#revise-test", { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.4, ease: "power2.out" }, 4.25);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["revise"] = tl;
+    })();
+  </script>
+</template>

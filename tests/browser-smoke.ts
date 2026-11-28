@@ -27,11 +27,9 @@ const desktop = await browser.newContext({
   baseURL,
   viewport: { width: 1500, height: 940 },
 });
-const mobile = await browser.newContext({
+const reader = await browser.newContext({
   baseURL,
-  viewport: { width: 390, height: 844 },
-  isMobile: true,
-  hasTouch: true,
+  viewport: { width: 1440, height: 900 },
 });
 const errors: string[] = [];
 const stamp = crypto.randomUUID().slice(0, 8);
@@ -84,10 +82,63 @@ async function signUpFromLogin(page: Page, login: string) {
   await expect(page).toHaveURL(url => url.pathname === '/');
 }
 
-async function checkLoginRequired(small: boolean) {
+async function checkLoginTheme(page: Page) {
+  const theme = page.getByRole('switch', {name:'다크 모드', exact:true});
+  const surface = page.getByRole('main');
+  await page.setViewportSize({width:1280, height:900});
+  await expect(theme).toBeChecked();
+  await expect(page.getByRole('option', {name:'시스템 설정', exact:true, includeHidden:true})).toHaveCount(0);
+  const dark = await surface.evaluate(node => getComputedStyle(node).backgroundColor);
+  await page.emulateMedia({colorScheme:'light'});
+  await expect(surface).toHaveCSS('background-color', dark);
+  await page.reload();
+  await expect(theme).toBeChecked();
+  await expect(surface).toHaveCSS('background-color', dark);
+  await theme.press('Space');
+  await expect(theme).not.toBeChecked();
+  await expect(surface).not.toHaveCSS('background-color', dark);
+  const light = await surface.evaluate(node => getComputedStyle(node).backgroundColor);
+  await page.emulateMedia({colorScheme:'dark'});
+  await page.reload();
+  await expect(theme).not.toBeChecked();
+  await expect(surface).toHaveCSS('background-color', light);
+  await page.emulateMedia({colorScheme:'light'});
+  await theme.press('Enter');
+  await expect(theme).toBeChecked();
+  await expect(surface).toHaveCSS('background-color', dark);
+  await noOverflow(page);
+  await page.setViewportSize({width:1440, height:900});
+  return {light, dark};
+}
+
+async function checkThemeOnArrival(colors: {light:string; dark:string}) {
+  for (const [saved, windows, expected] of [
+    [undefined, 'light', 'light'],
+    ['light', 'dark', 'light'],
+    ['dark', 'light', 'dark'],
+  ] as const) {
+    const context = await browser.newContext({
+      baseURL, colorScheme:windows, viewport:{width:1440, height:900},
+      storageState: saved ? {cookies:[], origins:[{
+        origin:new URL(baseURL!).origin, localStorage:[{name:'workflow-studio:theme', value:saved}],
+      }]} : undefined,
+    });
+    try {
+      const page = await newPage(context);
+      await page.goto('/login');
+      await expect(page.getByRole('switch', {name:'다크 모드', exact:true}))
+        .toBeChecked({checked:expected === 'dark'});
+      await expect(page.getByRole('main')).toHaveCSS('background-color', colors[expected]);
+    } finally {
+      await context.close();
+    }
+  }
+}
+
+async function checkLoginRequired() {
   const publisher = await browser.newContext({ baseURL });
   const reader = await browser.newContext({
-    baseURL, viewport: small ? {width:390,height:844} : {width:1440,height:900}, isMobile:small, hasTouch:small,
+    baseURL, colorScheme:'dark', viewport: {width:1440,height:900},
   });
   const registeredReader = await browser.newContext({baseURL});
   const credentials = {login:'signin-' + crypto.randomUUID().slice(0, 12), password:crypto.randomUUID()};
@@ -110,6 +161,25 @@ async function checkLoginRequired(small: boolean) {
 
     await page.goto('/');
     await expectLoginPage();
+    const surfaceColors = await checkLoginTheme(page);
+    await checkThemeOnArrival(surfaceColors);
+    await page.getByRole('button', {name:'계정 만들기', exact:true}).click();
+    const signupId = form.getByLabel('아이디', {exact:true});
+    const signupPassword = form.getByLabel('비밀번호', {exact:true});
+    await signupId.fill(credentials.login);
+    await signupPassword.fill(crypto.randomUUID());
+    await form.getByRole('button', {name:'계정 만들기', exact:true}).click();
+    await expect(form.getByRole('alert')).toContainText('이미 사용 중인 아이디');
+    await expect(signupId).toBeFocused();
+    await signupPassword.fill(crypto.randomUUID());
+    await expect(signupId).toHaveAttribute('aria-invalid', 'true');
+    await expect(form.getByRole('alert')).toBeVisible();
+    await signupId.fill('x*');
+    await expect(form.getByRole('alert')).toHaveCount(0);
+    await signupPassword.press('Enter');
+    await expect(signupId).toBeFocused();
+    await expect(form.getByRole('alert')).toContainText('3~40자');
+    await page.getByRole('button', {name:'로그인', exact:true}).click();
     await api(reader, 'bootstrap', {}, 401);
     await api(reader, 'project.create', {title:'보호된 작업실'}, 401);
     await api(reader, 'project.open', {id:project.id, token:release.token}, 401);
@@ -117,9 +187,22 @@ async function checkLoginRequired(small: boolean) {
 
     await page.goto(address);
     await expectLoginPage();
+    const password = form.getByLabel('비밀번호', {exact:true});
+    const reveal = form.getByRole('button', {name:'비밀번호 표시', exact:true});
+    await reveal.click();
+    await expect(password).toHaveAttribute('type', 'text');
+    await reveal.click();
+    await expect(password).toHaveAttribute('type', 'password');
     await form.getByLabel('아이디', {exact:true}).fill(credentials.login);
-    await form.getByLabel('비밀번호', {exact:true}).fill('invalid-test-password');
-    await page.route('**/api/studio', route => route.abort('internetdisconnected'), {times:1});
+    await password.fill('invalid-test-password');
+    let failLogin = true;
+    await page.route('**/api/studio', route => {
+      if (failLogin && route.request().postDataJSON()?.action === 'auth.login') {
+        failLogin = false;
+        return route.abort('internetdisconnected');
+      }
+      return route.continue();
+    });
     await form.getByRole('button', {name:'로그인', exact:true}).click();
     await expect(form.getByRole('alert')).toContainText('네트워크 연결과 작업실 서버 상태를 확인하세요.');
     await expect(form.getByLabel('아이디', {exact:true})).toHaveValue(credentials.login);
@@ -132,12 +215,28 @@ async function checkLoginRequired(small: boolean) {
     const detail = page.getByRole('dialog', {name:project.title, exact:true});
     await expect(detail.getByRole('button', {name:'Agent 사용', exact:true})).toBeEnabled();
     await expect(page).toHaveURL(url => url.pathname === '/' && url.searchParams.get('agent') === project.id && url.searchParams.get('token') === release.token && url.hash === '#details');
+    await detail.getByRole('button', {name:'Agent 사용', exact:true}).click();
+    const run = page.getByRole('dialog').filter({has:page.getByRole('button', {name:'실행 화면 닫기', exact:true})});
+    await expect(run).toHaveCSS('background-color', surfaceColors.dark);
     const otherTab = await newPage(reader);
     await otherTab.goto('/?view=projects');
     await expect(otherTab.getByRole('heading', {name:'내 Agent', exact:true})).toBeVisible();
+    const workspaceTheme = otherTab.getByRole('switch', {name:'다크 모드', exact:true});
+    await expect(workspaceTheme).toBeChecked();
+    await otherTab.setViewportSize({width:640, height:800});
+    const menu = otherTab.getByRole('button', {name:'작업실 메뉴', exact:true});
+    await menu.click();
+    await workspaceTheme.click();
+    await expect(workspaceTheme).not.toBeChecked();
+    await expect(run).toHaveCSS('background-color', surfaceColors.light);
+    await page.emulateMedia({colorScheme:'dark'});
+    await expect(run).toHaveCSS('background-color', surfaceColors.light);
+    await noOverflow(otherTab);
+    await workspaceTheme.press('Escape');
+    await expect(menu).toBeFocused();
+    await otherTab.setViewportSize({width:1440, height:900});
     await page.bringToFront();
     await page.goto('/?view=projects');
-    if (small) await page.getByRole('button', {name:'메뉴 열기', exact:true}).click();
     await page.getByRole('button', {name:'로그아웃', exact:true}).click();
     await expectLoginPage();
     await page.goBack();
@@ -257,7 +356,7 @@ async function verifyAnswer(
   return result;
 }
 
-async function verifyMobileSourceRun(ctx: BrowserContext) {
+async function verifySourceRun(ctx: BrowserContext) {
   // Running the source directly through an output exercises the worker without a model provider.
   const original = '대출 한도는 3권입니다. 다음 날에도 반납할 수 있습니다.';
   const changed = original.replace('3권', '5권');
@@ -276,6 +375,7 @@ async function verifyMobileSourceRun(ctx: BrowserContext) {
   const page = await newPage(ctx);
   try {
     await page.goto('/?edit=' + project.id);
+    await page.getByRole('button', {name:'목록으로 편집',exact:true}).click();
     await expect(page.locator('.ws-graph-list [data-canvas-block="rule"]')).toContainText('대출 한도는 3권입니다.');
     await page.getByRole('button', {name:'캔버스로 보기',exact:true}).click();
     const rule = page.getByRole('button', { name: '검증용 대출 규정 블록 속성', exact: true });
@@ -286,13 +386,6 @@ async function verifyMobileSourceRun(ctx: BrowserContext) {
     const propertiesTab = page.getByRole('tab', { name: '속성', exact: true });
     const resultsTab = page.getByRole('tab', { name: '실행 결과', exact: true });
     const results = page.getByRole('tabpanel', { name: '실행 결과', exact: true });
-    await expect(propertiesTab).toBeFocused();
-    await page.keyboard.press('Shift+Tab');
-    assert.equal(await page.locator('.ws-inspector').evaluate(panel => panel.contains(document.activeElement)), true);
-    await source.focus();
-    await source.press('Escape');
-    await expect(rule).toBeFocused();
-    await rule.press('Enter');
     await expect(propertiesTab).toBeFocused();
     const question = '오늘의 대출 한도와 반납 규정을 알려 주세요.';
     const questionField = results.getByLabel('Agent에게 보낼 질문');
@@ -307,7 +400,6 @@ async function verifyMobileSourceRun(ctx: BrowserContext) {
     await propertiesTab.click();
     await expect(source).toHaveValue(changed);
     await page.getByRole('button', { name: '변경 적용', exact: true }).click();
-    await page.getByRole('button', { name: '속성 닫기', exact: true }).click();
     await expect(rule).toContainText('대출 한도는 5권입니다.');
 
     await page.getByRole('button', { name: '시험 실행', exact: true }).click();
@@ -322,16 +414,14 @@ async function verifyMobileSourceRun(ctx: BrowserContext) {
     const [record] = records;
     assert.deepEqual([record.input, record.output, record.state], [question, changed, 'completed']);
     await noOverflow(page);
-    await shot(page, 'editor-mobile-run-result');
+    await shot(page, 'editor-run-result');
     await propertiesTab.click();
     await expect(source).toHaveValue(changed);
     await resultsTab.click();
     await expect(results.locator('.run-output')).toHaveText(changed);
 
-    await page.getByRole('button', { name: '실행 화면 닫기', exact: true }).click();
     await page.getByRole('button', { name: '규정 원문 전달 블록 속성', exact: true }).click();
     await page.getByRole('button', { name: '블록 삭제', exact: true }).click();
-    await page.getByRole('button', { name: '속성 닫기', exact: true }).click();
     await page.getByRole('button', { name: '시험 실행', exact: true }).click();
     await expect(results.getByRole('alert')).toContainText('답변 전달 블록을 추가하세요');
     await expect(results.locator('.run-output')).toBeHidden();
@@ -387,7 +477,7 @@ async function verifyEvidenceRepair(page: Page) {
 
 async function chooseDynamicPolicy(page: Page) {
   await page.getByRole('button', {name: '전체 보기'}).click();
-  await page.getByRole('button', {name: '전문가', exact: true}).click();
+  await page.getByRole('combobox', {name:'실습 수준', exact:true}).selectOption({label:'전문가'});
   await page.locator('.lesson-tile').filter({hasText: /지점/}).click();
   const dialog = page.getByRole('dialog');
   const start = dialog.getByRole('button', {name: '내 사본으로 시작'});
@@ -465,9 +555,9 @@ async function verifyEditorLessonGuides() {
         const task = page.locator('.ws-task');
         await expect(task).toContainText('5권');
         await expect(task).not.toContainText('내려받');
-        await checkGuide(old.id, ['5권','수준별 템플릿'], '인용');
+        await checkGuide(old.id, ['5권','예제 템플릿'], '인용');
       }
-      else await checkGuide(old.id, ['입출력 보기','수준별 템플릿'], '초안');
+      else await checkGuide(old.id, ['입출력 보기','예제 템플릿'], '초안');
       assert.deepEqual((await api(context, 'project.open', {id:old.id})).graph, graph);
     }
   } finally { await context.close(); }
@@ -498,7 +588,7 @@ async function verifyReleaseCopyGuide(context: BrowserContext) {
 async function chooseReleaseDecision(page: Page) {
   await page.getByRole('button', {name: '작업실 홈', exact: true}).click();
   await page.getByRole('button', {name: '전체 보기'}).click();
-  await page.getByRole('button', {name: '전문가', exact: true}).click();
+  await page.getByRole('combobox', {name:'실습 수준', exact:true}).selectOption({label:'전문가'});
   await page.locator('.lesson-tile').filter({hasText: /규정 변경/}).click();
   await page.getByRole('button', {name: '내 사본으로 시작'}).click();
   await expect(page.locator('.ws-editor')).toBeVisible();
@@ -679,51 +769,36 @@ async function verifyConnections(page: Page) {
       return graph.edges.find((e) => e.kind === 'data')?.label;
     })
     .toBe('원래 질문 전달');
-  const phone = await browser.newContext({
+  const reopened = await browser.newContext({
     baseURL,
     storageState: await desktop.storageState(),
-    viewport: { width: 390, height: 844 },
-    isMobile: true,
-    hasTouch: true,
+    viewport: { width: 1440, height: 900 },
   });
   try {
-    const small = await newPage(phone);
-    await small.goto('/?edit=' + agent.id);
-    const openPalette = small.locator('.ws-mobile-palette');
-    await openPalette.click();
-    const palette = small.getByRole('dialog', {name:'블록 팔레트'});
-    await expect(palette.getByRole('searchbox')).toBeFocused();
-    await palette.getByRole('button', {name:'블록 목록 닫기'}).focus();
-    await small.keyboard.press('Shift+Tab');
-    assert.ok(await palette.evaluate(el => el.contains(document.activeElement)));
-    await palette.getByRole('searchbox').press('Escape');
-    await expect(palette).toBeHidden();
-    await expect(openPalette).toBeFocused();
-    await small.getByRole('button', { name: '목록으로 편집' }).click();
-    const listEdge = small.locator('.ws-graph-list').getByRole('button', { name: /받을 질문 → 전달할 답변/ });
+    const listPage = await newPage(reopened);
+    await listPage.goto('/?edit=' + agent.id);
+    await listPage.getByRole('button', { name: '목록으로 편집' }).click();
+    const listEdge = listPage.locator('.ws-graph-list').getByRole('button', { name: /받을 질문 → 전달할 답변/ });
     await listEdge.press('Enter');
-    await expect(small.getByRole('tab', {name:'속성', exact:true})).toBeFocused();
-    await small.getByRole('button', {name:'속성 닫기'}).click();
-    await expect(listEdge).toBeFocused();
-    await listEdge.press('Enter');
+    await expect(listPage.getByRole('tab', {name:'속성', exact:true})).toBeFocused();
     await expect(
-      small.getByRole('textbox',{ name:/선 설명$/ }).last()
+      listPage.getByRole('textbox',{ name:/선 설명$/ }).last()
     ).toHaveValue('원래 질문 전달');
-    await small.getByRole('button', { name: '전달할 값 연결 삭제' }).click();
+    await listPage.getByRole('button', { name: '전달할 값 연결 삭제' }).click();
     await expect(
-      small.getByRole('button', { name: '전달할 값 연결 삭제' })
+      listPage.getByRole('button', { name: '전달할 값 연결 삭제' })
     ).toHaveCount(0);
-    await small.getByRole('button', { name: '전달 항목 추가' }).click();
-    const link = small.getByRole('dialog', { name: '전달 항목 추가' });
+    await listPage.getByRole('button', { name: '전달 항목 추가' }).click();
+    const link = listPage.getByRole('dialog', { name: '전달 항목 추가' });
     await link.getByRole('checkbox').check();
     await link.getByRole('button', { name: '연결 적용' }).click();
     await expect(
-      small.getByRole('button', { name: '전달할 값 연결 삭제' })
+      listPage.getByRole('button', { name: '전달할 값 연결 삭제' })
     ).toBeVisible();
     await expect
       .poll(async () =>
         (
-          (await api(phone, 'project.open', { id: agent.id })).graph as Graph
+          (await api(reopened, 'project.open', { id: agent.id })).graph as Graph
         ).edges
           .map((e) => [e.kind, e.out, e.input])
           .sort()
@@ -732,9 +807,9 @@ async function verifyConnections(page: Page) {
         ['data', 'value', 'input'],
         ['flow', 'next', 'in'],
       ]);
-    await noOverflow(small);
+    await noOverflow(listPage);
   } finally {
-    await phone.close();
+    await reopened.close();
   }
 }
 
@@ -1370,38 +1445,35 @@ async function verifyNamedOutputs(page: Page) {
     [classify.id, 'category:예약', booking.id], [classify.id, 'other', booking.id], [gate.id, 'yes', receipt.id],
   ]);
 
-  const desktopSize = page.viewportSize()!;
-  await page.setViewportSize({ width: 390, height: 844 });
-  try {
-    await route(classify.id, 'other').click();
-    await expect(chooser).toBeVisible();
-    await chooser.getByRole('button', { name: '취소' }).click();
-    await page.getByRole('button', { name: '목록으로 편집' }).click();
-    await page.locator('.ws-graph-list').getByRole('button', { name: /질문 분류 → 예약 안내/ }).click();
-    const conditions = page.getByRole('region', { name: '실행 순서', exact: true });
-    await expect(conditions).toContainText('예약');
-    await expect(conditions).toContainText('미분류');
-    await noOverflow(page);
-  } finally {
-    await page.setViewportSize(desktopSize);
-  }
+  await route(classify.id, 'other').click();
+  await expect(chooser).toBeVisible();
+  await chooser.getByRole('button', { name: '취소' }).click();
+  await page.getByRole('button', { name: '목록으로 편집' }).click();
+  await page.locator('.ws-graph-list').getByRole('button', { name: /질문 분류 → 예약 안내/ }).click();
+  const conditions = page.getByRole('region', { name: '실행 순서', exact: true });
+  await expect(conditions).toContainText('예약');
+  await expect(conditions).toContainText('미분류');
+  await noOverflow(page);
 }
 
-async function checkCatalogAndProjectReturns(ctx: BrowserContext, small: boolean) {
+async function checkCatalogAndProjectReturns(ctx: BrowserContext) {
   const page = await newPage(ctx);
   try {
     await page.goto('/?view=templates');
-    await page.getByRole('button', {name:'전문가', exact:true}).click();
-    await expect(page.locator('.lesson-tile')).toHaveCount(3);
-    if (small) await page.getByRole('button', {name:'메뉴 열기'}).click();
+    const level = page.getByRole('combobox', {name:'실습 수준', exact:true});
+    const topic = page.getByRole('combobox', {name:'실습 주제', exact:true});
+    await level.selectOption({label:'전문가'});
+    await topic.selectOption({label:'소프트웨어 개발'});
+    await expect(page.locator('.lesson-tile')).toHaveCount(1);
     await page.getByRole('button', {name:'작업실 홈', exact:true}).click();
     const all = page.getByRole('button', {name:'전체 보기', exact:true});
     await all.scrollIntoViewIfNeeded();
     const homeY = await page.evaluate(() => window.scrollY);
     await all.click();
-    await expect(page.locator('.lesson-tile')).toHaveCount(13);
-    await expect(page.getByRole('button', {name:'전체', exact:true})).toHaveAttribute('aria-pressed','true');
-    await expect(page.getByRole('heading', {name:'수준별 템플릿'})).toBeInViewport();
+    await expect(page.locator('.lesson-tile')).toHaveCount(templates.length);
+    await expect(level.locator('option:checked')).toHaveText('전체');
+    await expect(topic.locator('option:checked')).toHaveText('전체');
+    await expect(page.getByRole('heading', {name:'예제 템플릿'})).toBeInViewport();
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
     await page.goBack();
     await expect(all).toBeVisible();
@@ -1470,32 +1542,28 @@ async function checkEditorNavigation() {
     async function checkRail(current: string) {
       await expect(nav.getByRole('button')).toHaveText([
         '작업실 홈', 'Workflow 편집기', '내 Agent', '도구 및 자료',
-        '공유 Agent', '공유 도구 및 자료', '수준별 템플릿', '설계 가져오기', '가이드',
+        '공유 Agent', '공유 도구 및 자료', '예제 템플릿', '설계 가져오기', '가이드',
       ]);
       await expect(nav.getByRole('group', { name: '공유', exact: true }).getByRole('button'))
         .toHaveText(['공유 Agent', '공유 도구 및 자료']);
       await expect(nav.getByRole('group', { name: '예제', exact: true }).getByRole('button'))
-        .toHaveText(['수준별 템플릿']);
+        .toHaveText(['예제 템플릿']);
       await expect(nav.getByRole('group', { name: '설계 도구', exact: true }).getByRole('button'))
         .toHaveText(['설계 가져오기', '가이드']);
       await expect(nav.locator('[aria-current="page"]')).toHaveText(current);
       await expect(page.getByText(user.login, { exact: true })).toBeVisible();
       await expect(button('로그아웃')).toBeVisible();
     }
-    async function checkBreakpoint(current: string) {
-      await page.setViewportSize({ width: 800, height: 900 });
-      await expect(button('메뉴 열기')).toBeVisible();
-      await expect(nav).toBeHidden();
-      await button('메뉴 열기').click();
-      await checkRail(current);
-      await expect(menu(current)).toBeInViewport();
-      await page.keyboard.press('Escape');
-      await expect(nav).toBeHidden();
-      await page.setViewportSize({ width: 801, height: 900 });
-      await expect(button('메뉴 열기')).toBeHidden();
-      await expect(menu(current)).toBeInViewport();
-      await page.setViewportSize({ width: 900, height: 940 });
-      await checkRail(current);
+    async function checkDesktopWindows(current: string) {
+      const original = page.viewportSize()!;
+      await menu(current).focus();
+      for (const width of [800, 1280, 1440]) {
+        await page.setViewportSize({width, height: original.height});
+        await checkRail(current);
+        await expect(menu(current)).toBeFocused();
+        await expect(menu(current)).toBeInViewport();
+      }
+      await page.setViewportSize(original);
     }
     async function checkChooser(existingProjects: string[] = []) {
       await expect(page).toHaveURL(/[?&]view=editor(?:&|$)/);
@@ -1507,8 +1575,8 @@ async function checkEditorNavigation() {
 
     await page.goto('/');
     await expect(page.getByRole('heading', { name: '내 작업실', exact: true })).toBeVisible({ timeout: 60000 });
-    await checkBreakpoint('작업실 홈');
-    for (const label of ['작업실 홈', '내 Agent', '도구 및 자료', '수준별 템플릿', '공유 도구 및 자료', '공유 Agent']) {
+    await checkDesktopWindows('작업실 홈');
+    for (const label of ['작업실 홈', '내 Agent', '도구 및 자료', '예제 템플릿', '공유 도구 및 자료', '공유 Agent']) {
       await menu(label).click();
       await checkRail(label);
       await menu('가이드').click();
@@ -1526,7 +1594,7 @@ async function checkEditorNavigation() {
     assert.deepEqual(await ownedProjects(), []);
     await menu('Workflow 편집기').click();
     await checkChooser();
-    await checkBreakpoint('Workflow 편집기');
+    await checkDesktopWindows('Workflow 편집기');
     await page.reload();
     await checkChooser();
     await page.goBack();
@@ -1555,10 +1623,11 @@ async function checkEditorNavigation() {
     await checkChooser([id]);
     await page.goForward();
     await expect(page).toHaveURL(url => url.searchParams.get('edit') === id);
-    await checkBreakpoint('Workflow 편집기');
+    await checkDesktopWindows('Workflow 편집기');
     await menu('가이드').click();
     await expect(guide).toBeVisible();
     await guide.getByRole('button', {name:/돌아가기$/}).click();
+    await expect(button('실습 안내')).toBeVisible();
     await menu('설계 가져오기').click();
     await expect(page.getByRole('dialog', { name: '설계 가져오기' })).toBeVisible();
     await page.keyboard.press('Escape');
@@ -1580,8 +1649,8 @@ async function checkEditorNavigation() {
     await page.goto('/?edit=' + other.id);
     await menu('가이드').click();
     await expect(guide).toBeVisible();
-    await menu('수준별 템플릿').click();
-    await checkRail('수준별 템플릿');
+    await menu('예제 템플릿').click();
+    await checkRail('예제 템플릿');
     await menu('Workflow 편집기').click();
     await expect(page).toHaveURL(url => url.searchParams.get('edit') === other.id);
     await page.goto('/?edit=' + id);
@@ -1694,14 +1763,11 @@ async function checkProjectMenuTargets() {
 
     await menu('공유 Agent').click();
     await page.setViewportSize({ width: 800, height: 900 });
-    await page.getByRole('button', { name: '메뉴 열기' }).click();
     await menu('설계 가져오기').click();
     await checkPicker();
-    await expect(nav).toBeHidden();
     await picker.getByRole('button', { name: first.title, exact: true }).click();
     await expect(page).toHaveURL(url => url.searchParams.get('edit') === first.id);
     await applyImport(first.title, 23);
-    await page.getByRole('button', { name: '메뉴 열기' }).click();
     await menu('내 Agent').click();
     await expect(page.getByRole('heading', { name: '내 Agent', exact: true })).toBeVisible();
     assert.equal(await answer(first.id), '대출 한도는 23권입니다.');
@@ -1719,7 +1785,7 @@ async function checkResumeHome() {
     await page.goto('/');
     const start = page.getByRole('region', {name:'작업 시작 방법'});
     await expect(start.getByRole('button', {name:'새 Agent 만들기'})).toBeInViewport();
-    await expect(start.getByRole('button', {name:'예제로 배우기'})).toBeInViewport();
+    await expect(start.getByRole('button', {name:'예제 템플릿 보기'})).toBeInViewport();
     await page.getByRole('button', { name: '입문 실습 보기' }).click();
     await expect(page.getByRole('dialog')).toContainText('입문');
     await page.keyboard.press('Escape');
@@ -1764,16 +1830,13 @@ async function checkResumeHome() {
     const x = original.nodes.find(node => node.id === 'rules')!.x + 24;
     await expect(preview.locator('[data-node-id="rules"]')).toHaveAttribute('x', String(x));
     await expect(preview.getByRole('button', { name: /도서관 안내 Agent/ })).toBeVisible();
-    for (const viewport of [{ width: 390, height: 844 }, { width: 1440, height: 940 }]) {
-      await page.setViewportSize(viewport);
-      const readableLabel = preview.locator('[data-node-id="rules"] strong');
-      await expect.poll(() => readableLabel.evaluate(el => {
-        const svg = el.closest('svg')!;
-        return parseFloat(getComputedStyle(el).fontSize) * svg.getScreenCTM()!.a;
-      })).toBeGreaterThanOrEqual(12);
-      await expect(readableLabel).toBeInViewport();
-      await noOverflow(page);
-    }
+    const readableLabel = preview.locator('[data-node-id="rules"] strong');
+    await expect.poll(() => readableLabel.evaluate(el => {
+      const svg = el.closest('svg')!;
+      return parseFloat(getComputedStyle(el).fontSize) * svg.getScreenCTM()!.a;
+    })).toBeGreaterThanOrEqual(12);
+    await expect(readableLabel).toBeInViewport();
+    await noOverflow(page);
     await preview.getByRole('button', { name: '전체 배치 보기' }).click();
     await expect(preview.locator('path[marker-end]')).toHaveCount(5);
     await expect(preview.locator('path[data-from="agent"][data-to="file"]')).toHaveCount(1);
@@ -1788,13 +1851,6 @@ async function checkResumeHome() {
     await expect(source).toHaveValue(newSource);
     assert.equal(new URL(page.url()).searchParams.get('edit'), id);
     await shot(page, 'workspace-library-editor');
-    if (artifacts) {
-      await page.setViewportSize({ width: 390, height: 844 });
-      await page.getByRole('button', { name: '속성 열기', exact: true }).click();
-      await shot(page, 'workspace-library-editor-mobile');
-      await page.getByRole('button', { name: '속성 닫기', exact: true }).click();
-      await page.setViewportSize({ width: 1440, height: 940 });
-    }
     const currentDraft = await api(context, 'project.open', {id});
     const edition = await api(context, 'versions.save', {id, revision:currentDraft.revision});
     const typedSource = newSource.replace('5권', '7권');
@@ -1838,38 +1894,35 @@ async function checkResumeHome() {
     });
     await page.goto('/');
     await expect(preview.locator('figcaption')).toContainText('사실 검토 담당의 동료 검토');
-    for (const width of [390, 1440]) {
-      await page.setViewportSize({width, height: 900});
-      const inputs = preview.getByRole('group', {name: '주변 블록 위치 보기'});
-      const source = inputs.getByRole('button', {name: '데이터 제공 검토할 안내 초안'});
-      await source.click();
-      const sourceLabel = preview.locator('[data-node-id="input"] strong');
-      await expect.poll(() => sourceLabel.evaluate(el => {
-        const svg = el.closest('svg')!, view = svg.getBoundingClientRect(), label = el.getBoundingClientRect();
-        return label.left >= view.left && label.right <= view.right &&
-          label.top >= view.top && label.bottom <= view.bottom &&
-          parseFloat(getComputedStyle(el).fontSize) * svg.getScreenCTM()!.a >= 12;
-      })).toBe(true);
-      await inputs.getByRole('button', {name: '기준 사실 검토 담당의 동료 검토'}).click();
-      if (artifacts) await preview.screenshot({path:resolve(artifacts, 'peer-review-home-' + width + '.png')});
-      await preview.getByRole('button', {name: '전체 배치 보기'}).click();
-      await expect(preview.locator('foreignObject')).toHaveCount(team.graph!.nodes.length);
-      await preview.getByRole('button', {name: '주변 블록 보기'}).click();
-      await noOverflow(page);
-    }
+    const inputs = preview.getByRole('group', {name: '주변 블록 위치 보기'});
+    const sourcePosition = inputs.getByRole('button', {name: '데이터 제공 검토할 안내 초안'});
+    await sourcePosition.click();
+    const sourceLabel = preview.locator('[data-node-id="input"] strong');
+    await expect.poll(() => sourceLabel.evaluate(el => {
+      const svg = el.closest('svg')!, view = svg.getBoundingClientRect(), label = el.getBoundingClientRect();
+      return label.left >= view.left && label.right <= view.right &&
+        label.top >= view.top && label.bottom <= view.bottom &&
+        parseFloat(getComputedStyle(el).fontSize) * svg.getScreenCTM()!.a >= 12;
+    })).toBe(true);
+    await inputs.getByRole('button', {name: '기준 사실 검토 담당의 동료 검토'}).click();
+    if (artifacts) await preview.screenshot({path:resolve(artifacts, 'peer-review-home-1440.png')});
+    await preview.getByRole('button', {name: '전체 배치 보기'}).click();
+    await expect(preview.locator('foreignObject')).toHaveCount(team.graph!.nodes.length);
+    await preview.getByRole('button', {name: '주변 블록 보기'}).click();
+    await noOverflow(page);
   } finally {
     await context.close();
   }
 }
 
 try {
-  for (const small of [false, true]) {
-    const ctx = await browser.newContext({baseURL, viewport:small ? {width:390,height:844} : {width:1440,height:900}, isMobile:small, hasTouch:small});
+  {
+    const ctx = await browser.newContext({baseURL, viewport:{width:1440,height:900}});
     try {
-      await checkLoginRequired(small);
+      await checkLoginRequired();
       await registerBrowserAccount(ctx);
       await verifyReleaseCopyGuide(ctx);
-      await checkCatalogAndProjectReturns(ctx, small);
+      await checkCatalogAndProjectReturns(ctx);
     } finally { await ctx.close(); }
   }
   if (process.env.STUDIO_TEST_DATA_DIR) await checkLegacyGuestLogin(process.env.STUDIO_TEST_DATA_DIR);
@@ -1886,20 +1939,21 @@ try {
   await shot(p, 'workspace-desktop');
   await noOverflow(p);
   await p.getByRole('button', { name: '전체 보기' }).click();
-  await expect(p.locator('.lesson-tile')).toHaveCount(13);
+  await expect(p.locator('.lesson-tile')).toHaveCount(templates.length);
   await p.reload();
-  await expect(p.locator('.lesson-tile')).toHaveCount(13);
+  await expect(p.locator('.lesson-tile')).toHaveCount(templates.length);
   await p.goBack();
   await expect(
     p.getByRole('heading', { name: '내 작업실', exact: true })
   ).toBeVisible();
   await p.goForward();
-  await expect(p.locator('.lesson-tile')).toHaveCount(13);
-  const filter = p.getByRole('button', { name: '전문가', exact: true });
+  await expect(p.locator('.lesson-tile')).toHaveCount(templates.length);
+  const filter = p.getByRole('combobox', {name:'실습 수준', exact:true});
   await filter.focus();
-  await p.keyboard.press('Enter');
-  await expect(p.locator('.lesson-tile')).toHaveCount(3);
-  await p.getByRole('button', { name: '입문', exact: true }).click();
+  await filter.press('End');
+  await expect(filter.locator('option:checked')).toHaveText('전문가');
+  await expect(p.locator('.lesson-tile')).toHaveCount(templates.filter(lesson => lesson.level === '전문가').length);
+  await filter.selectOption({label:'입문'});
   await p.locator('[data-lesson-trigger="intro"]').click();
   await p.getByRole('button', { name: '내 사본으로 시작' }).click();
   await expect(p.locator('.ws-node')).toHaveCount(4);
@@ -1918,16 +1972,16 @@ try {
     ),
     'the account owns its template copy'
   );
-  const visitor = await newPage(mobile);
+  const visitor = await newPage(reader);
   await visitor.goto('/');
   await signUpFromLogin(visitor, 'reader-' + stamp);
   await expect(
     visitor.getByRole('heading', { name: '내 작업실', exact: true })
   ).toBeVisible();
-  await shot(visitor, 'workspace-mobile');
+  await shot(visitor, 'workspace-recipient');
   await noOverflow(visitor);
-  await api(mobile, 'project.open', { id: templateProject }, 403);
-  await verifyMobileSourceRun(mobile);
+  await api(reader, 'project.open', { id: templateProject }, 403);
+  await verifySourceRun(reader);
   await chooseDynamicPolicy(p);
   await chooseReleaseDecision(p);
 
@@ -1944,13 +1998,13 @@ try {
     dialog.getByRole('button', { name: '공유 주소 복사' })
   ).toBeVisible();
   project = await api(desktop, 'project.open', { id: project.id });
-  await api(mobile, 'project.open', { id: project.id }, 403);
+  await api(reader, 'project.open', { id: project.id }, 403);
   await visitor.goto('/?agent=' + project.id + '&token=' + project.token);
   const use = visitor.getByRole('dialog', { name: project.title });
   await expect(use.getByRole('button', { name: 'Agent 사용' })).toBeVisible();
   await noOverflow(visitor);
   const first = await verifyAnswer(
-    mobile,
+    reader,
     project.id,
     project.token,
     '대출 한도는 3권입니다.'
@@ -1959,7 +2013,7 @@ try {
   await use.getByRole('button', { name: '내 사본 만들기' }).click();
   await expect(visitor.locator('.ws-editor')).toBeVisible();
   await noOverflow(visitor);
-  await shot(visitor, 'editor-mobile');
+  await shot(visitor, 'editor-recipient');
   const copied = new URL(visitor.url()).searchParams.get('edit');
   assert.notEqual(copied, project.id);
   const saved = await api(desktop, 'project.save', {
@@ -1981,13 +2035,13 @@ try {
     expectedToken:project.token,
   });
   await verifyAnswer(
-    mobile,
+    reader,
     project.id,
     project.token,
     '대출 한도는 5권입니다.'
   );
   await verifyAnswer(
-    mobile,
+    reader,
     project.id,
     project.token,
     '대출 한도는 3권입니다.',
@@ -2031,7 +2085,7 @@ try {
   await dialog.getByRole('button', { name: '선택한 버전 게시' }).click();
   await expect(dialog.getByText('현재 게시 버전 v1', { exact: true })).toBeVisible();
   await verifyAnswer(
-    mobile,
+    reader,
     project.id,
     project.token,
     '대출 한도는 3권입니다.'
@@ -2040,18 +2094,18 @@ try {
   await expect(dialog.getByLabel('공유 범위')).toHaveValue('private');
   await expect(dialog.getByRole('button', { name: '공유 주소 복사' })).toBeHidden();
   await api(
-    mobile,
+    reader,
     'project.open',
     { id: project.id, token: project.token },
     403
   );
-  const mobileCopy = await api(mobile, 'project.open', { id: copied });
-  assert.equal(mobileCopy.mine, true);
+  const readerCopy = await api(reader, 'project.open', { id: copied });
+  assert.equal(readerCopy.mine, true);
   const sharedAgain = await api(desktop, 'versions.publish', {
     id:project.id, version:1, visibility:'link', expectedVisibility:'private', expectedPublicVersion:1,
   });
-  await api(mobile, 'project.open', { id:project.id, token:sharedAgain.token });
-  await api(mobile, 'project.delete', { id:project.id, revision:sharedAgain.revision }, 403);
+  await api(reader, 'project.open', { id:project.id, token:sharedAgain.token });
+  await api(reader, 'project.delete', { id:project.id, revision:sharedAgain.revision }, 403);
   await p.goto('/?view=projects');
   const remove = p.getByRole('button', { name:project.title+' 삭제', exact:true });
   await remove.focus();
@@ -2081,8 +2135,8 @@ try {
   await expect(p.getByRole('textbox', { name:'Agent 이름 검색' })).toBeVisible();
   await expect(remove).toHaveCount(0);
   await api(desktop, 'project.open', { id:project.id }, 404);
-  await api(mobile, 'project.open', { id:project.id, token:sharedAgain.token }, 404);
-  assert.equal((await api(mobile, 'project.open', { id:copied })).id, copied);
+  await api(reader, 'project.open', { id:project.id, token:sharedAgain.token }, 404);
+  assert.equal((await api(reader, 'project.open', { id:copied })).id, copied);
 
   await p.getByRole('link', { name:'휴지통', exact:true }).click();
   await expect(p.getByRole('heading', {name:'휴지통', exact:true})).toBeVisible();
@@ -2113,7 +2167,7 @@ try {
   assert.deepEqual(recovered.graph, project.graph);
   assert.equal(recovered.visibility, 'private');
   assert.equal(recovered.publicVersion, null);
-  await api(mobile, 'project.open', { id:project.id, token:sharedAgain.token }, 403);
+  await api(reader, 'project.open', { id:project.id, token:sharedAgain.token }, 403);
   assert.deepEqual((await api(desktop, 'versions.list', {id:project.id})).map((v:{number:number})=>v.number), [v2.number, 1]);
   await p.goto('/?view=projects&folder=trash');
   await expect(p.getByText('휴지통이 비어 있습니다.', {exact:true})).toBeVisible();
@@ -2134,7 +2188,7 @@ try {
   await verifyLeavingSharedCopy();
   assert.deepEqual(errors, []);
   console.log(
-    'PASS full Windows app: login gate, shared-link return, logout, signup, thirteen templates, desktop keyboard & mobile layout, two accounts, published versions 3→5→3, pinned conversation, link revocation, trash recovery and purge, independent copy, five recommendation levels, saved AI task modes, 32 block menus, optional question deadlines, legacy waits, four terminal modes and two error strategies'
+    'PASS full Windows app: login gate, shared-link return, logout, signup, thirteen templates, keyboard editing, two accounts, published versions 3→5→3, pinned conversation, link revocation, trash recovery and purge, independent copy, five recommendation levels, saved AI task modes, 32 block menus, optional question deadlines, legacy waits, four terminal modes and two error strategies'
   );
 } finally {
   await browser.close();

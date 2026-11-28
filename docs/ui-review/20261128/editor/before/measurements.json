@@ -1,0 +1,2844 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "route": "editor",
+      "scene": "workbench",
+      "metrics": {
+        "root": {
+          "width": 360,
+          "scrollWidth": 360,
+          "height": 900
+        },
+        "controls": {
+          ".ws-editor": {
+            "x": 190,
+            "y": 0,
+            "w": 170,
+            "h": 900,
+            "clientWidth": 170,
+            "scrollWidth": 475,
+            "clientHeight": 900,
+            "scrollHeight": 900,
+            "overflow": "hidden auto"
+          },
+          ".ws-top": {
+            "x": 190,
+            "y": 0,
+            "w": 170,
+            "h": 46,
+            "clientWidth": 170,
+            "scrollWidth": 475,
+            "clientHeight": 45,
+            "scrollHeight": 45,
+            "overflow": "visible"
+          },
+          ".ws-toolbar": {
+            "x": 190,
+            "y": 46,
+            "w": 170,
+            "h": 148,
+            "clientWidth": 170,
+            "scrollWidth": 372,
+            "clientHeight": 147,
+            "scrollHeight": 147,
+            "overflow": "visible"
+          },
+          ".ws-workbench": {
+            "x": 190,
+            "y": 194,
+            "w": 170,
+            "h": 532,
+            "clientWidth": 170,
+            "scrollWidth": 846,
+            "clientHeight": 532,
+            "scrollHeight": 532,
+            "overflow": "auto hidden"
+          },
+          ".ws-palette": {
+            "x": 190,
+            "y": 194,
+            "w": 166,
+            "h": 532,
+            "clientWidth": 165,
+            "scrollWidth": 165,
+            "clientHeight": 532,
+            "scrollHeight": 532,
+            "overflow": "visible"
+          },
+          ".ws-stage": {
+            "x": 356,
+            "y": 194,
+            "w": 360,
+            "h": 532,
+            "clientWidth": 360,
+            "scrollWidth": 360,
+            "clientHeight": 532,
+            "scrollHeight": 532,
+            "overflow": "visible"
+          },
+          ".ws-inspector": {
+            "x": 716,
+            "y": 194,
+            "w": 320,
+            "h": 532,
+            "clientWidth": 319,
+            "scrollWidth": 319,
+            "clientHeight": 532,
+            "scrollHeight": 532,
+            "overflow": "hidden"
+          }
+        }
+      }
+    },
+    {
+      "width": 360,
+      "route": "editor",
+      "scene": "project-menu",
+      "metrics": {
+        "root": {
+          "width": 360,
+          "scrollWidth": 360,
+          "height": 900
+        },
+        "controls": {
+          ".ws-project-menu": {
+            "x": 257,
+            "y": 7,
+            "w": 103,
+            "h": 32,
+            "clientWidth": 103,
+            "scrollWidth": 103,
+            "clientHeight": 32,
+            "scrollHeight": 225,
+            "overflow": "visible"
+          },
+          ".ws-project-commands": {
+            "x": 208,
+            "y": 42,
+            "w": 152,
+            "h": 190,
+            "clientWidth": 150,
+            "scrollWidth": 150,
+            "clientHeight": 188,
+            "scrollHeight": 188,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 360,
+      "route": "editor",
+      "scene": "export",
+      "metrics": {
+        "root": {
+          "width": 360,
+          "scrollWidth": 360,
+          "height": 900
+        },
+        "controls": {
+          "dialog[open]": {
+            "x": 17,
+            "y": 252,
+            "w": 326,
+            "h": 396,
+            "clientWidth": 324,
+            "scrollWidth": 324,
+            "clientHeight": 394,
+            "scrollHeight": 394,
+            "overflow": "hidden"
+          },
+          "dialog[open] :is(.ws-modal-content,.modal-content)": {
+            "x": 18,
+            "y": 318,
+            "w": 324,
+            "h": 329,
+            "clientWidth": 324,
+            "scrollWidth": 324,
+            "clientHeight": 329,
+            "scrollHeight": 329,
+            "overflow": "hidden"
+          }
+        }
+      }
+    },
+    {
+      "width": 360,
+      "route": "editor",
+      "scene": "source-fields",
+      "metrics": {
+        "root": {
+          "width": 360,
+          "scrollWidth": 360,
+          "height": 900
+        },
+        "controls": {
+          ".ws-workbench": {
+            "x": 190,
+            "y": 194,
+            "w": 170,
+            "h": 499,
+            "clientWidth": 170,
+            "scrollWidth": 846,
+            "clientHeight": 499,
+            "scrollHeight": 499,
+            "overflow": "auto hidden"
+          },
+          ".ws-inspector": {
+            "x": 71,
+            "y": 194,
+            "w": 320,
+            "h": 499,
+            "clientWidth": 319,
+            "scrollWidth": 319,
+            "clientHeight": 499,
+            "scrollHeight": 499,
+            "overflow": "hidden"
+          },
+          "#ws-panel-properties textarea": {
+            "x": 88,
+            "y": 413,
+            "w": 287,
+            "h": 220,
+            "clientWidth": 285,
+            "scrollWidth": 285,
+            "clientHeight": 218,
+            "scrollHeight": 218,
+            "overflow": "auto"
+          }
+        }
+      }
+    },
+    {
+      "width": 360,
+      "route": "editor",
+      "scene": "run-settings",
+      "failure": "Error: expect(locator).toBeDisabled() failed\n\nLocator: getByRole('tabpanel', { name: '실행 결과' }).getByRole('button', { name: '질문 실행', exact: true })\nExpected: disabled\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeDisabled\" getByRole('tabpanel', { name: '실행 결과' }).getByRole('button', { name: '질문 실행', exact: true }) with timeout 5000ms\n  - waiting for getByRole('tabpanel', { name: '실행 결과' }).getByRole('button', { name: '질문 실행', exact: true })\n",
+      "metrics": {
+        "root": {
+          "width": 360,
+          "scrollWidth": 360,
+          "height": 900
+        },
+        "controls": {
+          ".ws-workbench": {
+            "x": 134,
+            "y": 194,
+            "w": 170,
+            "h": 532,
+            "clientWidth": 170,
+            "scrollWidth": 846,
+            "clientHeight": 532,
+            "scrollHeight": 532,
+            "overflow": "auto hidden"
+          },
+          ".ws-stage": {
+            "x": -225,
+            "y": 194,
+            "w": 360,
+            "h": 532,
+            "clientWidth": 360,
+            "scrollWidth": 360,
+            "clientHeight": 532,
+            "scrollHeight": 532,
+            "overflow": "visible"
+          },
+          ".ws-inspector": {
+            "x": 135,
+            "y": 194,
+            "w": 320,
+            "h": 532,
+            "clientWidth": 319,
+            "scrollWidth": 319,
+            "clientHeight": 532,
+            "scrollHeight": 532,
+            "overflow": "hidden"
+          },
+          ".studio-run-panel": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0,
+            "clientWidth": 0,
+            "scrollWidth": 0,
+            "clientHeight": 0,
+            "scrollHeight": 0,
+            "overflow": "visible"
+          },
+          ".run-grid": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0,
+            "clientWidth": 0,
+            "scrollWidth": 0,
+            "clientHeight": 0,
+            "scrollHeight": 0,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 360,
+      "route": "published",
+      "scene": "published-run",
+      "metrics": {
+        "root": {
+          "width": 360,
+          "scrollWidth": 360,
+          "height": 900
+        },
+        "controls": {
+          ".studio-run-panel": {
+            "x": 7,
+            "y": 36,
+            "w": 346,
+            "h": 828,
+            "clientWidth": 344,
+            "scrollWidth": 344,
+            "clientHeight": 826,
+            "scrollHeight": 826,
+            "overflow": "auto"
+          },
+          ".run-grid": {
+            "x": 8,
+            "y": 123,
+            "w": 344,
+            "h": 740,
+            "clientWidth": 344,
+            "scrollWidth": 475,
+            "clientHeight": 740,
+            "scrollHeight": 740,
+            "overflow": "auto"
+          },
+          ".run-sidebar": {
+            "x": 8,
+            "y": 123,
+            "w": 175,
+            "h": 740,
+            "clientWidth": 174,
+            "scrollWidth": 174,
+            "clientHeight": 740,
+            "scrollHeight": 740,
+            "overflow": "auto"
+          },
+          ".run-history-bar": null,
+          ".run-main": {
+            "x": 183,
+            "y": 123,
+            "w": 300,
+            "h": 740,
+            "clientWidth": 300,
+            "scrollWidth": 300,
+            "clientHeight": 740,
+            "scrollHeight": 740,
+            "overflow": "auto"
+          },
+          ".run-compose textarea": {
+            "x": 199,
+            "y": 638,
+            "w": 268,
+            "h": 124,
+            "clientWidth": 266,
+            "scrollWidth": 266,
+            "clientHeight": 122,
+            "scrollHeight": 122,
+            "overflow": "auto"
+          },
+          ".run-primary": {
+            "x": 353,
+            "y": 805,
+            "w": 114,
+            "h": 44,
+            "clientWidth": 112,
+            "scrollWidth": 112,
+            "clientHeight": 42,
+            "scrollHeight": 42,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 360,
+      "route": "prototype",
+      "scene": "status",
+      "metrics": {
+        "status": 200
+      }
+    },
+    {
+      "width": 360,
+      "route": "prototype",
+      "scene": "prototype-preview",
+      "failure": "Error: expect(locator).toBeVisible() failed\n\nLocator: getByRole('dialog', { name: '내 자료로 안내하기', exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByRole('dialog', { name: '내 자료로 안내하기', exact: true }) with timeout 5000ms\n  - waiting for getByRole('dialog', { name: '내 자료로 안내하기', exact: true })\n",
+      "metrics": {
+        "root": {
+          "width": 360,
+          "scrollWidth": 444,
+          "height": 900
+        },
+        "controls": {
+          ".ws-workbench": null,
+          ".ws-stage": null,
+          ".ws-inspector": null,
+          ".studio-run-panel": null,
+          ".run-grid": null
+        }
+      }
+    },
+    {
+      "width": 390,
+      "route": "editor",
+      "scene": "workbench",
+      "metrics": {
+        "root": {
+          "width": 390,
+          "scrollWidth": 390,
+          "height": 900
+        },
+        "controls": {
+          ".ws-editor": {
+            "x": 190,
+            "y": 0,
+            "w": 200,
+            "h": 900,
+            "clientWidth": 200,
+            "scrollWidth": 475,
+            "clientHeight": 900,
+            "scrollHeight": 900,
+            "overflow": "hidden auto"
+          },
+          ".ws-top": {
+            "x": 190,
+            "y": 0,
+            "w": 200,
+            "h": 46,
+            "clientWidth": 200,
+            "scrollWidth": 475,
+            "clientHeight": 45,
+            "scrollHeight": 45,
+            "overflow": "visible"
+          },
+          ".ws-toolbar": {
+            "x": 190,
+            "y": 46,
+            "w": 200,
+            "h": 148,
+            "clientWidth": 200,
+            "scrollWidth": 372,
+            "clientHeight": 147,
+            "scrollHeight": 147,
+            "overflow": "visible"
+          },
+          ".ws-workbench": {
+            "x": 190,
+            "y": 194,
+            "w": 200,
+            "h": 648,
+            "clientWidth": 200,
+            "scrollWidth": 846,
+            "clientHeight": 648,
+            "scrollHeight": 648,
+            "overflow": "auto hidden"
+          },
+          ".ws-palette": {
+            "x": 190,
+            "y": 194,
+            "w": 166,
+            "h": 648,
+            "clientWidth": 165,
+            "scrollWidth": 165,
+            "clientHeight": 648,
+            "scrollHeight": 648,
+            "overflow": "visible"
+          },
+          ".ws-stage": {
+            "x": 356,
+            "y": 194,
+            "w": 360,
+            "h": 648,
+            "clientWidth": 360,
+            "scrollWidth": 360,
+            "clientHeight": 648,
+            "scrollHeight": 648,
+            "overflow": "visible"
+          },
+          ".ws-inspector": {
+            "x": 716,
+            "y": 194,
+            "w": 320,
+            "h": 648,
+            "clientWidth": 319,
+            "scrollWidth": 319,
+            "clientHeight": 648,
+            "scrollHeight": 648,
+            "overflow": "hidden"
+          }
+        }
+      }
+    },
+    {
+      "width": 390,
+      "route": "editor",
+      "scene": "project-menu",
+      "metrics": {
+        "root": {
+          "width": 390,
+          "scrollWidth": 390,
+          "height": 900
+        },
+        "controls": {
+          ".ws-project-menu": {
+            "x": 287,
+            "y": 7,
+            "w": 103,
+            "h": 32,
+            "clientWidth": 103,
+            "scrollWidth": 103,
+            "clientHeight": 32,
+            "scrollHeight": 225,
+            "overflow": "visible"
+          },
+          ".ws-project-commands": {
+            "x": 238,
+            "y": 42,
+            "w": 152,
+            "h": 190,
+            "clientWidth": 150,
+            "scrollWidth": 150,
+            "clientHeight": 188,
+            "scrollHeight": 188,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 390,
+      "route": "editor",
+      "scene": "rename",
+      "metrics": {
+        "root": {
+          "width": 390,
+          "scrollWidth": 390,
+          "height": 900
+        },
+        "controls": {
+          "dialog[open]": {
+            "x": 17,
+            "y": 323,
+            "w": 356,
+            "h": 254,
+            "clientWidth": 354,
+            "scrollWidth": 354,
+            "clientHeight": 252,
+            "scrollHeight": 252,
+            "overflow": "hidden"
+          },
+          "dialog[open] :is(.ws-modal-content,.modal-content)": {
+            "x": 18,
+            "y": 389,
+            "w": 354,
+            "h": 187,
+            "clientWidth": 354,
+            "scrollWidth": 354,
+            "clientHeight": 187,
+            "scrollHeight": 187,
+            "overflow": "auto"
+          }
+        }
+      }
+    },
+    {
+      "width": 390,
+      "route": "editor",
+      "scene": "scope",
+      "metrics": {
+        "root": {
+          "width": 390,
+          "scrollWidth": 390,
+          "height": 900
+        },
+        "controls": {
+          "dialog[open]": {
+            "x": 17,
+            "y": 306,
+            "w": 356,
+            "h": 287,
+            "clientWidth": 354,
+            "scrollWidth": 354,
+            "clientHeight": 285,
+            "scrollHeight": 285,
+            "overflow": "hidden"
+          },
+          "dialog[open] :is(.ws-modal-content,.modal-content)": {
+            "x": 18,
+            "y": 372,
+            "w": 354,
+            "h": 220,
+            "clientWidth": 354,
+            "scrollWidth": 354,
+            "clientHeight": 220,
+            "scrollHeight": 220,
+            "overflow": "auto"
+          }
+        }
+      }
+    },
+    {
+      "width": 390,
+      "route": "editor",
+      "scene": "versions",
+      "metrics": {
+        "root": {
+          "width": 390,
+          "scrollWidth": 390,
+          "height": 900
+        },
+        "controls": {
+          "dialog[open]": {
+            "x": 16,
+            "y": 266,
+            "w": 358,
+            "h": 367,
+            "clientWidth": 356,
+            "scrollWidth": 356,
+            "clientHeight": 365,
+            "scrollHeight": 365,
+            "overflow": "hidden"
+          },
+          "dialog[open] :is(.ws-modal-content,.modal-content)": {
+            "x": 17,
+            "y": 328,
+            "w": 356,
+            "h": 304,
+            "clientWidth": 356,
+            "scrollWidth": 356,
+            "clientHeight": 304,
+            "scrollHeight": 304,
+            "overflow": "auto"
+          }
+        }
+      }
+    },
+    {
+      "width": 390,
+      "route": "editor",
+      "scene": "share",
+      "metrics": {
+        "root": {
+          "width": 390,
+          "scrollWidth": 390,
+          "height": 900
+        },
+        "controls": {
+          "dialog[open]": {
+            "x": 16,
+            "y": 93,
+            "w": 358,
+            "h": 714,
+            "clientWidth": 356,
+            "scrollWidth": 356,
+            "clientHeight": 712,
+            "scrollHeight": 712,
+            "overflow": "hidden"
+          },
+          "dialog[open] :is(.ws-modal-content,.modal-content)": {
+            "x": 17,
+            "y": 155,
+            "w": 356,
+            "h": 651,
+            "clientWidth": 356,
+            "scrollWidth": 356,
+            "clientHeight": 651,
+            "scrollHeight": 651,
+            "overflow": "auto"
+          }
+        }
+      }
+    },
+    {
+      "width": 390,
+      "route": "editor",
+      "scene": "export",
+      "metrics": {
+        "root": {
+          "width": 390,
+          "scrollWidth": 390,
+          "height": 900
+        },
+        "controls": {
+          "dialog[open]": {
+            "x": 17,
+            "y": 324,
+            "w": 356,
+            "h": 252,
+            "clientWidth": 354,
+            "scrollWidth": 354,
+            "clientHeight": 250,
+            "scrollHeight": 250,
+            "overflow": "hidden"
+          },
+          "dialog[open] :is(.ws-modal-content,.modal-content)": {
+            "x": 18,
+            "y": 390,
+            "w": 354,
+            "h": 185,
+            "clientWidth": 354,
+            "scrollWidth": 354,
+            "clientHeight": 185,
+            "scrollHeight": 185,
+            "overflow": "hidden"
+          }
+        }
+      }
+    },
+    {
+      "width": 390,
+      "route": "editor",
+      "scene": "shortcuts",
+      "metrics": {
+        "root": {
+          "width": 390,
+          "scrollWidth": 390,
+          "height": 900
+        },
+        "controls": {
+          "dialog[open]": {
+            "x": 17,
+            "y": 54,
+            "w": 356,
+            "h": 792,
+            "clientWidth": 354,
+            "scrollWidth": 354,
+            "clientHeight": 790,
+            "scrollHeight": 790,
+            "overflow": "hidden"
+          },
+          "dialog[open] :is(.ws-modal-content,.modal-content)": {
+            "x": 18,
+            "y": 120,
+            "w": 354,
+            "h": 725,
+            "clientWidth": 354,
+            "scrollWidth": 354,
+            "clientHeight": 725,
+            "scrollHeight": 1119,
+            "overflow": "auto"
+          }
+        }
+      }
+    },
+    {
+      "width": 390,
+      "route": "editor",
+      "scene": "issues",
+      "metrics": {
+        "root": {
+          "width": 390,
+          "scrollWidth": 390,
+          "height": 900
+        },
+        "controls": {
+          "dialog[open]": {
+            "x": 17,
+            "y": 388,
+            "w": 356,
+            "h": 124,
+            "clientWidth": 354,
+            "scrollWidth": 354,
+            "clientHeight": 122,
+            "scrollHeight": 122,
+            "overflow": "hidden"
+          },
+          "dialog[open] :is(.ws-modal-content,.modal-content)": {
+            "x": 18,
+            "y": 454,
+            "w": 354,
+            "h": 57,
+            "clientWidth": 354,
+            "scrollWidth": 354,
+            "clientHeight": 57,
+            "scrollHeight": 57,
+            "overflow": "auto"
+          }
+        }
+      }
+    },
+    {
+      "width": 390,
+      "route": "editor",
+      "scene": "proposal",
+      "metrics": {
+        "root": {
+          "width": 390,
+          "scrollWidth": 390,
+          "height": 900
+        },
+        "controls": {
+          "dialog[open]": {
+            "x": 17,
+            "y": 274,
+            "w": 356,
+            "h": 352,
+            "clientWidth": 354,
+            "scrollWidth": 354,
+            "clientHeight": 350,
+            "scrollHeight": 350,
+            "overflow": "hidden"
+          },
+          "dialog[open] :is(.ws-modal-content,.modal-content)": {
+            "x": 18,
+            "y": 340,
+            "w": 354,
+            "h": 285,
+            "clientWidth": 354,
+            "scrollWidth": 354,
+            "clientHeight": 285,
+            "scrollHeight": 285,
+            "overflow": "auto"
+          }
+        }
+      }
+    },
+    {
+      "width": 390,
+      "route": "editor",
+      "scene": "source-fields",
+      "metrics": {
+        "root": {
+          "width": 390,
+          "scrollWidth": 390,
+          "height": 900
+        },
+        "controls": {
+          ".ws-workbench": {
+            "x": 190,
+            "y": 194,
+            "w": 200,
+            "h": 648,
+            "clientWidth": 200,
+            "scrollWidth": 846,
+            "clientHeight": 648,
+            "scrollHeight": 648,
+            "overflow": "auto hidden"
+          },
+          ".ws-inspector": {
+            "x": 101,
+            "y": 194,
+            "w": 320,
+            "h": 648,
+            "clientWidth": 319,
+            "scrollWidth": 319,
+            "clientHeight": 648,
+            "scrollHeight": 648,
+            "overflow": "hidden"
+          },
+          "#ws-panel-properties textarea": {
+            "x": 118,
+            "y": 429,
+            "w": 287,
+            "h": 220,
+            "clientWidth": 285,
+            "scrollWidth": 285,
+            "clientHeight": 218,
+            "scrollHeight": 218,
+            "overflow": "auto"
+          }
+        }
+      }
+    },
+    {
+      "width": 390,
+      "route": "editor",
+      "scene": "run-settings",
+      "failure": "Error: expect(locator).toBeDisabled() failed\n\nLocator: getByRole('tabpanel', { name: '실행 결과' }).getByRole('button', { name: '질문 실행', exact: true })\nExpected: disabled\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeDisabled\" getByRole('tabpanel', { name: '실행 결과' }).getByRole('button', { name: '질문 실행', exact: true }) with timeout 5000ms\n  - waiting for getByRole('tabpanel', { name: '실행 결과' }).getByRole('button', { name: '질문 실행', exact: true })\n",
+      "metrics": {
+        "root": {
+          "width": 390,
+          "scrollWidth": 390,
+          "height": 900
+        },
+        "controls": {
+          ".ws-workbench": {
+            "x": 164,
+            "y": 194,
+            "w": 200,
+            "h": 648,
+            "clientWidth": 200,
+            "scrollWidth": 846,
+            "clientHeight": 648,
+            "scrollHeight": 648,
+            "overflow": "auto hidden"
+          },
+          ".ws-stage": {
+            "x": -180,
+            "y": 194,
+            "w": 360,
+            "h": 648,
+            "clientWidth": 360,
+            "scrollWidth": 360,
+            "clientHeight": 648,
+            "scrollHeight": 648,
+            "overflow": "visible"
+          },
+          ".ws-inspector": {
+            "x": 180,
+            "y": 194,
+            "w": 320,
+            "h": 648,
+            "clientWidth": 319,
+            "scrollWidth": 319,
+            "clientHeight": 648,
+            "scrollHeight": 648,
+            "overflow": "hidden"
+          },
+          ".studio-run-panel": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0,
+            "clientWidth": 0,
+            "scrollWidth": 0,
+            "clientHeight": 0,
+            "scrollHeight": 0,
+            "overflow": "visible"
+          },
+          ".run-grid": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0,
+            "clientWidth": 0,
+            "scrollWidth": 0,
+            "clientHeight": 0,
+            "scrollHeight": 0,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 390,
+      "route": "published",
+      "scene": "published-run",
+      "metrics": {
+        "root": {
+          "width": 390,
+          "scrollWidth": 390,
+          "height": 900
+        },
+        "controls": {
+          ".studio-run-panel": {
+            "x": 8,
+            "y": 36,
+            "w": 374,
+            "h": 828,
+            "clientWidth": 372,
+            "scrollWidth": 372,
+            "clientHeight": 826,
+            "scrollHeight": 826,
+            "overflow": "auto"
+          },
+          ".run-grid": {
+            "x": 9,
+            "y": 123,
+            "w": 372,
+            "h": 740,
+            "clientWidth": 372,
+            "scrollWidth": 475,
+            "clientHeight": 740,
+            "scrollHeight": 740,
+            "overflow": "auto"
+          },
+          ".run-sidebar": {
+            "x": 9,
+            "y": 123,
+            "w": 175,
+            "h": 740,
+            "clientWidth": 174,
+            "scrollWidth": 174,
+            "clientHeight": 740,
+            "scrollHeight": 740,
+            "overflow": "auto"
+          },
+          ".run-history-bar": null,
+          ".run-main": {
+            "x": 184,
+            "y": 123,
+            "w": 300,
+            "h": 740,
+            "clientWidth": 300,
+            "scrollWidth": 300,
+            "clientHeight": 740,
+            "scrollHeight": 740,
+            "overflow": "auto"
+          },
+          ".run-compose textarea": {
+            "x": 200,
+            "y": 638,
+            "w": 268,
+            "h": 124,
+            "clientWidth": 266,
+            "scrollWidth": 266,
+            "clientHeight": 122,
+            "scrollHeight": 122,
+            "overflow": "auto"
+          },
+          ".run-primary": {
+            "x": 354,
+            "y": 805,
+            "w": 114,
+            "h": 44,
+            "clientWidth": 112,
+            "scrollWidth": 112,
+            "clientHeight": 42,
+            "scrollHeight": 42,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 390,
+      "route": "prototype",
+      "scene": "status",
+      "metrics": {
+        "status": 200
+      }
+    },
+    {
+      "width": 390,
+      "route": "prototype",
+      "scene": "prototype-preview",
+      "failure": "Error: expect(locator).toBeVisible() failed\n\nLocator: getByRole('dialog', { name: '내 자료로 안내하기', exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByRole('dialog', { name: '내 자료로 안내하기', exact: true }) with timeout 5000ms\n  - waiting for getByRole('dialog', { name: '내 자료로 안내하기', exact: true })\n",
+      "metrics": {
+        "root": {
+          "width": 390,
+          "scrollWidth": 444,
+          "height": 900
+        },
+        "controls": {
+          ".ws-workbench": null,
+          ".ws-stage": null,
+          ".ws-inspector": null,
+          ".studio-run-panel": null,
+          ".run-grid": null
+        }
+      }
+    },
+    {
+      "width": 768,
+      "route": "editor",
+      "scene": "workbench",
+      "metrics": {
+        "root": {
+          "width": 768,
+          "scrollWidth": 768,
+          "height": 900
+        },
+        "controls": {
+          ".ws-editor": {
+            "x": 190,
+            "y": 0,
+            "w": 578,
+            "h": 900,
+            "clientWidth": 578,
+            "scrollWidth": 578,
+            "clientHeight": 900,
+            "scrollHeight": 900,
+            "overflow": "hidden auto"
+          },
+          ".ws-top": {
+            "x": 190,
+            "y": 0,
+            "w": 578,
+            "h": 46,
+            "clientWidth": 578,
+            "scrollWidth": 578,
+            "clientHeight": 45,
+            "scrollHeight": 45,
+            "overflow": "visible"
+          },
+          ".ws-toolbar": {
+            "x": 190,
+            "y": 46,
+            "w": 578,
+            "h": 148,
+            "clientWidth": 578,
+            "scrollWidth": 578,
+            "clientHeight": 147,
+            "scrollHeight": 147,
+            "overflow": "visible"
+          },
+          ".ws-workbench": {
+            "x": 190,
+            "y": 194,
+            "w": 578,
+            "h": 676,
+            "clientWidth": 578,
+            "scrollWidth": 846,
+            "clientHeight": 676,
+            "scrollHeight": 676,
+            "overflow": "auto hidden"
+          },
+          ".ws-palette": {
+            "x": 190,
+            "y": 194,
+            "w": 166,
+            "h": 676,
+            "clientWidth": 165,
+            "scrollWidth": 165,
+            "clientHeight": 676,
+            "scrollHeight": 676,
+            "overflow": "visible"
+          },
+          ".ws-stage": {
+            "x": 356,
+            "y": 194,
+            "w": 360,
+            "h": 676,
+            "clientWidth": 360,
+            "scrollWidth": 360,
+            "clientHeight": 676,
+            "scrollHeight": 676,
+            "overflow": "visible"
+          },
+          ".ws-inspector": {
+            "x": 716,
+            "y": 194,
+            "w": 320,
+            "h": 676,
+            "clientWidth": 319,
+            "scrollWidth": 319,
+            "clientHeight": 676,
+            "scrollHeight": 676,
+            "overflow": "hidden"
+          }
+        }
+      }
+    },
+    {
+      "width": 768,
+      "route": "editor",
+      "scene": "project-menu",
+      "metrics": {
+        "root": {
+          "width": 768,
+          "scrollWidth": 768,
+          "height": 900
+        },
+        "controls": {
+          ".ws-project-menu": {
+            "x": 643,
+            "y": 7,
+            "w": 103,
+            "h": 32,
+            "clientWidth": 103,
+            "scrollWidth": 103,
+            "clientHeight": 32,
+            "scrollHeight": 225,
+            "overflow": "visible"
+          },
+          ".ws-project-commands": {
+            "x": 594,
+            "y": 42,
+            "w": 152,
+            "h": 190,
+            "clientWidth": 150,
+            "scrollWidth": 150,
+            "clientHeight": 188,
+            "scrollHeight": 188,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 768,
+      "route": "editor",
+      "scene": "export",
+      "metrics": {
+        "root": {
+          "width": 768,
+          "scrollWidth": 768,
+          "height": 900
+        },
+        "controls": {
+          "dialog[open]": {
+            "x": 64,
+            "y": 273,
+            "w": 640,
+            "h": 354,
+            "clientWidth": 638,
+            "scrollWidth": 638,
+            "clientHeight": 352,
+            "scrollHeight": 352,
+            "overflow": "hidden"
+          },
+          "dialog[open] :is(.ws-modal-content,.modal-content)": {
+            "x": 65,
+            "y": 339,
+            "w": 638,
+            "h": 287,
+            "clientWidth": 638,
+            "scrollWidth": 638,
+            "clientHeight": 287,
+            "scrollHeight": 287,
+            "overflow": "hidden"
+          }
+        }
+      }
+    },
+    {
+      "width": 768,
+      "route": "editor",
+      "scene": "source-fields",
+      "metrics": {
+        "root": {
+          "width": 768,
+          "scrollWidth": 768,
+          "height": 900
+        },
+        "controls": {
+          ".ws-workbench": {
+            "x": 190,
+            "y": 194,
+            "w": 578,
+            "h": 676,
+            "clientWidth": 578,
+            "scrollWidth": 846,
+            "clientHeight": 676,
+            "scrollHeight": 676,
+            "overflow": "auto hidden"
+          },
+          ".ws-inspector": {
+            "x": 464,
+            "y": 194,
+            "w": 320,
+            "h": 676,
+            "clientWidth": 319,
+            "scrollWidth": 319,
+            "clientHeight": 676,
+            "scrollHeight": 676,
+            "overflow": "hidden"
+          },
+          "#ws-panel-properties textarea": {
+            "x": 481,
+            "y": 429,
+            "w": 287,
+            "h": 220,
+            "clientWidth": 285,
+            "scrollWidth": 285,
+            "clientHeight": 218,
+            "scrollHeight": 218,
+            "overflow": "auto"
+          }
+        }
+      }
+    },
+    {
+      "width": 768,
+      "route": "editor",
+      "scene": "run-settings",
+      "failure": "Error: expect(locator).toBeDisabled() failed\n\nLocator: getByRole('tabpanel', { name: '실행 결과' }).getByRole('button', { name: '질문 실행', exact: true })\nExpected: disabled\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeDisabled\" getByRole('tabpanel', { name: '실행 결과' }).getByRole('button', { name: '질문 실행', exact: true }) with timeout 5000ms\n  - waiting for getByRole('tabpanel', { name: '실행 결과' }).getByRole('button', { name: '질문 실행', exact: true })\n",
+      "metrics": {
+        "root": {
+          "width": 768,
+          "scrollWidth": 768,
+          "height": 900
+        },
+        "controls": {
+          ".ws-workbench": {
+            "x": 190,
+            "y": 194,
+            "w": 578,
+            "h": 676,
+            "clientWidth": 578,
+            "scrollWidth": 846,
+            "clientHeight": 676,
+            "scrollHeight": 676,
+            "overflow": "auto hidden"
+          },
+          ".ws-stage": {
+            "x": 88,
+            "y": 194,
+            "w": 360,
+            "h": 676,
+            "clientWidth": 360,
+            "scrollWidth": 360,
+            "clientHeight": 676,
+            "scrollHeight": 676,
+            "overflow": "visible"
+          },
+          ".ws-inspector": {
+            "x": 448,
+            "y": 194,
+            "w": 320,
+            "h": 676,
+            "clientWidth": 319,
+            "scrollWidth": 319,
+            "clientHeight": 676,
+            "scrollHeight": 676,
+            "overflow": "hidden"
+          },
+          ".studio-run-panel": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0,
+            "clientWidth": 0,
+            "scrollWidth": 0,
+            "clientHeight": 0,
+            "scrollHeight": 0,
+            "overflow": "visible"
+          },
+          ".run-grid": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0,
+            "clientWidth": 0,
+            "scrollWidth": 0,
+            "clientHeight": 0,
+            "scrollHeight": 0,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 768,
+      "route": "published",
+      "scene": "published-run",
+      "metrics": {
+        "root": {
+          "width": 768,
+          "scrollWidth": 768,
+          "height": 900
+        },
+        "controls": {
+          ".studio-run-panel": {
+            "x": 15,
+            "y": 36,
+            "w": 737,
+            "h": 828,
+            "clientWidth": 735,
+            "scrollWidth": 735,
+            "clientHeight": 826,
+            "scrollHeight": 826,
+            "overflow": "auto"
+          },
+          ".run-grid": {
+            "x": 16,
+            "y": 123,
+            "w": 735,
+            "h": 740,
+            "clientWidth": 735,
+            "scrollWidth": 735,
+            "clientHeight": 740,
+            "scrollHeight": 740,
+            "overflow": "auto"
+          },
+          ".run-sidebar": {
+            "x": 16,
+            "y": 123,
+            "w": 175,
+            "h": 740,
+            "clientWidth": 174,
+            "scrollWidth": 174,
+            "clientHeight": 740,
+            "scrollHeight": 740,
+            "overflow": "auto"
+          },
+          ".run-history-bar": null,
+          ".run-main": {
+            "x": 191,
+            "y": 123,
+            "w": 560,
+            "h": 740,
+            "clientWidth": 560,
+            "scrollWidth": 560,
+            "clientHeight": 740,
+            "scrollHeight": 740,
+            "overflow": "auto"
+          },
+          ".run-compose textarea": {
+            "x": 207,
+            "y": 638,
+            "w": 528,
+            "h": 124,
+            "clientWidth": 526,
+            "scrollWidth": 526,
+            "clientHeight": 122,
+            "scrollHeight": 122,
+            "overflow": "auto"
+          },
+          ".run-primary": {
+            "x": 622,
+            "y": 805,
+            "w": 114,
+            "h": 44,
+            "clientWidth": 112,
+            "scrollWidth": 112,
+            "clientHeight": 42,
+            "scrollHeight": 42,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 768,
+      "route": "prototype",
+      "scene": "status",
+      "metrics": {
+        "status": 200
+      }
+    },
+    {
+      "width": 768,
+      "route": "prototype",
+      "scene": "prototype-preview",
+      "failure": "Error: expect(locator).toBeVisible() failed\n\nLocator: getByRole('dialog', { name: '내 자료로 안내하기', exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByRole('dialog', { name: '내 자료로 안내하기', exact: true }) with timeout 5000ms\n  - waiting for getByRole('dialog', { name: '내 자료로 안내하기', exact: true })\n",
+      "metrics": {
+        "root": {
+          "width": 768,
+          "scrollWidth": 768,
+          "height": 900
+        },
+        "controls": {
+          ".ws-workbench": null,
+          ".ws-stage": null,
+          ".ws-inspector": null,
+          ".studio-run-panel": null,
+          ".run-grid": null
+        }
+      }
+    },
+    {
+      "width": 1024,
+      "route": "editor",
+      "scene": "workbench",
+      "metrics": {
+        "root": {
+          "width": 1024,
+          "scrollWidth": 1024,
+          "height": 900
+        },
+        "controls": {
+          ".ws-editor": {
+            "x": 190,
+            "y": 0,
+            "w": 834,
+            "h": 900,
+            "clientWidth": 834,
+            "scrollWidth": 834,
+            "clientHeight": 900,
+            "scrollHeight": 900,
+            "overflow": "hidden auto"
+          },
+          ".ws-top": {
+            "x": 190,
+            "y": 0,
+            "w": 834,
+            "h": 46,
+            "clientWidth": 834,
+            "scrollWidth": 834,
+            "clientHeight": 45,
+            "scrollHeight": 45,
+            "overflow": "visible"
+          },
+          ".ws-toolbar": {
+            "x": 190,
+            "y": 46,
+            "w": 834,
+            "h": 106,
+            "clientWidth": 834,
+            "scrollWidth": 834,
+            "clientHeight": 105,
+            "scrollHeight": 105,
+            "overflow": "visible"
+          },
+          ".ws-workbench": {
+            "x": 190,
+            "y": 152,
+            "w": 834,
+            "h": 718,
+            "clientWidth": 834,
+            "scrollWidth": 846,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "auto hidden"
+          },
+          ".ws-palette": {
+            "x": 190,
+            "y": 152,
+            "w": 166,
+            "h": 718,
+            "clientWidth": 165,
+            "scrollWidth": 165,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "visible"
+          },
+          ".ws-stage": {
+            "x": 356,
+            "y": 152,
+            "w": 360,
+            "h": 718,
+            "clientWidth": 360,
+            "scrollWidth": 360,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "visible"
+          },
+          ".ws-inspector": {
+            "x": 716,
+            "y": 152,
+            "w": 320,
+            "h": 718,
+            "clientWidth": 319,
+            "scrollWidth": 319,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "hidden"
+          }
+        }
+      }
+    },
+    {
+      "width": 1024,
+      "route": "editor",
+      "scene": "project-menu",
+      "metrics": {
+        "root": {
+          "width": 1024,
+          "scrollWidth": 1024,
+          "height": 900
+        },
+        "controls": {
+          ".ws-project-menu": {
+            "x": 899,
+            "y": 7,
+            "w": 103,
+            "h": 32,
+            "clientWidth": 103,
+            "scrollWidth": 103,
+            "clientHeight": 32,
+            "scrollHeight": 225,
+            "overflow": "visible"
+          },
+          ".ws-project-commands": {
+            "x": 850,
+            "y": 42,
+            "w": 152,
+            "h": 190,
+            "clientWidth": 150,
+            "scrollWidth": 150,
+            "clientHeight": 188,
+            "scrollHeight": 188,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 1024,
+      "route": "editor",
+      "scene": "export",
+      "metrics": {
+        "root": {
+          "width": 1024,
+          "scrollWidth": 1024,
+          "height": 900
+        },
+        "controls": {
+          "dialog[open]": {
+            "x": 192,
+            "y": 334,
+            "w": 640,
+            "h": 231,
+            "clientWidth": 638,
+            "scrollWidth": 638,
+            "clientHeight": 229,
+            "scrollHeight": 229,
+            "overflow": "hidden"
+          },
+          "dialog[open] :is(.ws-modal-content,.modal-content)": {
+            "x": 193,
+            "y": 400,
+            "w": 638,
+            "h": 164,
+            "clientWidth": 638,
+            "scrollWidth": 638,
+            "clientHeight": 164,
+            "scrollHeight": 164,
+            "overflow": "hidden"
+          }
+        }
+      }
+    },
+    {
+      "width": 1024,
+      "route": "editor",
+      "scene": "source-fields",
+      "metrics": {
+        "root": {
+          "width": 1024,
+          "scrollWidth": 1024,
+          "height": 900
+        },
+        "controls": {
+          ".ws-workbench": {
+            "x": 190,
+            "y": 152,
+            "w": 834,
+            "h": 718,
+            "clientWidth": 834,
+            "scrollWidth": 846,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "auto hidden"
+          },
+          ".ws-inspector": {
+            "x": 716,
+            "y": 152,
+            "w": 320,
+            "h": 718,
+            "clientWidth": 319,
+            "scrollWidth": 319,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "hidden"
+          },
+          "#ws-panel-properties textarea": {
+            "x": 733,
+            "y": 387,
+            "w": 287,
+            "h": 220,
+            "clientWidth": 285,
+            "scrollWidth": 285,
+            "clientHeight": 218,
+            "scrollHeight": 218,
+            "overflow": "auto"
+          }
+        }
+      }
+    },
+    {
+      "width": 1024,
+      "route": "editor",
+      "scene": "run-settings",
+      "failure": "Error: expect(locator).toBeDisabled() failed\n\nLocator: getByRole('tabpanel', { name: '실행 결과' }).getByRole('button', { name: '질문 실행', exact: true })\nExpected: disabled\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeDisabled\" getByRole('tabpanel', { name: '실행 결과' }).getByRole('button', { name: '질문 실행', exact: true }) with timeout 5000ms\n  - waiting for getByRole('tabpanel', { name: '실행 결과' }).getByRole('button', { name: '질문 실행', exact: true })\n",
+      "metrics": {
+        "root": {
+          "width": 1024,
+          "scrollWidth": 1024,
+          "height": 900
+        },
+        "controls": {
+          ".ws-workbench": {
+            "x": 190,
+            "y": 152,
+            "w": 834,
+            "h": 718,
+            "clientWidth": 834,
+            "scrollWidth": 846,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "auto hidden"
+          },
+          ".ws-stage": {
+            "x": 356,
+            "y": 152,
+            "w": 360,
+            "h": 718,
+            "clientWidth": 360,
+            "scrollWidth": 360,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "visible"
+          },
+          ".ws-inspector": {
+            "x": 716,
+            "y": 152,
+            "w": 320,
+            "h": 718,
+            "clientWidth": 319,
+            "scrollWidth": 319,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "hidden"
+          },
+          ".studio-run-panel": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0,
+            "clientWidth": 0,
+            "scrollWidth": 0,
+            "clientHeight": 0,
+            "scrollHeight": 0,
+            "overflow": "visible"
+          },
+          ".run-grid": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0,
+            "clientWidth": 0,
+            "scrollWidth": 0,
+            "clientHeight": 0,
+            "scrollHeight": 0,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 1024,
+      "route": "published",
+      "scene": "published-run",
+      "metrics": {
+        "root": {
+          "width": 1024,
+          "scrollWidth": 1024,
+          "height": 900
+        },
+        "controls": {
+          ".studio-run-panel": {
+            "x": 20,
+            "y": 36,
+            "w": 983,
+            "h": 828,
+            "clientWidth": 981,
+            "scrollWidth": 981,
+            "clientHeight": 826,
+            "scrollHeight": 826,
+            "overflow": "auto"
+          },
+          ".run-grid": {
+            "x": 21,
+            "y": 123,
+            "w": 981,
+            "h": 740,
+            "clientWidth": 981,
+            "scrollWidth": 981,
+            "clientHeight": 740,
+            "scrollHeight": 740,
+            "overflow": "auto"
+          },
+          ".run-sidebar": {
+            "x": 21,
+            "y": 123,
+            "w": 226,
+            "h": 740,
+            "clientWidth": 225,
+            "scrollWidth": 225,
+            "clientHeight": 740,
+            "scrollHeight": 740,
+            "overflow": "auto"
+          },
+          ".run-history-bar": null,
+          ".run-main": {
+            "x": 247,
+            "y": 123,
+            "w": 755,
+            "h": 740,
+            "clientWidth": 755,
+            "scrollWidth": 755,
+            "clientHeight": 740,
+            "scrollHeight": 740,
+            "overflow": "auto"
+          },
+          ".run-compose textarea": {
+            "x": 263,
+            "y": 638,
+            "w": 723,
+            "h": 124,
+            "clientWidth": 721,
+            "scrollWidth": 721,
+            "clientHeight": 122,
+            "scrollHeight": 122,
+            "overflow": "auto"
+          },
+          ".run-primary": {
+            "x": 873,
+            "y": 805,
+            "w": 114,
+            "h": 44,
+            "clientWidth": 112,
+            "scrollWidth": 112,
+            "clientHeight": 42,
+            "scrollHeight": 42,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 1024,
+      "route": "prototype",
+      "scene": "status",
+      "metrics": {
+        "status": 200
+      }
+    },
+    {
+      "width": 1024,
+      "route": "prototype",
+      "scene": "prototype-preview",
+      "failure": "Error: expect(locator).toBeVisible() failed\n\nLocator: getByRole('dialog', { name: '내 자료로 안내하기', exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByRole('dialog', { name: '내 자료로 안내하기', exact: true }) with timeout 5000ms\n  - waiting for getByRole('dialog', { name: '내 자료로 안내하기', exact: true })\n",
+      "metrics": {
+        "root": {
+          "width": 1024,
+          "scrollWidth": 1024,
+          "height": 900
+        },
+        "controls": {
+          ".ws-workbench": null,
+          ".ws-stage": null,
+          ".ws-inspector": null,
+          ".studio-run-panel": null,
+          ".run-grid": null
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "route": "editor",
+      "scene": "workbench",
+      "metrics": {
+        "root": {
+          "width": 1280,
+          "scrollWidth": 1280,
+          "height": 900
+        },
+        "controls": {
+          ".ws-editor": {
+            "x": 190,
+            "y": 0,
+            "w": 1090,
+            "h": 900,
+            "clientWidth": 1090,
+            "scrollWidth": 1090,
+            "clientHeight": 900,
+            "scrollHeight": 900,
+            "overflow": "hidden auto"
+          },
+          ".ws-top": {
+            "x": 190,
+            "y": 0,
+            "w": 1090,
+            "h": 46,
+            "clientWidth": 1090,
+            "scrollWidth": 1090,
+            "clientHeight": 45,
+            "scrollHeight": 45,
+            "overflow": "visible"
+          },
+          ".ws-toolbar": {
+            "x": 190,
+            "y": 46,
+            "w": 1090,
+            "h": 106,
+            "clientWidth": 1090,
+            "scrollWidth": 1090,
+            "clientHeight": 105,
+            "scrollHeight": 105,
+            "overflow": "visible"
+          },
+          ".ws-workbench": {
+            "x": 190,
+            "y": 152,
+            "w": 1090,
+            "h": 718,
+            "clientWidth": 1090,
+            "scrollWidth": 1090,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "auto hidden"
+          },
+          ".ws-palette": {
+            "x": 190,
+            "y": 152,
+            "w": 166,
+            "h": 718,
+            "clientWidth": 165,
+            "scrollWidth": 165,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "visible"
+          },
+          ".ws-stage": {
+            "x": 356,
+            "y": 152,
+            "w": 553,
+            "h": 718,
+            "clientWidth": 553,
+            "scrollWidth": 553,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "visible"
+          },
+          ".ws-inspector": {
+            "x": 909,
+            "y": 152,
+            "w": 371,
+            "h": 718,
+            "clientWidth": 370,
+            "scrollWidth": 370,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "hidden"
+          }
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "route": "editor",
+      "scene": "project-menu",
+      "metrics": {
+        "root": {
+          "width": 1280,
+          "scrollWidth": 1280,
+          "height": 900
+        },
+        "controls": {
+          ".ws-project-menu": {
+            "x": 1155,
+            "y": 7,
+            "w": 103,
+            "h": 32,
+            "clientWidth": 103,
+            "scrollWidth": 103,
+            "clientHeight": 32,
+            "scrollHeight": 225,
+            "overflow": "visible"
+          },
+          ".ws-project-commands": {
+            "x": 1106,
+            "y": 42,
+            "w": 152,
+            "h": 190,
+            "clientWidth": 150,
+            "scrollWidth": 150,
+            "clientHeight": 188,
+            "scrollHeight": 188,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "route": "editor",
+      "scene": "export",
+      "metrics": {
+        "root": {
+          "width": 1280,
+          "scrollWidth": 1280,
+          "height": 900
+        },
+        "controls": {
+          "dialog[open]": {
+            "x": 320,
+            "y": 273,
+            "w": 640,
+            "h": 354,
+            "clientWidth": 638,
+            "scrollWidth": 638,
+            "clientHeight": 352,
+            "scrollHeight": 352,
+            "overflow": "hidden"
+          },
+          "dialog[open] :is(.ws-modal-content,.modal-content)": {
+            "x": 321,
+            "y": 339,
+            "w": 638,
+            "h": 287,
+            "clientWidth": 638,
+            "scrollWidth": 638,
+            "clientHeight": 287,
+            "scrollHeight": 287,
+            "overflow": "hidden"
+          }
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "route": "editor",
+      "scene": "source-fields",
+      "metrics": {
+        "root": {
+          "width": 1280,
+          "scrollWidth": 1280,
+          "height": 900
+        },
+        "controls": {
+          ".ws-workbench": {
+            "x": 190,
+            "y": 152,
+            "w": 1090,
+            "h": 718,
+            "clientWidth": 1090,
+            "scrollWidth": 1090,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "auto hidden"
+          },
+          ".ws-inspector": {
+            "x": 909,
+            "y": 152,
+            "w": 371,
+            "h": 718,
+            "clientWidth": 370,
+            "scrollWidth": 370,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "hidden"
+          },
+          "#ws-panel-properties textarea": {
+            "x": 926,
+            "y": 387,
+            "w": 338,
+            "h": 220,
+            "clientWidth": 336,
+            "scrollWidth": 336,
+            "clientHeight": 218,
+            "scrollHeight": 218,
+            "overflow": "auto"
+          }
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "route": "editor",
+      "scene": "run-settings",
+      "failure": "Error: expect(locator).toBeDisabled() failed\n\nLocator: getByRole('tabpanel', { name: '실행 결과' }).getByRole('button', { name: '질문 실행', exact: true })\nExpected: disabled\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeDisabled\" getByRole('tabpanel', { name: '실행 결과' }).getByRole('button', { name: '질문 실행', exact: true }) with timeout 5000ms\n  - waiting for getByRole('tabpanel', { name: '실행 결과' }).getByRole('button', { name: '질문 실행', exact: true })\n",
+      "metrics": {
+        "root": {
+          "width": 1280,
+          "scrollWidth": 1280,
+          "height": 900
+        },
+        "controls": {
+          ".ws-workbench": {
+            "x": 190,
+            "y": 152,
+            "w": 1090,
+            "h": 718,
+            "clientWidth": 1090,
+            "scrollWidth": 1090,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "auto hidden"
+          },
+          ".ws-stage": {
+            "x": 356,
+            "y": 152,
+            "w": 553,
+            "h": 718,
+            "clientWidth": 553,
+            "scrollWidth": 553,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "visible"
+          },
+          ".ws-inspector": {
+            "x": 909,
+            "y": 152,
+            "w": 371,
+            "h": 718,
+            "clientWidth": 370,
+            "scrollWidth": 370,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "hidden"
+          },
+          ".studio-run-panel": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0,
+            "clientWidth": 0,
+            "scrollWidth": 0,
+            "clientHeight": 0,
+            "scrollHeight": 0,
+            "overflow": "visible"
+          },
+          ".run-grid": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0,
+            "clientWidth": 0,
+            "scrollWidth": 0,
+            "clientHeight": 0,
+            "scrollHeight": 0,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "route": "published",
+      "scene": "published-run",
+      "metrics": {
+        "root": {
+          "width": 1280,
+          "scrollWidth": 1280,
+          "height": 900
+        },
+        "controls": {
+          ".studio-run-panel": {
+            "x": 90,
+            "y": 36,
+            "w": 1100,
+            "h": 828,
+            "clientWidth": 1098,
+            "scrollWidth": 1098,
+            "clientHeight": 826,
+            "scrollHeight": 826,
+            "overflow": "auto"
+          },
+          ".run-grid": {
+            "x": 91,
+            "y": 123,
+            "w": 1098,
+            "h": 740,
+            "clientWidth": 1098,
+            "scrollWidth": 1098,
+            "clientHeight": 740,
+            "scrollHeight": 740,
+            "overflow": "auto"
+          },
+          ".run-sidebar": {
+            "x": 91,
+            "y": 123,
+            "w": 253,
+            "h": 740,
+            "clientWidth": 252,
+            "scrollWidth": 252,
+            "clientHeight": 740,
+            "scrollHeight": 740,
+            "overflow": "auto"
+          },
+          ".run-history-bar": null,
+          ".run-main": {
+            "x": 344,
+            "y": 123,
+            "w": 845,
+            "h": 740,
+            "clientWidth": 845,
+            "scrollWidth": 845,
+            "clientHeight": 740,
+            "scrollHeight": 740,
+            "overflow": "auto"
+          },
+          ".run-compose textarea": {
+            "x": 360,
+            "y": 638,
+            "w": 813,
+            "h": 124,
+            "clientWidth": 811,
+            "scrollWidth": 811,
+            "clientHeight": 122,
+            "scrollHeight": 122,
+            "overflow": "auto"
+          },
+          ".run-primary": {
+            "x": 1059,
+            "y": 805,
+            "w": 114,
+            "h": 44,
+            "clientWidth": 112,
+            "scrollWidth": 112,
+            "clientHeight": 42,
+            "scrollHeight": 42,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "route": "prototype",
+      "scene": "status",
+      "metrics": {
+        "status": 200
+      }
+    },
+    {
+      "width": 1280,
+      "route": "prototype",
+      "scene": "prototype-preview",
+      "failure": "Error: expect(locator).toBeVisible() failed\n\nLocator: getByRole('dialog', { name: '내 자료로 안내하기', exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByRole('dialog', { name: '내 자료로 안내하기', exact: true }) with timeout 5000ms\n  - waiting for getByRole('dialog', { name: '내 자료로 안내하기', exact: true })\n",
+      "metrics": {
+        "root": {
+          "width": 1280,
+          "scrollWidth": 1280,
+          "height": 900
+        },
+        "controls": {
+          ".ws-workbench": null,
+          ".ws-stage": null,
+          ".ws-inspector": null,
+          ".studio-run-panel": null,
+          ".run-grid": null
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "route": "editor",
+      "scene": "workbench",
+      "metrics": {
+        "root": {
+          "width": 1440,
+          "scrollWidth": 1440,
+          "height": 900
+        },
+        "controls": {
+          ".ws-editor": {
+            "x": 190,
+            "y": 0,
+            "w": 1250,
+            "h": 900,
+            "clientWidth": 1250,
+            "scrollWidth": 1250,
+            "clientHeight": 900,
+            "scrollHeight": 900,
+            "overflow": "hidden auto"
+          },
+          ".ws-top": {
+            "x": 190,
+            "y": 0,
+            "w": 1250,
+            "h": 46,
+            "clientWidth": 1250,
+            "scrollWidth": 1250,
+            "clientHeight": 45,
+            "scrollHeight": 45,
+            "overflow": "visible"
+          },
+          ".ws-toolbar": {
+            "x": 190,
+            "y": 46,
+            "w": 1250,
+            "h": 106,
+            "clientWidth": 1250,
+            "scrollWidth": 1250,
+            "clientHeight": 105,
+            "scrollHeight": 105,
+            "overflow": "visible"
+          },
+          ".ws-workbench": {
+            "x": 190,
+            "y": 152,
+            "w": 1250,
+            "h": 718,
+            "clientWidth": 1250,
+            "scrollWidth": 1250,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "auto hidden"
+          },
+          ".ws-palette": {
+            "x": 190,
+            "y": 152,
+            "w": 187,
+            "h": 718,
+            "clientWidth": 186,
+            "scrollWidth": 186,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "visible"
+          },
+          ".ws-stage": {
+            "x": 377,
+            "y": 152,
+            "w": 638,
+            "h": 718,
+            "clientWidth": 638,
+            "scrollWidth": 638,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "visible"
+          },
+          ".ws-inspector": {
+            "x": 1015,
+            "y": 152,
+            "w": 425,
+            "h": 718,
+            "clientWidth": 424,
+            "scrollWidth": 424,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "hidden"
+          }
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "route": "editor",
+      "scene": "project-menu",
+      "metrics": {
+        "root": {
+          "width": 1440,
+          "scrollWidth": 1440,
+          "height": 900
+        },
+        "controls": {
+          ".ws-project-menu": {
+            "x": 1315,
+            "y": 7,
+            "w": 103,
+            "h": 32,
+            "clientWidth": 103,
+            "scrollWidth": 103,
+            "clientHeight": 32,
+            "scrollHeight": 225,
+            "overflow": "visible"
+          },
+          ".ws-project-commands": {
+            "x": 1266,
+            "y": 42,
+            "w": 152,
+            "h": 190,
+            "clientWidth": 150,
+            "scrollWidth": 150,
+            "clientHeight": 188,
+            "scrollHeight": 188,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "route": "editor",
+      "scene": "rename",
+      "metrics": {
+        "root": {
+          "width": 1440,
+          "scrollWidth": 1440,
+          "height": 900
+        },
+        "controls": {
+          "dialog[open]": {
+            "x": 512,
+            "y": 323,
+            "w": 416,
+            "h": 254,
+            "clientWidth": 414,
+            "scrollWidth": 414,
+            "clientHeight": 252,
+            "scrollHeight": 252,
+            "overflow": "hidden"
+          },
+          "dialog[open] :is(.ws-modal-content,.modal-content)": {
+            "x": 513,
+            "y": 389,
+            "w": 414,
+            "h": 187,
+            "clientWidth": 414,
+            "scrollWidth": 414,
+            "clientHeight": 187,
+            "scrollHeight": 187,
+            "overflow": "auto"
+          }
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "route": "editor",
+      "scene": "scope",
+      "metrics": {
+        "root": {
+          "width": 1440,
+          "scrollWidth": 1440,
+          "height": 900
+        },
+        "controls": {
+          "dialog[open]": {
+            "x": 468,
+            "y": 306,
+            "w": 504,
+            "h": 287,
+            "clientWidth": 502,
+            "scrollWidth": 502,
+            "clientHeight": 285,
+            "scrollHeight": 285,
+            "overflow": "hidden"
+          },
+          "dialog[open] :is(.ws-modal-content,.modal-content)": {
+            "x": 469,
+            "y": 372,
+            "w": 502,
+            "h": 220,
+            "clientWidth": 502,
+            "scrollWidth": 502,
+            "clientHeight": 220,
+            "scrollHeight": 220,
+            "overflow": "auto"
+          }
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "route": "editor",
+      "scene": "versions",
+      "metrics": {
+        "root": {
+          "width": 1440,
+          "scrollWidth": 1440,
+          "height": 900
+        },
+        "controls": {
+          "dialog[open]": {
+            "x": 288,
+            "y": 273,
+            "w": 864,
+            "h": 354,
+            "clientWidth": 862,
+            "scrollWidth": 862,
+            "clientHeight": 352,
+            "scrollHeight": 352,
+            "overflow": "hidden"
+          },
+          "dialog[open] :is(.ws-modal-content,.modal-content)": {
+            "x": 289,
+            "y": 335,
+            "w": 862,
+            "h": 291,
+            "clientWidth": 862,
+            "scrollWidth": 862,
+            "clientHeight": 291,
+            "scrollHeight": 291,
+            "overflow": "auto"
+          }
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "route": "editor",
+      "scene": "share",
+      "metrics": {
+        "root": {
+          "width": 1440,
+          "scrollWidth": 1440,
+          "height": 900
+        },
+        "controls": {
+          "dialog[open]": {
+            "x": 288,
+            "y": 144,
+            "w": 864,
+            "h": 613,
+            "clientWidth": 862,
+            "scrollWidth": 862,
+            "clientHeight": 611,
+            "scrollHeight": 611,
+            "overflow": "hidden"
+          },
+          "dialog[open] :is(.ws-modal-content,.modal-content)": {
+            "x": 289,
+            "y": 206,
+            "w": 862,
+            "h": 550,
+            "clientWidth": 862,
+            "scrollWidth": 862,
+            "clientHeight": 550,
+            "scrollHeight": 550,
+            "overflow": "auto"
+          }
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "route": "editor",
+      "scene": "export",
+      "metrics": {
+        "root": {
+          "width": 1440,
+          "scrollWidth": 1440,
+          "height": 900
+        },
+        "controls": {
+          "dialog[open]": {
+            "x": 400,
+            "y": 273,
+            "w": 640,
+            "h": 354,
+            "clientWidth": 638,
+            "scrollWidth": 638,
+            "clientHeight": 352,
+            "scrollHeight": 352,
+            "overflow": "hidden"
+          },
+          "dialog[open] :is(.ws-modal-content,.modal-content)": {
+            "x": 401,
+            "y": 339,
+            "w": 638,
+            "h": 287,
+            "clientWidth": 638,
+            "scrollWidth": 638,
+            "clientHeight": 287,
+            "scrollHeight": 287,
+            "overflow": "hidden"
+          }
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "route": "editor",
+      "scene": "shortcuts",
+      "metrics": {
+        "root": {
+          "width": 1440,
+          "scrollWidth": 1440,
+          "height": 900
+        },
+        "controls": {
+          "dialog[open]": {
+            "x": 288,
+            "y": 54,
+            "w": 864,
+            "h": 792,
+            "clientWidth": 862,
+            "scrollWidth": 862,
+            "clientHeight": 790,
+            "scrollHeight": 790,
+            "overflow": "hidden"
+          },
+          "dialog[open] :is(.ws-modal-content,.modal-content)": {
+            "x": 289,
+            "y": 120,
+            "w": 862,
+            "h": 725,
+            "clientWidth": 862,
+            "scrollWidth": 862,
+            "clientHeight": 725,
+            "scrollHeight": 813,
+            "overflow": "auto"
+          }
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "route": "editor",
+      "scene": "issues",
+      "metrics": {
+        "root": {
+          "width": 1440,
+          "scrollWidth": 1440,
+          "height": 900
+        },
+        "controls": {
+          "dialog[open]": {
+            "x": 512,
+            "y": 388,
+            "w": 416,
+            "h": 124,
+            "clientWidth": 414,
+            "scrollWidth": 414,
+            "clientHeight": 122,
+            "scrollHeight": 122,
+            "overflow": "hidden"
+          },
+          "dialog[open] :is(.ws-modal-content,.modal-content)": {
+            "x": 513,
+            "y": 454,
+            "w": 414,
+            "h": 57,
+            "clientWidth": 414,
+            "scrollWidth": 414,
+            "clientHeight": 57,
+            "scrollHeight": 57,
+            "overflow": "auto"
+          }
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "route": "editor",
+      "scene": "proposal",
+      "metrics": {
+        "root": {
+          "width": 1440,
+          "scrollWidth": 1440,
+          "height": 900
+        },
+        "controls": {
+          "dialog[open]": {
+            "x": 400,
+            "y": 274,
+            "w": 640,
+            "h": 352,
+            "clientWidth": 638,
+            "scrollWidth": 638,
+            "clientHeight": 350,
+            "scrollHeight": 350,
+            "overflow": "hidden"
+          },
+          "dialog[open] :is(.ws-modal-content,.modal-content)": {
+            "x": 401,
+            "y": 340,
+            "w": 638,
+            "h": 285,
+            "clientWidth": 638,
+            "scrollWidth": 638,
+            "clientHeight": 285,
+            "scrollHeight": 285,
+            "overflow": "auto"
+          }
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "route": "editor",
+      "scene": "source-fields",
+      "metrics": {
+        "root": {
+          "width": 1440,
+          "scrollWidth": 1440,
+          "height": 900
+        },
+        "controls": {
+          ".ws-workbench": {
+            "x": 190,
+            "y": 152,
+            "w": 1250,
+            "h": 718,
+            "clientWidth": 1250,
+            "scrollWidth": 1250,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "auto hidden"
+          },
+          ".ws-inspector": {
+            "x": 1015,
+            "y": 152,
+            "w": 425,
+            "h": 718,
+            "clientWidth": 424,
+            "scrollWidth": 424,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "hidden"
+          },
+          "#ws-panel-properties textarea": {
+            "x": 1032,
+            "y": 387,
+            "w": 392,
+            "h": 220,
+            "clientWidth": 390,
+            "scrollWidth": 390,
+            "clientHeight": 218,
+            "scrollHeight": 218,
+            "overflow": "auto"
+          }
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "route": "editor",
+      "scene": "run-settings",
+      "failure": "Error: expect(locator).toBeDisabled() failed\n\nLocator: getByRole('tabpanel', { name: '실행 결과' }).getByRole('button', { name: '질문 실행', exact: true })\nExpected: disabled\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeDisabled\" getByRole('tabpanel', { name: '실행 결과' }).getByRole('button', { name: '질문 실행', exact: true }) with timeout 5000ms\n  - waiting for getByRole('tabpanel', { name: '실행 결과' }).getByRole('button', { name: '질문 실행', exact: true })\n",
+      "metrics": {
+        "root": {
+          "width": 1440,
+          "scrollWidth": 1440,
+          "height": 900
+        },
+        "controls": {
+          ".ws-workbench": {
+            "x": 190,
+            "y": 152,
+            "w": 1250,
+            "h": 718,
+            "clientWidth": 1250,
+            "scrollWidth": 1250,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "auto hidden"
+          },
+          ".ws-stage": {
+            "x": 377,
+            "y": 152,
+            "w": 638,
+            "h": 718,
+            "clientWidth": 638,
+            "scrollWidth": 638,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "visible"
+          },
+          ".ws-inspector": {
+            "x": 1015,
+            "y": 152,
+            "w": 425,
+            "h": 718,
+            "clientWidth": 424,
+            "scrollWidth": 424,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "hidden"
+          },
+          ".studio-run-panel": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0,
+            "clientWidth": 0,
+            "scrollWidth": 0,
+            "clientHeight": 0,
+            "scrollHeight": 0,
+            "overflow": "visible"
+          },
+          ".run-grid": {
+            "x": 0,
+            "y": 0,
+            "w": 0,
+            "h": 0,
+            "clientWidth": 0,
+            "scrollWidth": 0,
+            "clientHeight": 0,
+            "scrollHeight": 0,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "route": "published",
+      "scene": "published-run",
+      "metrics": {
+        "root": {
+          "width": 1440,
+          "scrollWidth": 1440,
+          "height": 900
+        },
+        "controls": {
+          ".studio-run-panel": {
+            "x": 170,
+            "y": 36,
+            "w": 1100,
+            "h": 828,
+            "clientWidth": 1098,
+            "scrollWidth": 1098,
+            "clientHeight": 826,
+            "scrollHeight": 826,
+            "overflow": "auto"
+          },
+          ".run-grid": {
+            "x": 171,
+            "y": 123,
+            "w": 1098,
+            "h": 740,
+            "clientWidth": 1098,
+            "scrollWidth": 1098,
+            "clientHeight": 740,
+            "scrollHeight": 740,
+            "overflow": "auto"
+          },
+          ".run-sidebar": {
+            "x": 171,
+            "y": 123,
+            "w": 253,
+            "h": 740,
+            "clientWidth": 252,
+            "scrollWidth": 252,
+            "clientHeight": 740,
+            "scrollHeight": 740,
+            "overflow": "auto"
+          },
+          ".run-history-bar": null,
+          ".run-main": {
+            "x": 424,
+            "y": 123,
+            "w": 845,
+            "h": 740,
+            "clientWidth": 845,
+            "scrollWidth": 845,
+            "clientHeight": 740,
+            "scrollHeight": 740,
+            "overflow": "auto"
+          },
+          ".run-compose textarea": {
+            "x": 440,
+            "y": 638,
+            "w": 813,
+            "h": 124,
+            "clientWidth": 811,
+            "scrollWidth": 811,
+            "clientHeight": 122,
+            "scrollHeight": 122,
+            "overflow": "auto"
+          },
+          ".run-primary": {
+            "x": 1139,
+            "y": 805,
+            "w": 114,
+            "h": 44,
+            "clientWidth": 112,
+            "scrollWidth": 112,
+            "clientHeight": 42,
+            "scrollHeight": 42,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "route": "prototype",
+      "scene": "status",
+      "metrics": {
+        "status": 200
+      }
+    },
+    {
+      "width": 1440,
+      "route": "prototype",
+      "scene": "prototype-preview",
+      "failure": "Error: expect(locator).toBeVisible() failed\n\nLocator: getByRole('dialog', { name: '내 자료로 안내하기', exact: true })\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n  - Expect \"toBeVisible\" getByRole('dialog', { name: '내 자료로 안내하기', exact: true }) with timeout 5000ms\n  - waiting for getByRole('dialog', { name: '내 자료로 안내하기', exact: true })\n",
+      "metrics": {
+        "root": {
+          "width": 1440,
+          "scrollWidth": 1440,
+          "height": 900
+        },
+        "controls": {
+          ".ws-workbench": null,
+          ".ws-stage": null,
+          ".ws-inspector": null,
+          ".studio-run-panel": null,
+          ".run-grid": null
+        }
+      }
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": []
+}

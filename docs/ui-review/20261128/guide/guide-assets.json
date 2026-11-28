@@ -1,0 +1,331 @@
+{
+  "current": [
+    {
+      "name": "01-start.png",
+      "hash": "80a6589d0ff12a9110d26afbea406487d2b863d1202889519f80705f571de8d4"
+    },
+    {
+      "name": "02-editor.png",
+      "hash": "776d9e138fd2f5e16d9d63c4ce5b38f43ea0703676513c1912cac7b86d354718"
+    },
+    {
+      "name": "02-start-example.png",
+      "hash": "13f6895a64658a8ec26213a84dae43dd9f307c80ae538f37c767519fd5340489"
+    },
+    {
+      "name": "03-question.png",
+      "hash": "9bd91b36a8a89d5951ddb32d3d912b8964779b9fe7adbb737984708223937890"
+    },
+    {
+      "name": "05-instruction.png",
+      "hash": "1631f2d68ca33239d3a8df2cc98313f2b7adb81d556d8cd0c54ade46e00508c3"
+    },
+    {
+      "name": "create-copy.webp",
+      "hash": "3d42551d1ac2c766caf7241ef632a2a7b373449bcf82cef91982a2aa49afd701"
+    },
+    {
+      "name": "create-entry.webp",
+      "hash": "06859edf0da33d07e5bf199746d1638f9114064b75bc320e41b1d1866b649d4b"
+    },
+    {
+      "name": "create-instruction.webp",
+      "hash": "d62ee0d39a57eea6722cac6ab9c5533e48612affb8dc1fa920c3744eb5d42e6e"
+    },
+    {
+      "name": "create-lesson.webp",
+      "hash": "d9617c6ab7f0e7402064719219700be4c5e0286d7c483f6404d08b87eb604f38"
+    },
+    {
+      "name": "create-name.webp",
+      "hash": "f1742e6becdab87db8fbb798bbffd710f7e4977af9841ee95fbfe56e89365590"
+    },
+    {
+      "name": "error-model-home.png",
+      "hash": "41245ef5d4b3b2e2cc1885c9a88b1b20df22de85510bbbdaba06bc6b76394ab0"
+    },
+    {
+      "name": "error-model.png",
+      "hash": "879a589a8f5da2a023008705cba4e14aa478d6956e3b2ef01cb97093ecc08f70"
+    },
+    {
+      "name": "error-source.png",
+      "hash": "60fc8cec067ddf626f8264cf0590864fa0cf929dbdee655c967e8a1788a23497"
+    },
+    {
+      "name": "goal-beginner.png",
+      "hash": "b698702f51a33a5b5d27267da3c4f422a04b3dc5a3b3eb689dc96a8e50a1928e"
+    },
+    {
+      "name": "goal-dynamic-team.png",
+      "hash": "0010e02522a97baae758926f43b49a6c5b797782dfdcc8e764e01e451144c58f"
+    },
+    {
+      "name": "goal-dynamic.png",
+      "hash": "38b371b4234615b5503823df5c112af2dbcfb33a34cc3bfcef8fe0f34e28bf27"
+    },
+    {
+      "name": "goal-intermediate.png",
+      "hash": "dd64991f6cb250d47401a1ccafb860f892ce0a71063a60c2d8ebe437a8620062"
+    },
+    {
+      "name": "goal-library-visit.png",
+      "hash": "21b8d47e34de5f78f8aa955744b61220930bd29f30cdcb663e1e45e0bce7daa6"
+    },
+    {
+      "name": "goal-parallel-team.png",
+      "hash": "e50f2bf7957506d3b8aa77eafe7100eb1f735041204a0a8c5df1cbc393b21d19"
+    },
+    {
+      "name": "goal-parallel.png",
+      "hash": "f0da88ffcbabacdb4710d6b65bbf74654798a6c708c83dac57407c1d297bb528"
+    },
+    {
+      "name": "goal-peer-review-team.png",
+      "hash": "5782ccc3714ea38623ba87624f04d0f5bf0e8d0c61f29fc8180eb14faec24c8e"
+    },
+    {
+      "name": "goal-peer-review.png",
+      "hash": "2435355f4c8d8b1506b9685bf76e871829531c0ced259066a9378b28d363d646"
+    },
+    {
+      "name": "goal-release.png",
+      "hash": "f200ce9235fb85beaff31227eeed369eb519122ed4bb6b95c153e4e297c9ef25"
+    },
+    {
+      "name": "help-empty-source.webp",
+      "hash": "84a03ec9a916be436284fdf2b48c1b710d3fce74ba30ca3bc06d4ba24fe76fa9"
+    },
+    {
+      "name": "help-inspect.webp",
+      "hash": "6443bc55483f3e9d96d03a2eec73fa37d8b27110d7b4bdd5fc78387ad35b97ac"
+    },
+    {
+      "name": "help-model-status.webp",
+      "hash": "4cd9e4690d2ff13cbde8628b652d5d6280d66d73d8d1b7ae7aee2a48a7d455de"
+    },
+    {
+      "name": "help-question-blocked.png",
+      "hash": "89c7286218f0e46f55a54cd7b594c8c523686f5ff40469c8cd751b394f790401"
+    },
+    {
+      "name": "help-source-line.webp",
+      "hash": "5f6377ef2d21c5e4811f0401bcf9037edd6aa716171ab831131c7efab91f214e"
+    },
+    {
+      "name": "quick-open.webp",
+      "hash": "a473db96d8b58cc382bbaa2cffb328290c1d22363d215b1e27ed235815c73bae"
+    },
+    {
+      "name": "quick-question.webp",
+      "hash": "685ea74b2c62da58b467493ed389245308266a0c15d8c0d9fb9db1d6ac9004e5"
+    },
+    {
+      "name": "source-rule.png",
+      "hash": "71d769962fb8ef849aee378e010a2fa3ee7dbd582945b08ce4e778325f8fc420"
+    },
+    {
+      "name": "terms-agent.png",
+      "hash": "3ad6a67bc4fea26572f68695b395e5c7adb638e4c35d6a556986e2ff7014d66a"
+    },
+    {
+      "name": "terms-block.png",
+      "hash": "b76eb0cfebbbd4dbd9c8db9c772b449e2f70a6ed4c19d19ce29cd64a76574ff8"
+    },
+    {
+      "name": "terms-connection.png",
+      "hash": "2c2c3ea9171fa996b763700755fb2df53ab912c4219e341422053b71aaad465e"
+    },
+    {
+      "name": "terms-tool.png",
+      "hash": "7d57d3598615f17db92aa9ea7e30c4fe6688c2ef0a973992eeec4475770c7428"
+    },
+    {
+      "name": "terms-workflow.png",
+      "hash": "03e52eea49290bd3d64b54a01ae080b93bc09f15341eea82d579d6a08d650aa9"
+    }
+  ],
+  "historical": [
+    {
+      "name": "04-answer.png",
+      "hash": "a8e253d98dfb36a47e2f3587f58ebcbc86297ac0ecfca93642e2848595979af2"
+    },
+    {
+      "name": "05-compare.png",
+      "hash": "d2b4949372f59d05131575df1cc16e67f2fc3dcbe69039a7f2a014eca5f59f11"
+    },
+    {
+      "name": "help-quoted-answer.webp",
+      "hash": "2340b7c4b8cd36b3c2fa5f7d0c77179d671763a63db12c891da88e63493ea61b"
+    },
+    {
+      "name": "quick-answer.webp",
+      "hash": "40ba6bebb891a0025df052ce6ce1a7276f4267d7534240db3f5708cd99a941f4"
+    }
+  ],
+  "code": [
+    {
+      "name": "01-start.png",
+      "width": 2802,
+      "height": 1184,
+      "marks": 2
+    },
+    {
+      "name": "02-editor.png",
+      "width": 2500,
+      "height": 1800,
+      "marks": 2
+    },
+    {
+      "name": "02-start-example.png",
+      "width": 1256,
+      "height": 598,
+      "marks": 1
+    },
+    {
+      "name": "03-question.png",
+      "width": 816,
+      "height": 446,
+      "marks": 2
+    },
+    {
+      "name": "04-answer.png",
+      "width": 538,
+      "height": 460,
+      "marks": 2
+    },
+    {
+      "name": "05-compare.png",
+      "width": 538,
+      "height": 544,
+      "marks": 2
+    },
+    {
+      "name": "05-instruction.png",
+      "width": 784,
+      "height": 318,
+      "marks": 1
+    },
+    {
+      "name": "error-model-home.png",
+      "width": 458,
+      "height": 118,
+      "marks": 1
+    },
+    {
+      "name": "error-model.png",
+      "width": 776,
+      "height": 396,
+      "marks": 2
+    },
+    {
+      "name": "error-source.png",
+      "width": 808,
+      "height": 674,
+      "marks": 2
+    },
+    {
+      "name": "goal-beginner.png",
+      "width": 1888,
+      "height": 698,
+      "marks": 2
+    },
+    {
+      "name": "goal-dynamic-team.png",
+      "width": 1888,
+      "height": 214,
+      "marks": 2
+    },
+    {
+      "name": "goal-dynamic.png",
+      "width": 1888,
+      "height": 474,
+      "marks": 1
+    },
+    {
+      "name": "goal-intermediate.png",
+      "width": 3352,
+      "height": 1324,
+      "marks": 2
+    },
+    {
+      "name": "goal-library-visit.png",
+      "width": 2864,
+      "height": 742,
+      "marks": 2
+    },
+    {
+      "name": "goal-parallel-team.png",
+      "width": 3352,
+      "height": 738,
+      "marks": 2
+    },
+    {
+      "name": "goal-parallel.png",
+      "width": 1400,
+      "height": 170,
+      "marks": 1
+    },
+    {
+      "name": "goal-peer-review-team.png",
+      "width": 3436,
+      "height": 658,
+      "marks": 2
+    },
+    {
+      "name": "goal-peer-review.png",
+      "width": 1400,
+      "height": 170,
+      "marks": 1
+    },
+    {
+      "name": "goal-release.png",
+      "width": 1400,
+      "height": 474,
+      "marks": 1
+    },
+    {
+      "name": "help-question-blocked.png",
+      "width": 822,
+      "height": 724,
+      "marks": 3
+    },
+    {
+      "name": "source-rule.png",
+      "width": 784,
+      "height": 510,
+      "marks": 1
+    },
+    {
+      "name": "terms-agent.png",
+      "width": 808,
+      "height": 850,
+      "marks": 3
+    },
+    {
+      "name": "terms-block.png",
+      "width": 808,
+      "height": 486,
+      "marks": 2
+    },
+    {
+      "name": "terms-connection.png",
+      "width": 832,
+      "height": 396,
+      "marks": 2
+    },
+    {
+      "name": "terms-tool.png",
+      "width": 808,
+      "height": 290,
+      "marks": 2
+    },
+    {
+      "name": "terms-workflow.png",
+      "width": 1392,
+      "height": 466,
+      "marks": 3
+    }
+  ],
+  "issues": []
+}

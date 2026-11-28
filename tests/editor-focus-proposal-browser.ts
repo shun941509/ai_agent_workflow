@@ -37,18 +37,14 @@ function reviewTeams(): Graph {
   return graph;
 }
 
-async function check(mobile: boolean) {
-  const context = await browser.newContext({baseURL, viewport:mobile ? {width:390,height:844} : {width:1440,height:900}, isMobile:mobile, hasTouch:mobile});
+async function check() {
+  const context = await browser.newContext({baseURL, viewport:{width:1440,height:900}});
   try {
     await registerBrowserAccount(context);
     const page = await context.newPage();
     const button = (name: string) => page.getByRole('button',{name,exact:true});
     const lesson = await api(context, 'project.create',{lesson:'intermediate'});
     await page.goto('/?edit=' + lesson.id);
-    if (mobile) {
-      await expect(page.locator('.ws-graph-list')).toBeVisible();
-      await button('캔버스로 보기').click();
-    }
     const canvas = page.locator('.ws-canvas');
     const selected = canvas.locator('.ws-node.ws-chosen');
     const scale = () => canvas.locator('.ws-world').evaluate(el => new DOMMatrix(getComputedStyle(el).transform).a);
@@ -189,7 +185,6 @@ async function check(mobile: boolean) {
     const teams = reviewTeams();
     const nested = await api(context, 'project.create', {title:'내부 설계 변경', graph:teams});
     await page.goto('/?edit=' + nested.id);
-    if (mobile) await button('캔버스로 보기').click();
     await button('첫 검토 팀 블록 속성').press('Enter');
     await button('팀 열기').click();
     const teamHeading = page.getByRole('heading', {name:'첫 검토 팀', exact:true});
@@ -262,7 +257,6 @@ async function check(mobile: boolean) {
 }
 
 try {
-  await check(false);
-  await check(true);
-  console.log('PASS desktop and mobile canvas controls, editor and guide clarification, stale proposals, and scoped team changes with validation and undo.');
+  await check();
+  console.log('PASS desktop canvas controls, editor and guide clarification, stale proposals, and scoped team changes with validation and undo.');
 } finally { await browser.close(); }

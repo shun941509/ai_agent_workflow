@@ -3,6 +3,7 @@ export interface WorkspacePosition {
   y: number;
   search?: string;
   level?: string;
+  topic?: string;
   projectId?: string;
   lessonTrigger?: string;
   trashLink?: boolean;

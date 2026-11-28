@@ -1,0 +1,49 @@
+<template>
+  <style>
+    #root {position:absolute;inset:0;overflow:hidden;background:var(--ink,#17274b);color:var(--paper,#f6f2e8);font-family:"Studio Sans",sans-serif;}
+    .cover-brand {position:absolute;left:192px;top:118px;display:flex;align-items:center;gap:18px;font-size:34px;font-weight:660;letter-spacing:-1.1px;}
+    .cover-brand img {width:58px;height:58px;}
+    #cover-rule {position:absolute;left:192px;right:192px;top:212px;height:2px;background:#8792ac;transform-origin:0 50%;}
+    #cover-title {position:absolute;left:192px;top:333px;font:700 115px/1.28 "Studio Serif",serif;letter-spacing:-8.2px;}
+    #cover-title span {display:block;white-space:nowrap;}
+    #cover-title span:last-child {color:var(--lime,#d9ec85);}
+    #cover-detail {position:absolute;left:198px;top:717px;font-size:34px;font-weight:500;letter-spacing:-1.3px;}
+    #cover-stack {position:absolute;left:1061px;top:267px;width:655px;height:650px;}
+    .cover-leaf {position:absolute;display:flex;align-items:center;justify-content:space-between;padding:16px 52px;width:552px;height:174px;color:var(--ink,#17274b);box-shadow:9px 12px 0 #101b35;}
+    .cover-leaf::before {content:"";position:absolute;left:0;top:0;bottom:0;width:16px;border-right:2px solid currentColor;opacity:.42;}
+    .cover-leaf::after {content:"";position:absolute;bottom:10px;left:34px;right:22px;height:4px;border-top:1px solid currentColor;border-bottom:1px solid currentColor;opacity:.48;}
+    .cover-leaf strong {font:660 54px/1.25 "Studio Serif",serif;letter-spacing:-4px;}
+    .cover-leaf svg {width:136px;height:93px;display:block;}
+    #cover-minutes {top:16px;left:0;background:var(--paper,#f6f2e8);}
+    #cover-request {top:215px;left:73px;background:var(--lime,#d9ec85);}
+    #cover-measure {top:414px;left:18px;background:#c1cffa;}
+  </style>
+  <section id="root" data-composition-id="cover" data-width="1920" data-height="1080">
+    <div class="cover-brand"><img src="assets/studio-icon.svg" alt=""><span data-var-text="brandName">AI Agent Workflow Studio</span></div>
+    <div id="cover-rule"></div>
+    <h1 id="cover-title"><span data-var-text="coverFirst">어떤 Agent를</span><span data-var-text="coverSecond">만들 수 있을까?</span></h1>
+    <p id="cover-detail" data-var-text="coverDetail">메모 한 장, 요청 한 줄, 측정값 여섯 개.</p>
+    <figure id="cover-stack" aria-label="회의록, 요구사항, 제조 보고서 세 가지 문서 견본">
+      <div class="cover-leaf" id="cover-minutes"><strong data-var-text="tabMinutes">회의록</strong>
+        <svg viewBox="0 0 136 93" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 9h126v73H5zM5 29h126M5 55h126M84 29v53"/><path d="M14 19h34M14 42h47" stroke-width="5"/></svg>
+      </div>
+      <div class="cover-leaf" id="cover-request"><strong data-var-text="tabRequirements">요구사항</strong>
+        <svg viewBox="0 0 136 93" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><rect x="5" y="12" width="27" height="27"/><path d="m10 25 7 7 12-18M46 26h82M5 55h27v27H5zM46 67h58"/></svg>
+      </div>
+      <div class="cover-leaf" id="cover-measure"><strong data-var-text="tabMeasure">제조 보고서</strong>
+        <svg viewBox="0 0 136 93" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M4 44h127M64 7v77" opacity=".4"/><path d="m7 61 22-30 23 24 24-37 25 40 27-24"/><g fill="currentColor"><circle cx="7" cy="61" r="4"/><circle cx="29" cy="31" r="4"/><circle cx="52" cy="55" r="4"/><circle cx="76" cy="18" r="4"/><circle cx="101" cy="58" r="4"/><circle cx="128" cy="34" r="4"/></g></svg>
+      </div>
+    </figure>
+  </section>
+  <script>
+    const tl = gsap.timeline({paused:true});
+    tl.fromTo("#cover-rule",{scaleX:0.42},{scaleX:1,duration:0.75,ease:"power2.out"},0);
+    tl.fromTo("#cover-title",{y:10},{y:0,duration:0.55,ease:"power3.out"},0);
+    tl.fromTo("#cover-minutes",{x:22,rotation:1},{x:0,rotation:-2,duration:0.64,ease:"power2.out"},0);
+    tl.fromTo("#cover-request",{x:56,opacity:0,rotation:3},{x:0,opacity:1,rotation:1.5,duration:0.55,ease:"power2.out"},0.23);
+    tl.fromTo("#cover-measure",{x:66,opacity:0,rotation:1},{x:0,opacity:1,rotation:-1,duration:0.55,ease:"power2.out"},0.5);
+    tl.fromTo("#cover-detail",{y:14,opacity:0},{y:0,opacity:1,duration:0.48,ease:"power2.out"},0.92);
+    window.__timelines = window.__timelines || {};
+    window.__timelines.cover = tl;
+  </script>
+</template>

@@ -120,7 +120,7 @@ function codeReview(): Graph {
 
 export const swTeamTemplates: Lesson[] = [
   {
-    id: 'sw-bug-triage', title: '오류 제보에서 빠진 정보 되묻기', level: '중급',
+    id: 'sw-bug-triage', title: '오류 제보에서 빠진 정보 되묻기', level: '중급', topic: '소프트웨어 개발',
     description: '할 일 목록에서 항목이 사라졌다는 제보를 받고, 표시 설정을 바꾼 뒤의 관찰을 물어봅니다.',
     task: '같은 제보를 두 번 보내고, 필터를 끈 결과만 바꿔 회신해 보세요.',
     question: originalReport,
@@ -140,7 +140,7 @@ export const swTeamTemplates: Lesson[] = [
     examples: [], graph: bugTriage(),
   },
   {
-    id: 'sw-code-review', title: '개발자와 QA가 코드 변경 함께 검토하기', level: '고급',
+    id: 'sw-code-review', title: '개발자와 QA가 코드 변경 함께 검토하기', level: '고급', topic: '소프트웨어 개발',
     description: '개발자와 QA가 같은 할 일 목록 필터를 읽고, 코드 수정안에 그 수정을 확인할 시험 사례를 붙입니다.',
     task: '팀 안에서 두 담당자가 받은 자료를 찾고 최종 보고서에서 수정식과 켬·끔 시험을 짝지어 보세요.',
     question: reviewQuestion,

@@ -1,0 +1,190 @@
+{
+  "nodes": [
+    {
+      "id": "input",
+      "name": "질문 입력",
+      "sourceDialog": true,
+      "mapped": [
+        {
+          "to": "agent",
+          "kind": "flow",
+          "out": "next",
+          "input": "in"
+        },
+        {
+          "to": "agent",
+          "kind": "data",
+          "out": "value",
+          "input": "input"
+        }
+      ]
+    },
+    {
+      "id": "agent",
+      "name": "도서관 안내 Agent",
+      "sourceDialog": true,
+      "mapped": [
+        {
+          "to": "file",
+          "kind": "flow",
+          "out": "next",
+          "input": "in"
+        },
+        {
+          "to": "file",
+          "kind": "data",
+          "out": "value",
+          "input": "input"
+        }
+      ]
+    },
+    {
+      "id": "file",
+      "name": "대출 안내 파일 만들기",
+      "sourceDialog": true,
+      "mapped": [
+        {
+          "to": "output",
+          "kind": "flow",
+          "out": "next",
+          "input": "in"
+        },
+        {
+          "to": "output",
+          "kind": "data",
+          "out": "value",
+          "input": "input"
+        }
+      ]
+    },
+    {
+      "id": "output",
+      "name": "답변 전달",
+      "sourceDialog": false,
+      "mapped": []
+    },
+    {
+      "id": "rules",
+      "name": "도서관 이용규정",
+      "sourceDialog": true,
+      "mapped": [
+        {
+          "to": "agent",
+          "kind": "reference",
+          "out": "ref",
+          "input": "context"
+        }
+      ]
+    },
+    {
+      "id": "skill",
+      "name": "근거 인용 Skill",
+      "sourceDialog": true,
+      "mapped": [
+        {
+          "to": "agent",
+          "kind": "reference",
+          "out": "ref",
+          "input": "skill"
+        }
+      ]
+    }
+  ],
+  "links": [
+    {
+      "from": "input",
+      "to": "agent"
+    },
+    {
+      "from": "agent",
+      "to": "file"
+    },
+    {
+      "from": "file",
+      "to": "output"
+    },
+    {
+      "from": "rules",
+      "to": "agent"
+    },
+    {
+      "from": "skill",
+      "to": "agent"
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "a11y": [
+    {
+      "id": "target-size",
+      "nodes": [
+        {
+          "target": [
+            "button[data-canvas-block=\"input\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Target has insufficient size (18.7px by 21.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 11.2px instead of at least 24px."
+        },
+        {
+          "target": [
+            "button[aria-label=\"질문 입력에서 연결 추가\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Target has insufficient size (16.1px by 21.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 0px instead of at least 24px."
+        },
+        {
+          "target": [
+            "button[data-canvas-block=\"agent\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Target has insufficient size (18.7px by 21.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 1px instead of at least 24px."
+        },
+        {
+          "target": [
+            "button[aria-label=\"도서관 안내 Agent에서 연결 추가\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Target has insufficient size (16.1px by 21.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 0px instead of at least 24px."
+        },
+        {
+          "target": [
+            "button[data-canvas-block=\"file\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Target has insufficient size (18.7px by 21.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 1px instead of at least 24px."
+        },
+        {
+          "target": [
+            "button[aria-label=\"대출 안내 파일 만들기에서 연결 추가\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Target has insufficient size (16.1px by 21.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 0px instead of at least 24px."
+        },
+        {
+          "target": [
+            "button[data-canvas-block=\"output\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Target has insufficient size (29.1px by 21.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 11.4px instead of at least 24px."
+        },
+        {
+          "target": [
+            "button[data-canvas-block=\"rules\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Target has insufficient size (26.1px by 21.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 0px instead of at least 24px."
+        },
+        {
+          "target": [
+            "button[aria-label=\"도서관 이용규정에서 연결 추가\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Target has insufficient size (16.1px by 21.1px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 13.2px instead of at least 24px."
+        },
+        {
+          "target": [
+            "button[data-canvas-block=\"skill\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Target has insufficient size (18.7px by 19.4px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 11.2px instead of at least 24px."
+        },
+        {
+          "target": [
+            "button[aria-label=\"근거 인용 Skill에서 연결 추가\"]"
+          ],
+          "failureSummary": "Fix any of the following:\n  Target has insufficient size (16.1px by 19.4px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 11.2px instead of at least 24px."
+        }
+      ]
+    }
+  ]
+}

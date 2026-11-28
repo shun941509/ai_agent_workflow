@@ -9,12 +9,11 @@
   <link rel="stylesheet" href="./studio-canvas.css">
 </head>
 <body>
-<div id="app-shell" data-pane="canvas">
+<div id="app-shell">
   <aside class="sidebar" id="workspace-nav" aria-label="워크스페이스 탐색">
     <div class="brand">
       <span class="brand-mark"><i data-icon="workflow"></i></span>
       <div><strong>Workflow Studio</strong><small>AI Agent 설계 작업대</small></div>
-      <button class="bare drawer-close nav-close" data-action="close-pane" aria-label="탐색 닫기"><i data-icon="close"></i></button>
     </div>
     <nav aria-label="프로젝트 메뉴">
       <section class="nav-group"><h2>작업</h2>
@@ -40,9 +39,11 @@
   <main class="workspace">
     <header class="workspace-header">
       <div class="breadcrumb">
-        <button id="sidebar-open" class="icon-btn mobile-trigger" aria-label="전체 메뉴 열기" aria-controls="workspace-nav"><i data-icon="menu"></i></button>
         <span class="crumb-parent">내 워크스페이스</span><span class="crumb-divider">/</span><strong>Workflow 설계</strong>
       </div>
+      <nav class="panel-links" aria-label="편집 영역 바로가기">
+        <a href="#block-palette">블록 추가</a><a href="#canvas-panel">캔버스</a><a href="#props-panel">속성</a>
+      </nav>
     </header>
     <section class="editor-toolbar" aria-label="프로젝트 작업">
       <div class="identity-row">
@@ -69,10 +70,8 @@
       </div>
     </section>
     <div class="workbench">
-      <aside class="palette" id="block-palette" aria-labelledby="palette-title">
-        <div class="pane-title"><h2 id="palette-title">블록 추가</h2>
-          <button class="bare drawer-close palette-close" data-action="close-pane" aria-label="블록 목록 닫기"><i data-icon="close"></i></button>
-        </div>
+      <aside class="palette" id="block-palette" aria-labelledby="palette-title" tabindex="-1">
+        <h2 id="palette-title">블록 추가</h2>
         <label class="search-box"><i data-icon="search"></i><input id="palette-search" type="search" placeholder="블록 이름 검색" aria-label="블록 이름 검색"></label>
         <div class="palette-tabs" role="group" aria-label="표시할 블록">
           <button id="palette-basic" data-action="palette-basic" aria-pressed="true">기본</button>
@@ -82,25 +81,21 @@
         <select id="palette-category" aria-label="블록 카테고리"><option value="">모든 카테고리</option></select>
         <div class="palette-list" id="palette-list"></div>
       </aside>
-      <section class="canvas-area" aria-labelledby="canvas-title">
+      <section class="canvas-area" id="canvas-panel" aria-labelledby="canvas-title" tabindex="-1">
         <div class="canvas-topbar"><h2 id="canvas-title">캔버스</h2>
           <div class="canvas-actions">
-            <button id="palette-open" class="mobile-trigger" aria-controls="block-palette"><i data-icon="plus"></i>블록</button>
             <button id="arrange"><i data-icon="grid"></i><span>자동 정렬</span></button>
             <button id="list-mode" aria-pressed="false"><i data-icon="list"></i><span>목록으로 편집</span></button>
-            <button id="props-open" class="mobile-trigger" aria-controls="props-panel"><i data-icon="sliders"></i>속성</button>
           </div>
         </div>
         <div id="graph-root"></div>
       </section>
-      <aside class="inspector-pane" id="props-panel" aria-label="속성 패널">
-        <div class="panel-mobile-bar"><strong>편집 도구</strong><button class="bare drawer-close props-close" data-action="close-pane" aria-label="속성 닫기"><i data-icon="close"></i></button></div>
+      <aside class="inspector-pane" id="props-panel" aria-label="속성 패널" tabindex="-1">
         <div id="inspector"></div>
       </aside>
     </div>
     <footer class="status-bar" aria-label="작업 상태"><span class="status-message"><i data-icon="info"></i><span id="status-text" role="status">도서관 안내 Workflow</span></span><span id="status-count"></span></footer>
   </main>
-  <button class="drawer-backdrop" data-action="close-pane" aria-label="캔버스로 돌아가기" tabindex="-1"></button>
 </div>
 <dialog id="studio-dialog" aria-labelledby="dialog-title">
   <header class="dialog-heading"><h2 id="dialog-title"></h2><button class="bare" data-action="close-dialog" aria-label="닫기"><i data-icon="close"></i></button></header>

@@ -31,8 +31,7 @@ async function staysInPlace(anchor: Locator, action: () => Promise<void>) {
 }
 
 async function verify(width: number) {
-  const mobile = width === 390;
-  const context = await browser.newContext({baseURL,viewport:{width,height:mobile ? 844 : 900},isMobile:mobile,hasTouch:mobile});
+  const context = await browser.newContext({baseURL,viewport:{width,height:900}});
   try {
     const api = async (action: string, data: object = {}) => {
       const response = await context.request.post('/api/studio',{data:{action,data}});
@@ -51,7 +50,6 @@ async function verify(width: number) {
     const errors: string[] = [];
     page.on('pageerror',error => errors.push(error.message));
     await page.goto('/?edit=' + project.id);
-    if (mobile) await page.getByRole('button',{name:'캔버스로 보기',exact:true}).click();
     const canvas = page.locator('.ws-canvas');
     const world = canvas.locator('.ws-world');
     const toolbar = canvas.getByRole('group',{name:'캔버스 배율'});
@@ -70,7 +68,7 @@ async function verify(width: number) {
     await staysInPlace(ask,async () => { await page.keyboard.press('='); await hasZoom(120); });
     await expect(ask).toBeFocused();
     const viewport = page.viewportSize()!;
-    await page.setViewportSize({...viewport,width:mobile ? 500 : 1290});
+    await page.setViewportSize({...viewport,width:1290});
     await hasZoom(120);
     await page.setViewportSize(viewport);
     await hasZoom(120);
@@ -104,12 +102,10 @@ async function verify(width: number) {
     await page.keyboard.press('Escape');
     await expect(ask).toBeFocused();
     await staysInPlace(ask,async () => {
-      if (mobile) await button('확대').tap();
-      else await button('확대').click();
+      await button('확대').click();
       await hasZoom(120);
     });
-    if (mobile) await reset.tap();
-    else await reset.press('Enter');
+    await reset.press('Enter');
     await hasZoom(100);
     await ask.focus();
     for (let i=0; i<5; i++) await page.keyboard.press('=');
@@ -175,35 +171,33 @@ async function verify(width: number) {
     assert.ok(saved.edges.every(e => e.from === 'ask' && e.to === 'reply'));
     await page.keyboard.press('Control+z');
     await expect(wire).toHaveCount(0);
-    if (mobile) {
-      const wide = await api('project.create',{title:'넓은 캔버스 전체 보기',graph:{
-        nodes:[graph.nodes[0],{...graph.nodes[1],x:500_000}],edges:[],
-      }});
-      await page.goto('/?edit=' + wide.id);
-      await page.getByRole('button',{name:'캔버스로 보기',exact:true}).click();
-      const overview = button('캔버스에 맞추기');
-      await overview.press('Enter');
-      await expect(reset).toHaveText('<0.1%');
-      await expect(button('축소')).toBeDisabled();
-      const scale = () => world.evaluate(el => new DOMMatrix(getComputedStyle(el).transform).a);
-      const beforeResize = await scale();
-      await overview.press('-');
-      await page.setViewportSize({...viewport,width:width + 160});
-      await expect.poll(scale).toBeGreaterThan(beforeResize);
-      const frame = (await canvas.boundingBox())!;
-      const left = await screenPoint(ask);
-      const right = await screenPoint(canvas.locator('[data-canvas-block="reply"]'));
-      assert.ok(left.x >= frame.x && right.x <= frame.x + frame.width);
-      await expect(button('축소')).toBeDisabled();
-    }
+
+    const wide = await api('project.create',{title:'멀리 떨어진 두 블록',graph:{
+      nodes:[graph.nodes[0],{...graph.nodes[1],x:2_000_000}],edges:[],
+    }});
+    await page.goto('/?edit='+wide.id);
+    const fitButton = button('캔버스에 맞추기');
+    await fitButton.press('Enter');
+    await expect(reset).toHaveText('<0.1%');
+    await expect(button('축소')).toBeDisabled();
+    const scale = () => world.evaluate(el => new DOMMatrix(getComputedStyle(el).transform).a);
+    const beforeResize = await scale();
+    await fitButton.press('-');
+    await page.setViewportSize({...viewport,width:width + 240});
+    await expect.poll(scale).toBeGreaterThan(beforeResize);
+    const bounds = (await canvas.boundingBox())!;
+    const left = await screenPoint(ask);
+    const right = await screenPoint(canvas.locator('[data-canvas-block="reply"]'));
+    assert.ok(left.x >= bounds.x && right.x <= bounds.x + bounds.width);
+    await expect(button('축소')).toBeDisabled();
     assert.deepEqual(errors,[]);
   } finally {
     await context.close();
   }
 }
 try {
-  for (const width of [1440,390]) await verify(width);
-  console.log('PASS desktop/mobile keyboard zoom, stable block/port/wire anchors, zoom limits, native input and saved keyboard placement and connection.');
+  await verify(1440);
+  console.log('PASS desktop keyboard zoom, stable block/port/wire anchors, zoom limits, native input and saved keyboard placement and connection.');
 } finally {
   await browser.close();
 }

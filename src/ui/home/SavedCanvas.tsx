@@ -133,7 +133,7 @@ export default function SavedCanvas({ graph, selection }: { graph: Graph; select
               {layout.routes.map(r => <div className="lh-mini-route" key={r.id} style={{height:ROUTE_H}} title={r.label}>{r.label}</div>)}
             </div>
           </foreignObject>
-          <g fill="white" stroke="#687587" strokeWidth="1.4">
+          <g fill="var(--surface)" stroke="var(--wire-flow)" strokeWidth="1.4">
             {ports.inputs.length > 0 && <circle cx={node.x} cy={node.y + layout.portY} r="3.1"/>}
             {outputYs.map(y => <circle key={y} cx={node.x + layout.width} cy={node.y + y} r="3.1"/>)}
           </g>

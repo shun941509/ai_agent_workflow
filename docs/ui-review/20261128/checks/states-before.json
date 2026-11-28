@@ -1,0 +1,44 @@
+[
+  {
+    "theme": "light",
+    "focus": {
+      "visible": true,
+      "outline": "3px"
+    },
+    "pressed": true,
+    "loadingDisabled": true,
+    "noticeClose": {
+      "width": 21,
+      "height": 21
+    },
+    "dismissed": true
+  },
+  {
+    "theme": "dark",
+    "focus": {
+      "visible": true,
+      "outline": "3px"
+    },
+    "pressed": true,
+    "loadingDisabled": true,
+    "noticeClose": {
+      "width": 21,
+      "height": 21
+    },
+    "dismissed": true
+  },
+  {
+    "theme": "forced",
+    "focus": {
+      "visible": true,
+      "outline": "3px"
+    },
+    "pressed": true,
+    "loadingDisabled": true,
+    "noticeClose": {
+      "width": 21,
+      "height": 21
+    },
+    "dismissed": true
+  }
+]

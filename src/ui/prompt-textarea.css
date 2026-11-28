@@ -27,6 +27,7 @@
   line-height: 1.55;
 }
 .prompt-input button.prompt-input-expand {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -84,7 +85,7 @@
   padding: 6px 14px;
   border: 1px solid var(--accent);
   border-radius: var(--control-radius);
-  color: white;
+  color: var(--on-accent);
   background: var(--accent);
 }
 .prompt-writing-dialog header button:hover { background: var(--accent-hover); }
@@ -101,21 +102,4 @@
   font: inherit;
   font-size: 16px;
   line-height: 1.65;
-}
-@media (pointer: coarse) {
-  .prompt-input button.prompt-input-expand { min-height: 44px; }
-}
-@media (max-width: 600px) {
-  .prompt-input > textarea:first-of-type { font-size: 16px; }
-  .prompt-writing-dialog {
-    position: fixed;
-    inset: var(--prompt-visible-top, 0px) 0 auto;
-    width: 100%;
-    height: var(--prompt-visible-height, 100dvh);
-    margin: 0 auto;
-    border: 0;
-    border-radius: 0;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-  }
-  .prompt-writing-dialog header { padding: 8px 12px; }
 }

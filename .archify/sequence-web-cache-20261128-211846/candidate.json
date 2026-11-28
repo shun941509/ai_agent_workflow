@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "웹 요청의 두 경로 · Redis 캐시 적중과 미스",
+    "locale": "ko",
+    "quality_profile": "showcase",
+    "output": ".archify/sequence-web-cache-20261128-211846/web-cache.html"
+  },
+  "participants": [
+    { "id": "browser", "type": "frontend", "label": "브라우저", "sublabel": "요청 시작점" },
+    { "id": "service", "type": "backend", "label": "API", "sublabel": "요청 처리" },
+    { "id": "cache", "type": "database", "label": "Redis", "sublabel": "캐시" },
+    { "id": "store", "type": "database", "label": "PostgreSQL", "sublabel": "원본 데이터" }
+  ],
+  "segments": [
+    { "from": 146, "to": 237, "label": "공통 · 캐시 확인" },
+    { "from": 247, "to": 340, "label": "캐시 적중 시" },
+    { "from": 350, "to": 564, "label": "캐시 미스 시" }
+  ],
+  "messages": [
+    { "id": "request-data", "from": "browser", "to": "service", "y": 181, "label": "데이터 요청" },
+    { "id": "lookup-key", "from": "service", "to": "cache", "y": 215, "label": "키로 캐시 조회" },
+    { "id": "found-value", "from": "cache", "to": "service", "y": 282, "label": "캐시 값 반환", "variant": "return" },
+    { "id": "serve-hit", "from": "service", "to": "browser", "y": 316, "label": "캐시 값으로 응답", "variant": "return" },
+    { "id": "missing-key", "from": "cache", "to": "service", "y": 385, "label": "키 없음", "variant": "return" },
+    { "id": "read-source", "from": "service", "to": "store", "y": 421, "label": "원본 데이터 조회" },
+    { "id": "receive-source", "from": "store", "to": "service", "y": 457, "label": "조회 결과 반환", "variant": "return" },
+    { "id": "populate-cache", "from": "service", "to": "cache", "y": 497, "label": "같은 키에 결과 저장", "variant": "emphasis" },
+    { "id": "serve-miss", "from": "service", "to": "browser", "y": 537, "label": "조회 결과로 응답", "variant": "return" }
+  ],
+  "activations": [
+    { "participant": "store", "from": 421, "to": 457, "type": "database" }
+  ],
+  "cards": [
+    { "dot": "emerald", "title": "같은 키로 다시 요청하면", "items": ["저장한 값이 Redis에 남아 있으면 다음 요청은 캐시 적중 경로로 응답합니다."] }
+  ]
+}

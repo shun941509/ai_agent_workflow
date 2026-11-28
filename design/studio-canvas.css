@@ -16,7 +16,6 @@
   font-size: 13px;
   text-align: left;
   line-height: 1.45;
-  touch-action: none;
 }
 .sc-canvas:focus-visible, .sc-canvas button:focus-visible, .sc-canvas .sc-line:focus-visible {
   outline: 3px solid #177aa2;
@@ -53,7 +52,6 @@
   box-sizing: border-box;
   box-shadow: 0 1px 3px #122a3b0e;
   cursor: grab;
-  touch-action: none;
   user-select: none;
 }
 .sc-node:active { cursor: grabbing }
@@ -135,7 +133,7 @@
 .sc-swatch.data { border-top: 2px dashed #00887e }.sc-swatch.reference { border-top: 2px dotted #8253d0 }
 .sc-list {
   box-sizing: border-box; position: absolute; inset: 0; z-index: 4;
-  padding: 20px; overflow: auto; background: #f6f8f9; touch-action: pan-y;
+  padding: 20px; overflow: auto; background: #f6f8f9;
 }
 .sc-list h3 { margin: 0 0 10px; color: var(--sc-text); font-size: 14px }
 .sc-list h3:not(:first-child) { margin-top: 20px }
@@ -146,12 +144,3 @@
 .sc-list button[aria-pressed=true] { border-color: #008477; background: #f0faf6 }
 .sc-list small { display: block; font-size: 11px; color: #47626c }
 .sc-canvas [hidden] { display: none !important }
-@media(max-width:640px) {
-  .sc-canvas { min-height: 300px }
-  .sc-minimap { display: none }
-  .sc-zoom { left: 8px; bottom: 8px }
-  .sc-zoom button { width: 38px; height: 40px }
-  .sc-status { right: 8px; bottom: 8px; gap: 5px; padding: 4px; font-size: 10px }
-  .sc-swatch { width: 10px }
-  .sc-list { padding: 10px }
-}

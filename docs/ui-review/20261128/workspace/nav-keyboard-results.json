@@ -1,0 +1,214 @@
+{
+  "rows": [
+    {
+      "width": 390,
+      "seen": [
+        {
+          "key": "Tab",
+          "target": "본문으로 이동"
+        },
+        {
+          "key": "Tab",
+          "target": "Workflow Studio 홈"
+        },
+        {
+          "key": "Tab",
+          "target": "작업실 메뉴"
+        },
+        {
+          "key": "Tab",
+          "target": "작업실 홈"
+        },
+        {
+          "key": "Tab",
+          "target": "Workflow 편집기"
+        },
+        {
+          "key": "Tab",
+          "target": "내 Agent"
+        },
+        {
+          "key": "Tab",
+          "target": "도구 및 자료"
+        },
+        {
+          "key": "Tab",
+          "target": "공유 Agent"
+        },
+        {
+          "key": "Tab",
+          "target": "공유 도구 및 자료"
+        },
+        {
+          "key": "Tab",
+          "target": "예제 템플릿"
+        },
+        {
+          "key": "Tab",
+          "target": "설계 가져오기"
+        },
+        {
+          "key": "Escape",
+          "target": "설계 가져오기"
+        },
+        {
+          "key": "Tab",
+          "target": "가이드"
+        },
+        {
+          "key": "Tab",
+          "target": "로그아웃"
+        },
+        {
+          "key": "Tab",
+          "target": "새 Agent"
+        },
+        {
+          "key": "Shift+Tab",
+          "target": "작업실 메뉴"
+        },
+        {
+          "key": "Tab",
+          "target": "작업실 홈"
+        },
+        {
+          "key": "Escape",
+          "target": "작업실 메뉴"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 1280,
+      "seen": [
+        {
+          "key": "Tab",
+          "target": "본문으로 이동"
+        },
+        {
+          "key": "Tab",
+          "target": "Workflow Studio 홈"
+        },
+        {
+          "key": "Tab",
+          "target": "작업실 홈"
+        },
+        {
+          "key": "Tab",
+          "target": "Workflow 편집기"
+        },
+        {
+          "key": "Tab",
+          "target": "내 Agent"
+        },
+        {
+          "key": "Tab",
+          "target": "도구 및 자료"
+        },
+        {
+          "key": "Tab",
+          "target": "공유 Agent"
+        },
+        {
+          "key": "Tab",
+          "target": "공유 도구 및 자료"
+        },
+        {
+          "key": "Tab",
+          "target": "예제 템플릿"
+        },
+        {
+          "key": "Tab",
+          "target": "설계 가져오기"
+        },
+        {
+          "key": "Escape",
+          "target": "설계 가져오기"
+        },
+        {
+          "key": "Tab",
+          "target": "가이드"
+        },
+        {
+          "key": "Tab",
+          "target": "로그아웃"
+        },
+        {
+          "key": "Tab",
+          "target": "새 Agent"
+        },
+        {
+          "key": "Shift+Tab",
+          "target": "로그아웃"
+        }
+      ],
+      "errors": []
+    },
+    {
+      "width": 1440,
+      "seen": [
+        {
+          "key": "Tab",
+          "target": "본문으로 이동"
+        },
+        {
+          "key": "Tab",
+          "target": "Workflow Studio 홈"
+        },
+        {
+          "key": "Tab",
+          "target": "작업실 홈"
+        },
+        {
+          "key": "Tab",
+          "target": "Workflow 편집기"
+        },
+        {
+          "key": "Tab",
+          "target": "내 Agent"
+        },
+        {
+          "key": "Tab",
+          "target": "도구 및 자료"
+        },
+        {
+          "key": "Tab",
+          "target": "공유 Agent"
+        },
+        {
+          "key": "Tab",
+          "target": "공유 도구 및 자료"
+        },
+        {
+          "key": "Tab",
+          "target": "예제 템플릿"
+        },
+        {
+          "key": "Tab",
+          "target": "설계 가져오기"
+        },
+        {
+          "key": "Escape",
+          "target": "설계 가져오기"
+        },
+        {
+          "key": "Tab",
+          "target": "가이드"
+        },
+        {
+          "key": "Tab",
+          "target": "로그아웃"
+        },
+        {
+          "key": "Tab",
+          "target": "새 Agent"
+        },
+        {
+          "key": "Shift+Tab",
+          "target": "로그아웃"
+        }
+      ],
+      "errors": []
+    }
+  ]
+}

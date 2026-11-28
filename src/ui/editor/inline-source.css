@@ -26,14 +26,14 @@
 .ws-source-editor [role='status']:empty { display: none; }
 .ws-save-reference { border-top: 1px solid var(--ws-line); padding-top: 14px; }
 .ws-save-reference .ws-edition-link { margin: 0; }
-.ws-source-editor .ws-field:has(textarea[aria-invalid='true']) > [role='status'] { color: #873a32; }
+.ws-source-editor .ws-field:has(textarea[aria-invalid='true']) > [role='status'] { color: light-dark(#873a32, var(--night-red)); }
 .ws-edition-link { display: inline-block; margin-bottom: 12px; color: var(--ws-accent); text-underline-offset: 3px; }
 .ws-edition-link span { font-size: 12px; }
 .ws-editor .ws-source-editor .ws-btn:disabled,
 .ws-editor .ws-save-reference .ws-btn[aria-disabled='true'] {
-  background: #edf0f1;
-  border-color: #dfe3e6;
-  color: #58636e;
+  background: light-dark(#edf0f1, var(--night-raised));
+  border-color: light-dark(#dfe3e6, var(--night-raised));
+  color: light-dark(#58636e, var(--muted));
   opacity: 1;
 }
 .ws-source-recovery { border-top: 1px solid var(--ws-line); padding-top: 10px; }
@@ -48,13 +48,10 @@
 .ws-source-diff { display: grid; grid-template-columns: auto minmax(0,1fr); gap: 4px 10px; margin: 6px 0 12px; }
 .ws-source-diff dt { font-size: 12px; font-weight: 600; }
 .ws-source-diff dd { margin: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
-.ws-source-diff del { color: #743e36; }
-.ws-source-diff ins { color: #245944; }
+.ws-source-diff del { color: light-dark(#743e36, var(--night-red)); }
+.ws-source-diff ins { color: light-dark(#245944, var(--night-green)); }
 .ws-copy-source-actions { flex-wrap: wrap; }
-@media (max-width: 480px) {
-  .ws-modal-actions.ws-copy-source-actions { display: grid; grid-template-columns: minmax(0, 1fr); }
-}
-.source-output { margin: 0 0 12px; padding: 10px 12px; border-inline-start: 3px solid #678079; background: #f3f6f4; }
+.source-output { margin: 0 0 12px; padding: 10px 12px; border-inline-start: 3px solid light-dark(#678079, var(--muted)); background: light-dark(#f3f6f4, var(--night-raised)); }
 .source-output label { display: grid; gap: 4px; font-weight: 600; }
 .source-output select { max-width: 100%; min-width: 0; padding: 5px; font: inherit; }
 .source-output p { margin: 6px 0 0; font-size: 13px; overflow-wrap: anywhere; }

@@ -561,13 +561,13 @@ test('도서관 여덟 실습 사본에서 추가 질문·도구·자료판이 �
       assert.match(calls[0].input,/어린 왕자/);
       assert.ok(calls[0].context.includes(lesson.question));
       assert.match(calls[0].context,/회원증이 필요합니다/);
-      assert.doesNotMatch(calls[0].context,/모바일 회원증/);
+      assert.doesNotMatch(calls[0].context,/등록된 학생증/);
       graph.nodes.find(node=>node.id==='pickup')!.config.version='2';
       const second=await run(graph,lesson.question,adapters);
       assert.equal(second.status,'completed',second.error ?? '수령 규정 2판 실습 실행');
       assert.equal(calls[1].instruction,calls[0].instruction);
       assert.equal(calls[1].input,calls[0].input);
-      assert.match(calls[1].context,/모바일 회원증도 가능합니다/);
+      assert.match(calls[1].context,/등록된 학생증도 가능합니다/);
       assert.doesNotMatch(calls[1].context,/회원증이 필요합니다/);
     }
   }

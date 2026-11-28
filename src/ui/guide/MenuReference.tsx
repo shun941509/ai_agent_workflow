@@ -37,7 +37,7 @@ const menuGroups: { heading?: string; items: [string, IconName, string][] }[] = 
 export function MenuReference({headingRef}: {headingRef: Ref<HTMLHeadingElement>}) {
   return <section className={styles.reference} aria-labelledby="guide-menu-reference">
     <h2 ref={headingRef} tabIndex={-1} id="guide-menu-reference">메뉴별 사용법</h2>
-    <p>작업실 왼쪽 메뉴의 아이콘과 이름을 찾아보세요. 작은 화면에서는 상단의 ‘메뉴 열기’를 누르세요.</p>
+    <p>작업실 왼쪽 메뉴의 아이콘과 이름을 찾아보세요.</p>
     {menuGroups.map(({ heading, items }) => <div className={styles.group} key={heading ?? 'workspace'}>
       {heading && <h3>{heading}</h3>}
       <dl>{items.map(([name, icon, description]) => <div key={name}>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   ArrowDownToLine, ArrowRight, Check, ChevronRight, FileText, Layers3, List,
   PanelRight, Play, Quote, Search, Workflow, X,
@@ -95,7 +95,7 @@ function Canvas(props: GraphProps) {
 }
 
 type RuleProps = { rule: string; onRuleChange: (source: string) => void };
-function Inspector({ selected, selectNode, rule, onRuleChange, titleRef }: SelectionProps & RuleProps & {titleRef: RefObject<HTMLHeadingElement | null>}) {
+function Inspector({ selected, selectNode, rule, onRuleChange }: SelectionProps & RuleProps) {
   const [pending, setPending] = useState<string | null>(null);
   const [lastApplied, setLastApplied] = useState<string | null>(null);
   const draft = pending ?? rule;
@@ -113,7 +113,7 @@ function Inspector({ selected, selectNode, rule, onRuleChange, titleRef }: Selec
   }
   return <aside className="le-inspector" aria-label="블록 속성">
     <h2 className="le-panel-heading"><PanelRight size={16} />블록 속성</h2>
-    <div className="le-inspect-title"><NodeIcon node={node} /><div><small>{node.role}</small><h3 ref={titleRef} tabIndex={-1}>{node.name}</h3></div></div>
+    <div className="le-inspect-title"><NodeIcon node={node} /><div><small>{node.role}</small><h3>{node.name}</h3></div></div>
     {selected === 'rules' ? <section className="le-inspect-section">
       <label className="le-source-label" htmlFor="le-rule-source">자료 원문</label>
       <textarea id="le-rule-source" className="le-source-input" rows={9} value={draft}
@@ -152,47 +152,37 @@ function Result({ rule, close }: { rule: string; close: () => void }) {
     dialog.showModal();
     return () => dialog.close();
   }, []);
-  return <dialog ref={ref} className="le-result" aria-labelledby="le-result-title" onKeyDown={cycleDialogFocus} onCancel={close} onClick={(event) => {
+  return <dialog ref={ref} className="le-result" aria-labelledby="le-result-title" onKeyDown={cycleDialogFocus} onCancel={(event) => {
+    event.preventDefault();
+    close();
+  }} onClick={(event) => {
     if (event.target === event.currentTarget) close();
   }}>
+    <header className="le-dialog-heading"><div><span><Play size={13} aria-hidden="true" />예시 실행</span><h2 id="le-result-title">결과 미리보기</h2></div>
+      <button type="button" className="le-close" aria-label="미리보기 닫기" onClick={close}><X size={20} /></button>
+    </header>
     <div className="le-result-inner">
-      <div className="le-dialog-heading"><div><span><Play size={13} />예시 실행</span><h2 id="le-result-title">결과 미리보기</h2></div>
-        <button type="button" className="le-close" aria-label="미리보기 닫기" onClick={close}><X size={20} /></button>
-      </div>
       <section className="le-result-question"><h3>질문 입력</h3><p>{question}</p></section>
       <section className="le-result-answer"><h3><NodeIcon node={nodes.agent} />도서관 안내 Agent</h3><p>{answer}</p>
         <blockquote><Quote size={16} aria-hidden="true" /><div><span className="le-quoted-text">{quote}</span><cite>도서관 이용규정</cite></div></blockquote></section>
-      <a ref={fileLink} download={filename} className="le-download"><FileText size={20} /><span>{filename} 내려받기</span><ArrowDownToLine size={17} /></a>
     </div>
+    <footer className="le-result-actions">
+      <a ref={fileLink} download={filename} className="le-download"><FileText size={20} /><span>{filename} 내려받기</span><ArrowDownToLine size={17} /></a>
+    </footer>
   </dialog>;
 }
 
 export default function Editor({ rule, onRuleChange, positions, selected, onSelect, onMove }: RuleProps & GraphProps) {
-  const [mobilePanel, setMobilePanel] = useState<'canvas' | 'inspector'>('canvas');
   const [preview, setPreview] = useState(false);
-  const inspectorTitle = useRef<HTMLHeadingElement>(null);
-  const selectionTrigger = useRef<Element | null>(null);
-  useLayoutEffect(() => {
-    const trigger = selectionTrigger.current;
-    selectionTrigger.current = null;
-    if (trigger && !trigger.getClientRects().length) inspectorTitle.current?.focus();
-  }, [selected, mobilePanel]);
-  function selectNode(id: NodeId) {
-    selectionTrigger.current = document.activeElement;
-    onSelect(id);
-    setMobilePanel('inspector');
-  }
   return <div className="le-editor">
     <header className="le-project-header"><div>
       <div className="le-project-name"><h1>내 자료로 안내하기</h1><span>초급</span></div>
       <p>대출 한도를 3권에서 5권으로 바꾸고 같은 질문으로 결과를 확인하세요.</p>
     </div><button className="le-run" type="button" onClick={() => setPreview(true)}><Play size={15} fill="currentColor" />결과 미리보기</button></header>
-    <div className="le-mobile-tabs"><button type="button" aria-pressed={mobilePanel === 'canvas'} onClick={() => setMobilePanel('canvas')}><Workflow size={16} />캔버스</button>
-      <button type="button" aria-pressed={mobilePanel === 'inspector'} onClick={() => setMobilePanel('inspector')}><PanelRight size={16} />블록 속성</button></div>
-    <div className={`le-workspace le-mobile-${mobilePanel}`}>
-      <Palette selected={selected} selectNode={selectNode} />
-      <Canvas positions={positions} selected={selected} onSelect={selectNode} onMove={onMove} />
-      <Inspector selected={selected} selectNode={selectNode} rule={rule} onRuleChange={onRuleChange} titleRef={inspectorTitle} />
+    <div className="le-workspace">
+      <Palette selected={selected} selectNode={onSelect} />
+      <Canvas positions={positions} selected={selected} onSelect={onSelect} onMove={onMove} />
+      <Inspector selected={selected} selectNode={onSelect} rule={rule} onRuleChange={onRuleChange} />
     </div>
     {preview && <Result rule={rule} close={() => setPreview(false)} />}
   </div>;

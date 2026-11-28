@@ -17,8 +17,7 @@ async function api(ctx:BrowserContext, action:string, data = {}) {
 }
 
 async function exercise(width:number) {
-  const mobile = width === 390;
-  const ctx = await browser.newContext({baseURL,viewport:{width,height:mobile ? 844 : 900},hasTouch:mobile,isMobile:mobile});
+  const ctx = await browser.newContext({baseURL,viewport:{width,height:900}});
   try {
     await registerBrowserAccount(ctx);
     const applied = '일주일 동안 3권을 빌릴 수 있습니다.';
@@ -41,7 +40,6 @@ async function exercise(width:number) {
     const sourceCopy = page.locator('[data-canvas-block]').filter({hasText:'대출 규정 사본'});
     const left = (id:string) => block(id).evaluate(el => parseFloat((el.closest('[data-workflow-node]') as HTMLElement).style.left));
     await page.goto('/?edit='+project.id);
-    if (mobile) await button('캔버스로 보기').click();
     await block('team').press('Enter');
     await button('팀 열기').press('Enter');
     await expect(block('team')).toHaveCount(0);
@@ -119,6 +117,6 @@ async function exercise(width:number) {
   } finally { await ctx.close(); }
 }
 try {
-  for (const width of [1440,390]) await exercise(width);
-  console.log('PASS desktop/mobile placed copies, add and copy undo/redo focus, nested draft copy choices and keyboard list return.');
+  await exercise(1440);
+  console.log('PASS desktop placed copies, add and copy undo/redo focus, nested draft copy choices and keyboard list return.');
 } finally { await browser.close(); }

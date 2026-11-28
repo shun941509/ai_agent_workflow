@@ -1,0 +1,86 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: var(--forest, #10493f);
+      color: var(--paper, #f6f2e7);
+      font-family: "Studio Sans", sans-serif;
+    }
+
+    .connect-heading {
+      position: absolute;
+      top: 103px;
+      left: 192px;
+      right: 192px;
+    }
+
+    .connect-label {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      color: var(--lime, #d5ef93);
+      font-size: 29px;
+      font-weight: 700;
+      letter-spacing: 0.015em;
+      line-height: 36px;
+    }
+
+    .connect-label::before {
+      content: "";
+      width: 45px;
+      height: 3px;
+      background: currentColor;
+    }
+
+    .connect-title {
+      margin: 13px 0 0;
+      font-size: 84px;
+      font-weight: 700;
+      letter-spacing: -0.065em;
+      line-height: 1.28;
+    }
+
+    .connect-frame {
+      position: absolute;
+      top: 304px;
+      left: 192px;
+      width: 1536px;
+      height: 639px;
+      overflow: hidden;
+      border: 1px solid rgba(246,242,231,.43);
+      box-sizing: border-box;
+      background: #152a3e;
+    }
+
+    .connect-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+
+  <section id="root" data-composition-id="connect" data-width="1920" data-height="1080">
+    <header class="connect-heading" id="connect-heading">
+      <div class="connect-label"><span data-var-text="connectLabel">워크플로 캔버스</span></div>
+      <h2 class="connect-title" data-var-text="connectTitle">자료와 Agent를 연결합니다</h2>
+    </header>
+    <div class="connect-frame" id="connect-frame">
+      <img class="connect-canvas" id="connect-canvas" data-var-src="canvasImage" src="assets/canvas.png"
+        alt="질문 입력, 도서관 안내 Agent, 대출 안내 파일 만들기, 답변 전달 순으로 연결된 캔버스. Agent가 도서관 이용규정과 근거 인용 Skill을 참조한다.">
+    </div>
+  </section>
+
+  <script>
+    (() => {
+      const tl = gsap.timeline({ paused: true });
+      tl.fromTo("#connect-heading", { x: -36 }, { x: 0, duration: 0.56, ease: "power3.out" }, 0);
+      tl.fromTo("#connect-frame", { y: 38, opacity: 0 }, { y: 0, opacity: 1, duration: 0.64, ease: "power3.out" }, 0.12);
+      tl.fromTo("#connect-canvas", { scale: 1, transformOrigin: "41% 57%" },
+        { scale: 1.18, duration: 1.05, ease: "power2.inOut" }, 3.65);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["connect"] = tl;
+    })();
+  </script>
+</template>

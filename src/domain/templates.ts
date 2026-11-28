@@ -1,6 +1,20 @@
 import { Drawing } from './template-drawing';
+import { equipmentInspectionWebTemplate } from './equipment-inspection-web-template';
+import { equipmentInspectionStarterTemplates } from './equipment-inspection-starter-templates';
+import { equipmentInspectionRecoveryTemplate } from './equipment-inspection-recovery-template';
+import { equipmentRelendingAgreementTemplate } from './equipment-relending-agreement-template';
+import { equipmentReturnStarterTemplates } from './equipment-return-starter-templates';
+import { equipmentReturnCasesTemplate } from './equipment-return-cases-template';
+import { equipmentReturnTemplate } from './equipment-return-template';
 import { swStarterTemplates } from './sw-starter-templates';
 import { swTeamTemplates } from './sw-team-templates';
+import { webDesignQuestionsTemplate } from './web-design-questions-template';
+import { webDesignReviewFollowupTemplate } from './web-design-review-followup-template';
+import { webDesignSingleScreenTemplate } from './web-design-single-screen-template';
+import { webDesignTddReviewTemplate } from './web-design-tdd-review-template';
+import { webDesignStarterTemplates } from './web-design-starter-templates';
+import { webDesignTeamTemplates } from './web-design-team-templates';
+import { lessonWithSkills } from './lesson-skills';
 import { swImpactTemplate } from './sw-impact-template';
 import type { Graph, Lesson } from './types';
 import { dynamicLessonExample } from './dynamic-lesson-policy';
@@ -201,7 +215,7 @@ function dynamic():Graph {
 }
 
 export const libraryTemplates: Lesson[] = [
-  {id:'intro',title:'질문에서 답변까지',level:'입문',description:'질문 하나가 세 블록을 지나 답변이 되는 과정을 봅니다.',
+  {id:'intro',title:'질문에서 답변까지',level:'입문',topic:'도서관',description:'질문 하나가 세 블록을 지나 답변이 되는 과정을 봅니다.',
     task:'같은 회원증 질문에서 근거 문장을 붙이도록 지시를 바꿔 보세요.',question:membershipQuestion,
     goal:'질문과 답변 지시를 구별하고 결과의 변화를 확인합니다.',
     steps:[`‘시험 실행’에서 “${membershipQuestion}”를 보내고 첫 답변의 상태가 ‘완료’인지와 준비물로 신분증을 안내하는지 확인하세요.`,
@@ -209,7 +223,7 @@ export const libraryTemplates: Lesson[] = [
       '‘시험 실행’을 다시 열어 새 대화에 같은 질문을 보내세요. 두 답변에서 준비물을 확인하고, 두 번째 답변의 다음 줄을 ‘도서관 이용규정’ 원문과 대조하세요.'],
     checks:['두 답변 모두 준비물로 신분증을 안내합니다.','수정 후 답변의 다음 줄에 “회원증을 처음 만들 때는 신분증을 가져오세요.”가 인용됩니다.'],
     example:'회원증을 만들려면 신분증이 필요합니다.\n“회원증을 처음 만들 때는 신분증을 가져오세요.”',examples:['토요일에도 여나요?'],graph:single('intro')},
-  {id:'beginner',title:'내 자료로 안내하기',level:'초급',description:'내 규정으로 대출 질문에 답하고, 인용을 담은 안내 파일을 만듭니다.',
+  {id:'beginner',title:'내 자료로 안내하기',level:'초급',topic:'도서관',description:'내 규정으로 대출 질문에 답하고, 인용을 담은 안내 파일을 만듭니다.',
     task:'내 사본의 대출 한도를 3권에서 5권으로 바꾸고 대출안내.txt를 내려받으세요.',question:'책을 몇 권까지 빌릴 수 있나요?',
     goal:'내가 고친 규정이 화면의 답변과 안내 파일에 어떻게 반영되는지 확인합니다.',
     optionalPractice:'5권으로 고친 ‘도서관 이용규정’의 속성에서 ‘내 참고 자료로 저장’을 누르세요. 3권으로 시작하는 새 초급 사본의 같은 블록에서 ‘속성 → 이름·자료판 설정 → 연결할 자료’를 여세요. 내 자료 중 방금 저장한 규정을 고르고, 미리보기에서 5권 원문과 저장한 판을 확인한 뒤 ‘이 판 연결’을 누르세요. 새 대화의 답변과 대출안내.txt에서 5권 인용을 확인하세요.',
@@ -218,7 +232,7 @@ export const libraryTemplates: Lesson[] = [
       '‘대출안내.txt 내려받기’를 눌러 파일을 열고 화면의 답변과 인용을 대조하세요. 이 실습에서 새 사본을 하나 더 만들어 원래 규정도 확인하세요.'],
     checks:['내 사본은 5권이라고 답하고 “한 사람의 대출 한도는 5권입니다.”를 인용합니다.','대출안내.txt에는 화면에 나온 답변과 인용이 그대로 들어 있습니다.','템플릿에서 새로 만든 사본의 대출 한도는 3권입니다.'],
     example:'5권까지 빌릴 수 있습니다.\n“한 사람의 대출 한도는 5권입니다.”',examples:[],graph:single('beginner')},
-  {id:'intermediate',title:'근거 찾기와 추가 질문',level:'중급',description:'규정을 검색해 원문이 있을 때 답하고, 부족하면 정보를 더 받습니다.',
+  {id:'intermediate',title:'근거 찾기와 추가 질문',level:'중급',topic:'도서관',description:'규정을 검색해 원문이 있을 때 답하고, 부족하면 정보를 더 받습니다.',
     task:'분실물 보관 기간을 묻고 추가 안내문을 보내 같은 실행을 마쳐 보세요.',question:'분실물은 며칠 보관하나요?',
     goal:'질문에 따라 규정 검색, 추가 질문, 본인 예약 조회 중 어느 경로를 실행하는지 확인합니다.',
     steps:['네 번의 질문을 각각 새 대화에서 실행해 규정 검색, 추가 질문, 예약 조회 경로를 비교하세요.',
@@ -228,7 +242,7 @@ export const libraryTemplates: Lesson[] = [
       '새 대화에 “제가 신청한 도서 예약 목록을 조회해 주세요.”를 보내세요. ‘내 예약 조회’에서 ‘예약 조회 결과’로 이어지는 경로와 본인의 시험 예약 목록을 확인하세요. 예약이 없으면 빈 목록이 나옵니다.'],
     checks:['대출 답변에 “한 사람의 대출 한도는 3권입니다.”라는 근거가 있습니다.','분실물 질문은 회신을 기다립니다. 안내문을 보내면 14일을 인용하고, 지점명만 보내면 기간을 확인할 수 없다고 안내합니다.','예약 질문은 본인 권한으로 예약 도구를 호출합니다.'],
     example:'확인하고 싶은 지점이나 가지고 계신 안내문을 알려주시겠어요?',examples:['책을 몇 권까지 빌릴 수 있나요?','제가 신청한 도서 예약 목록을 조회해 주세요.'],graph:intermediate()},
-  {id:'library-visit',title:'도서관 방문 준비하기',level:'중급',description:'자료함의 수령 규정, 방문 안내 Skill, 운영시간 지식 저장소와 예약 조회 MCP를 연결해 방문 안내를 작성합니다.',
+  {id:'library-visit',title:'도서관 방문 준비하기',level:'중급',topic:'도서관',description:'자료함의 수령 규정, 방문 안내 Skill, 운영시간 지식 저장소와 예약 조회 MCP를 연결해 방문 안내를 작성합니다.',
     task:'수령 규정을 1판에서 2판으로 바꾼 뒤 같은 질문을 보내 준비물 안내가 어떻게 달라지는지 확인하세요.',question:libraryVisitQuestion,
     goal:'같은 질문과 시험 예약을 유지한 채 연결한 참고 자료의 판만 바꿔 두 답변을 비교합니다.',
     steps:['내 사본에서 ‘시험 실행 → 실행 설정 → 시험 사례’를 여세요. 설계는 ‘현재 초안’, 시험 사례는 ‘토요일 방문과 예약 조회’를 선택하고 ‘저장된 사례로 시험’을 누르세요.',
@@ -236,10 +250,10 @@ export const libraryTemplates: Lesson[] = [
       '캔버스에서 ‘수령 규정’ 블록을 선택하세요. 속성의 ‘고정할 자료 버전’을 1판에서 2판으로 바꾸고 프로젝트를 저장하세요.',
       '‘시험 실행’에서 같은 시험 사례의 ‘저장된 사례로 시험’을 다시 누르세요. 바뀐 초안으로 새 시험 대화가 열립니다. 실행 기록에서 첫 답변을 열어 두 답변의 세 줄을 비교하세요.'],
     checks:['두 답변 모두 토요일 운영시간은 오전 10시부터 오후 4시까지이며, 시험 예약은 어린 왕자 (중앙도서관)입니다.',
-      '준비물은 1판에서 “회원증이 필요합니다.”, 2판에서 “모바일 회원증도 가능합니다.”입니다.',
+      '첫 답변의 준비물은 수령 규정 1판 원문과, 다시 시험한 답변의 준비물은 2판 원문과 일치합니다.',
       '두 답변의 방문 시간과 예약 내역은 같고, 세 항목의 순서는 연결한 Skill의 지침과 일치합니다.'],
     example:'방문 시간: 중앙도서관은 토요일 오전 10시부터 오후 4시까지 엽니다.\n준비물: 회원증이 필요합니다.\n예약 내역: 어린 왕자 (중앙도서관)',examples:[],graph:libraryVisit()},
-  {id:'parallel',title:'두 담당자에게 병렬로 맡기기',level:'고급',description:'운영시간과 회원증 담당을 동시에 실행하고 결과를 하나로 모읍니다.',
+  {id:'parallel',title:'두 담당자에게 병렬로 맡기기',level:'고급',topic:'도서관',description:'운영시간과 회원증 담당을 동시에 실행하고 결과를 하나로 모읍니다.',
     task:'팀 안에서 회원증 담당의 자료 연결만 해제한 뒤 결과를 비교하세요.',question:'토요일에 처음 회원증을 만들려면 언제 가고 무엇을 가져가나요?',
     goal:'독립 작업 한쪽에 근거가 없어도 다른 쪽의 결과를 보존합니다.',steps:[
       '‘도서관 방문 안내 팀’에서 ‘팀 열기’를 누르고 두 담당자와 ‘두 조사 결과 모으기’를 찾으세요.',
@@ -248,7 +262,7 @@ export const libraryTemplates: Lesson[] = [
       '새 대화에서 같은 질문을 보내세요. 운영시간은 토요일 오전 10시부터 오후 4시까지이고, 회원증 준비물만 미확인인지 확인하세요.',
     ],
     checks:['정상 결과는 토요일 10~16시와 신분증입니다.','자료 해제 후 운영시간은 유지되고 준비물만 미확인입니다.'],example:'토요일 오전 10시부터 오후 4시까지 열며, 첫 회원증 발급에는 신분증이 필요합니다.',examples:[],graph:parallel()},
-  {id:'peer-review',title:'동료 Agent와 초안 검토하기',level:'고급',description:'두 담당자가 서로의 초안을 원문에 대조하고 한 차례 검토합니다.',
+  {id:'peer-review',title:'동료 Agent와 초안 검토하기',level:'고급',topic:'도서관',description:'두 담당자가 서로의 초안을 원문에 대조하고 한 차례 검토합니다.',
     task:'틀린 운영시간이 누구의 검토로 어떻게 고쳐지는지 확인하세요.',question:'다음 방문 안내 초안을 검토해 주세요. “토요일은 오후 6시까지 열며 회원증 발급에는 신분증이 필요합니다.”',
     optionalPractice:'교정 사유 표시 Skill을 사실 검토 담당에게만 전달하고 두 사람의 검토 기록을 비교해 보세요.',
     optionalSteps:[
@@ -260,7 +274,7 @@ export const libraryTemplates: Lesson[] = [
     goal:'어느 담당자가 동료의 어떤 문장을 고쳤는지 원문으로 확인합니다.',steps:['팀 내부에서 두 초안을 찾아 각각 어느 동료 검토로 전달되는지 선을 따라가세요.','예시 질문을 실행하고 두 검토자가 받은 초안과 원문을 비교하세요.','최종 안내문 아래에서 각 검토자의 수정 전후 문장과 인용을 확인하세요.'],
     checks:['토요일 폐관 시각을 오후 6시에서 오후 4시로 고칩니다.','두 검토 기록에 검토자와 상대 초안, 수정 전후 문장, 근거 원문이 함께 나옵니다.'],
     example:'사실 검토 담당 → 안내문 편집 담당 초안\n“토요일은 오후 6시까지 엽니다.” → “토요일은 오후 4시까지 엽니다.”\n도서관 원문에서 “토요일에는 오전 10시부터 오후 4시까지 엽니다.”라고 안내합니다.',examples:[],graph:peerReview()},
-  {id:'dynamic',title:'지점 조사팀의 생성 한도와 실패 처리 설계',level:'전문가',description:'네 지점 중 세 곳에만 안내문이 있습니다. 동시에 두 곳까지 조사할 수 있을 때, 담당자 수와 조사를 중단할 조건을 정합니다.',
+  {id:'dynamic',title:'지점 조사팀의 생성 한도와 실패 처리 설계',level:'전문가',topic:'도서관',description:'네 지점 중 세 곳에만 안내문이 있습니다. 동시에 두 곳까지 조사할 수 있을 때, 담당자 수와 조사를 중단할 조건을 정합니다.',
     task:'사본을 만들며 생성 한도·동시 실행 수·실패 처리 방식을 정하고 네 지점을 조사하세요. 정책을 바꿔 이전 실행과 비교하세요.',question:'중앙도서관, 호수도서관, 숲도서관, 강변도서관',
     optionalPractice:'강변도서관 보완 안내문을 연결하기 전후로 같은 두 지점을 조사해 보세요.',
     optionalSteps:[
@@ -277,7 +291,7 @@ export const libraryTemplates: Lesson[] = [
       '각 생성 차수의 인원이 동시 실행 한도 안에 있는지 확인합니다.',
       '근거가 부족한 지점이 있을 때 선택한 정책에 따라 조사 결과가 정리되거나 후속 정리가 중단됩니다.'],
     example:'실행 기록에서 지점별 생성 차수, 원문 인용, 미완료 사유와 최종 정리 단계 실행 여부를 대조합니다.',examples:['중앙도서관, 강변도서관','중앙도서관, 호수도서관, 숲도서관'],graph:dynamic()},
-  {id:'release',title:'규정 변경 검증·게시·복구',level:'전문가',description:'대출 한도만 바꾸기로 한 도서관에서 후보판의 답변을 검토하고 게시 여부를 결정합니다.',
+  {id:'release',title:'규정 변경 검증·게시·복구',level:'전문가',topic:'도서관',description:'대출 한도만 바꾸기로 한 도서관에서 후보판의 답변을 검토하고 게시 여부를 결정합니다.',
     task:'기준판과 후보판에 같은 질문을 보내세요. 어느 판을 운영할지 정하고 판단 근거를 남기세요.',question:releaseTestCases[0].input,
     goal:'승인된 변경과 예상 밖의 변화를 구별하고, 사용자에게 제공할 판을 시험 결과로 결정합니다.',
     steps:['1판은 기준판이고 2판과 현재 초안은 후보입니다. 세 사례를 두 판에서 비교하면 여섯 번 실행합니다.',
@@ -291,4 +305,19 @@ export const libraryTemplates: Lesson[] = [
     example:'결정 근거에는 비교한 판, 기대와 달랐던 실제 답변, 해당 답변이 방문자에게 미치는 영향을 적습니다.',examples:releaseTestCases.slice(1).map(item=>item.input),graph:releaseCandidate()},
 ];
 
-export const templates: Lesson[] = [...libraryTemplates, ...swStarterTemplates, ...swTeamTemplates, swImpactTemplate];
+export const templates: Lesson[] = [
+  ...libraryTemplates, ...swStarterTemplates, ...swTeamTemplates, swImpactTemplate,
+  ...webDesignStarterTemplates.map(lessonWithSkills),
+  lessonWithSkills(webDesignQuestionsTemplate),
+  lessonWithSkills(webDesignSingleScreenTemplate),
+  lessonWithSkills(webDesignTddReviewTemplate),
+  lessonWithSkills(webDesignReviewFollowupTemplate),
+  ...webDesignTeamTemplates.map(lessonWithSkills),
+  ...equipmentReturnStarterTemplates.map(lessonWithSkills),
+  lessonWithSkills(equipmentReturnTemplate),
+  lessonWithSkills(equipmentReturnCasesTemplate),
+  lessonWithSkills(equipmentRelendingAgreementTemplate),
+  ...equipmentInspectionStarterTemplates.map(lessonWithSkills),
+  lessonWithSkills(equipmentInspectionWebTemplate),
+  lessonWithSkills(equipmentInspectionRecoveryTemplate),
+];

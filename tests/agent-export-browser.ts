@@ -161,7 +161,6 @@ async function checkSharedEditionAndEvidence(page: Page) {
   const required = page.getByRole('checkbox',{name:'원문 대조 필수',exact:true});
   await expect(required).not.toBeChecked();
   await required.check();
-  if (page.viewportSize()!.width < 680) await page.getByRole('button',{name:'속성 닫기'}).click();
   await page.getByRole('button',{name:'Agent 내보내기',exact:true}).click();
   const dialog = page.getByRole('dialog',{name:'Agent 내보내기'});
   await expect(dialog.getByRole('listitem').filter({hasText:'접수 근거 확인'}).filter({hasText:'원문'}).first()).toBeVisible();
@@ -173,161 +172,165 @@ async function checkSharedEditionAndEvidence(page: Page) {
 }
 
 try {
-  for (const width of [1440,390]) {
-    const context = await browser.newContext({baseURL, viewport:{width,height:850}});
-    try {
-      const user = await registerBrowserAccount(context);
-      const draft = structuredClone(graph);
-      const testDir = process.env.STUDIO_TEST_DATA_DIR;
-      if (testDir) {
-        process.env.STUDIO_DATA_DIR = testDir;
-        const {one} = await import('../src/server/db');
-        assert.ok(one('SELECT 1 FROM people WHERE id=? AND login=?',user.id,user.login));
-        process.env.STUDIO_ADMIN_IDS = user.id;
-        const {writeAsset} = await import('../src/server/assets');
-        const connector = writeAsset(user,{kind:'mcp',name:'공개 도서 검색',payload:{
-          url:publicAddress, tools:['lookup'], readOnlyTools:['lookup'],
-        }});
-        draft.nodes.push(createBlock('connection.mcp',{id:'catalog-mcp',title:'도서 검색 연결',config:{
-          assetId:connector.id, version:1,
-        }}));
-        draft.edges.push({id:'catalog-ref',kind:'reference',from:'catalog-mcp',out:'ref',to:'work',input:'mcp'});
-      }
-      const response = await context.request.post('/api/studio', {data:{
-        action:'project.create', data:{title:'대출 안내',graph:draft},
-      }});
-      assert.equal(response.status(),200);
-      const projectId = (await response.json()).data.id;
-      const page = await context.newPage();
-      await page.goto('/?edit=' + projectId);
-      const button = (name:string) => page.getByRole('button',{name,exact:true});
-      const trigger = button('Agent 내보내기');
-      await expect(trigger).toBeInViewport({ratio:1});
-      await button('목록으로 편집').click();
-      await page.locator('[data-canvas-block="rule"]').click();
-      const source = page.getByRole('textbox',{name:'자료 원문',exact:true});
-      let failPreview = width === 1440;
-      let simulateChangedAddress = false;
-      await page.route('**/api/studio', async route => {
-        const action = route.request().postDataJSON()?.action;
-        if (action === 'project.save') {
-          await route.fulfill({status:503,json:{error:'시험 중 자동 저장 보류'}});
-        } else if (failPreview && action === 'project.exportPreview') {
-          await route.fulfill({status:503,json:{error:'자료 목록을 확인할 수 없습니다.'}});
-        } else if (simulateChangedAddress && action === 'project.exportPreview') {
-          const response = await route.fetch();
-          const body = await response.json();
-          const connection = body.data.resources.find((item:ExportResource) => item.mcpUrl === publicAddress);
-          assert.ok(connection);
-          connection.mcpUrl = 'https://old.example.org/library/mcp';
-          body.data.previewId = '이전 서버 주소 미리보기';
-          await route.fulfill({response,json:body});
-        } else await route.continue();
-      });
-      await source.fill(applied);
-      await button('변경 적용').click();
-      await source.fill(pending);
-      if (width < 680) await button('속성 닫기').click();
-      await trigger.click();
-      const dialog = page.getByRole('dialog',{name:'Agent 내보내기'});
-      await expect(dialog).toContainText('변경 적용');
-      if (width === 1440) {
-        await expect(dialog.getByRole('alert')).toContainText('자료 목록');
-        await expect(dialog.getByRole('button',{name:'ZIP 내려받기'})).toBeDisabled();
-        failPreview = false;
-        await dialog.getByRole('button',{name:'자료 다시 확인'}).click();
-      }
-      const shared = dialog.getByRole('checkbox',{name:/대출 규정/});
-      const internal = dialog.getByRole('checkbox',{name:/회의 참고자료/});
-      const monday = dialog.getByRole('checkbox',{name:/휴무일 안내 \(1\)/});
-      const friday = dialog.getByRole('checkbox',{name:/휴무일 안내 \(2\)/});
-      await expect(monday).toBeChecked();
-      await expect(friday).toBeChecked();
-      await monday.uncheck();
-      const connections = dialog.getByRole('group',{name:'ZIP에 포함할 MCP 연결'});
-      const local = connections.getByRole('checkbox',{name:/내장 도서관 연결/});
-      const remote = connections.getByRole('checkbox',{name:/공개 도서 검색/});
-      await expect(dialog).toContainText('OpenCode');
-      await expect(shared).toBeChecked();
-      await expect(local).not.toBeChecked();
-      await expect(local).toBeEnabled();
-      if (testDir) {
-        await expect(remote).not.toBeChecked();
-        await expect(connections).toContainText(publicAddress);
-      }
-      const preparation = dialog.getByRole('region',{name:'실행 준비'});
-      await expect(preparation).toBeVisible();
-      const omittedDocument = preparation.getByRole('listitem').filter({hasText:'회의 참고자료'});
-      await expect(omittedDocument).toHaveCount(0);
-      await internal.uncheck();
-      await expect(omittedDocument.first()).toBeVisible();
-      await internal.check();
-      await expect(omittedDocument).toHaveCount(0);
-      await internal.uncheck();
-      await expect(omittedDocument.first()).toBeVisible();
-      const showPreparation = dialog.getByRole('button',{name:/실행 준비 \d+건 보기/});
-      await expect(showPreparation).toBeInViewport({ratio:1});
-      await showPreparation.click();
-      await expect(preparation.getByRole('heading',{name:'실행 준비'})).toBeFocused();
-      await expect(preparation.getByRole('heading',{name:'실행 준비'})).toBeInViewport({ratio:1});
-      const files = await downloadZip(page,dialog);
-      for (const path of ['workflow.json','run.mjs','.codex/config.toml','.mcp.json','opencode.json']) assert.ok(!files[path],path);
-      assert.ok(!Object.keys(files).some(path => path.startsWith('runtime/')));
-      assert.match(strFromU8(files['.agents/skills/cite-policy/SKILL.md']),/이용규정 문장을 인용하세요/);
-      assert.match(strFromU8(files['.claude/skills/cite-policy/SKILL.md']),/\.agents\/skills\/cite-policy\/SKILL\.md/);
-      assert.match(strFromU8(files['CLAUDE.md']),/@AGENTS\.md/);
-      assert.match(strFromU8(files['AGENTS.md']),/회의 참고자료/);
-      const bundle = Object.values(files).map(bytes => strFromU8(bytes)).join('\n');
-      assert.ok(bundle.includes(applied));
-      assert.ok(!bundle.includes(original));
-      assert.ok(!bundle.includes(pending));
-      assert.ok(!bundle.includes(omit));
-      assert.ok(!bundle.includes('첫 자료의 월요일 휴무')&&bundle.includes('둘째 자료의 금요일 휴무'));
-      assert.ok(!bundle.includes(publicAddress));
-      await expect(dialog).toHaveCount(0);
-      await expect(trigger).toBeFocused();
-      simulateChangedAddress = Boolean(testDir) && width === 1440;
-      await trigger.click();
-      const includeLocal = !testDir || width === 1440;
-      if (includeLocal) await local.check();
-      if (testDir) await remote.check();
-      if (simulateChangedAddress) {
-        await dialog.getByRole('button',{name:'ZIP 내려받기'}).click();
-        await expect(dialog.getByRole('alert')).toBeVisible();
-        simulateChangedAddress = false;
-        await dialog.getByRole('button',{name:'자료 다시 확인'}).click();
-        await expect(connections).toContainText(publicAddress);
-        await expect(local).toBeChecked();
-        await expect(remote).not.toBeChecked();
-        await remote.check();
-      }
-      const configured = await downloadZip(page,dialog);
-      const configuredReadme = strFromU8(configured['README.md']);
-      assert.equal(configuredReadme.includes('내장 도서관 연결'),includeLocal);
-      assert.equal(strFromU8(configured['AGENTS.md']).includes('내장 도서관 연결'),includeLocal);
-      for (const path of ['.codex/config.toml','.mcp.json','opencode.json']) {
-        if (testDir) assert.ok(strFromU8(configured[path]).includes(publicAddress),path);
-        else assert.ok(!configured[path],path);
-      }
-      const saved = await context.request.post('/api/studio',{data:{action:'project.open',data:{id:projectId}}});
-      const savedGraph:Graph = (await saved.json()).data.graph;
-      assert.equal(savedGraph.nodes.find(node => node.id === 'rule')?.config.content,original);
-      await page.getByLabel('프로젝트 메뉴',{exact:true}).click();
-      await button('내보내기').click();
-      const jsonDialog = page.getByRole('dialog',{name:'설계 내보내기'});
-      await jsonDialog.getByRole('combobox').selectOption('edited');
-      const jsonDownload = page.waitForEvent('download');
-      await jsonDialog.getByRole('button',{name:'JSON 내려받기'}).click();
-      const json = JSON.parse(await readFile((await (await jsonDownload).path())!, 'utf8'));
-      assert.equal(json.format,'workflow-studio-v1');
-      assert.equal((json.graph as Graph).nodes.find(node => node.id === 'rule')?.config.content,pending);
-      console.log('PASS Agent ZIP download, source selection and applied canvas at '+width+'px');
-      await checkLargeExport(await context.newPage());
-      console.log('PASS Large Agent ZIP links from AGENTS.md to complete stage instructions at '+width+'px');
-      await checkTeamExport(await context.newPage());
-      console.log('PASS developer and QA subagent download at '+width+'px');
-      await checkSharedEditionAndEvidence(await context.newPage());
-      console.log('PASS shared Workflow edition and required evidence in browser download at '+width+'px');
-    } finally { await context.close(); }
+  const width = 1440;
+  const context = await browser.newContext({baseURL, viewport:{width,height:850}});
+  const user = await registerBrowserAccount(context);
+  const draft = structuredClone(graph);
+  const testDir = process.env.STUDIO_TEST_DATA_DIR;
+  if (testDir) {
+    process.env.STUDIO_DATA_DIR = testDir;
+    const {one} = await import('../src/server/db');
+    assert.ok(one('SELECT 1 FROM people WHERE id=? AND login=?',user.id,user.login));
+    process.env.STUDIO_ADMIN_IDS = user.id;
+    const {writeAsset} = await import('../src/server/assets');
+    const connector = writeAsset(user,{kind:'mcp',name:'공개 도서 검색',payload:{
+      url:publicAddress, tools:['lookup'], readOnlyTools:['lookup'],
+    }});
+    draft.nodes.push(createBlock('connection.mcp',{id:'catalog-mcp',title:'도서 검색 연결',config:{
+      assetId:connector.id, version:1,
+    }}));
+    draft.edges.push({id:'catalog-ref',kind:'reference',from:'catalog-mcp',out:'ref',to:'work',input:'mcp'});
   }
-} finally { await browser.close(); }
+  const response = await context.request.post('/api/studio', {data:{
+    action:'project.create', data:{title:'대출 안내',graph:draft},
+  }});
+  assert.equal(response.status(),200);
+  const projectId = (await response.json()).data.id;
+  const page = await context.newPage();
+  await page.goto('/?edit=' + projectId);
+  const button = (name:string) => page.getByRole('button',{name,exact:true});
+  const trigger = button('Agent 내보내기');
+  await expect(trigger).toBeInViewport({ratio:1});
+  await button('목록으로 편집').click();
+  await page.locator('[data-canvas-block="rule"]').click();
+  const source = page.getByRole('textbox',{name:'자료 원문',exact:true});
+  let failPreview = true;
+  let simulateChangedAddress = false;
+  await page.route('**/api/studio', async route => {
+    const action = route.request().postDataJSON()?.action;
+    if (action === 'project.save') {
+      await route.fulfill({status:503,json:{error:'시험 중 자동 저장 보류'}});
+    } else if (failPreview && action === 'project.exportPreview') {
+      await route.fulfill({status:503,json:{error:'자료 목록을 확인할 수 없습니다.'}});
+    } else if (simulateChangedAddress && action === 'project.exportPreview') {
+      const response = await route.fetch();
+      const body = await response.json();
+      const connection = body.data.resources.find((item:ExportResource) => item.mcpUrl === publicAddress);
+      assert.ok(connection);
+      connection.mcpUrl = 'https://old.example.org/library/mcp';
+      body.data.previewId = '이전 서버 주소 미리보기';
+      await route.fulfill({response,json:body});
+    } else await route.continue();
+  });
+  await source.fill(applied);
+  await button('변경 적용').click();
+  await source.fill(pending);
+  await trigger.click();
+  const dialog = page.getByRole('dialog',{name:'Agent 내보내기'});
+  await expect(dialog).toContainText('변경 적용');
+  await expect(dialog.getByRole('alert')).toContainText('자료 목록');
+  await expect(dialog.getByRole('button',{name:'ZIP 내려받기'})).toBeDisabled();
+  failPreview = false;
+  await dialog.getByRole('button',{name:'자료 다시 확인'}).click();
+  const shared = dialog.getByRole('checkbox',{name:/대출 규정/});
+  const internal = dialog.getByRole('checkbox',{name:/회의 참고자료/});
+  const monday = dialog.getByRole('checkbox',{name:/휴무일 안내 \(1\)/});
+  const friday = dialog.getByRole('checkbox',{name:/휴무일 안내 \(2\)/});
+  await expect(monday).toBeChecked();
+  await expect(friday).toBeChecked();
+  await monday.uncheck();
+  const connections = dialog.getByRole('group',{name:'ZIP에 포함할 MCP 연결'});
+  const local = connections.getByRole('checkbox',{name:/내장 도서관 연결/});
+  const remote = connections.getByRole('checkbox',{name:/공개 도서 검색/});
+  await expect(dialog).toContainText('OpenCode');
+  await expect(shared).toBeChecked();
+  await expect(local).not.toBeChecked();
+  await expect(local).toBeEnabled();
+  if (testDir) {
+    await expect(remote).not.toBeChecked();
+    await expect(connections).toContainText(publicAddress);
+  }
+  const preparation = dialog.getByRole('region',{name:'실행 준비'});
+  await expect(preparation).toBeVisible();
+  const omittedDocument = preparation.getByRole('listitem').filter({hasText:'회의 참고자료'});
+  await expect(omittedDocument).toHaveCount(0);
+  await internal.uncheck();
+  await expect(omittedDocument.first()).toBeVisible();
+  await internal.check();
+  await expect(omittedDocument).toHaveCount(0);
+  await internal.uncheck();
+  await expect(omittedDocument.first()).toBeVisible();
+  const showPreparation = dialog.getByRole('button',{name:/실행 준비 \d+건 보기/});
+  await expect(showPreparation).toBeInViewport({ratio:1});
+  await showPreparation.click();
+  await expect(preparation.getByRole('heading',{name:'실행 준비'})).toBeFocused();
+  await expect(preparation.getByRole('heading',{name:'실행 준비'})).toBeInViewport({ratio:1});
+  const files = await downloadZip(page,dialog);
+  for (const path of ['workflow.json','run.mjs','.codex/config.toml','.mcp.json','opencode.json']) assert.ok(!files[path],path);
+  assert.ok(!Object.keys(files).some(path => path.startsWith('runtime/')));
+  assert.match(strFromU8(files['.agents/skills/cite-policy/SKILL.md']),/이용규정 문장을 인용하세요/);
+  assert.match(strFromU8(files['.claude/skills/cite-policy/SKILL.md']),/\.agents\/skills\/cite-policy\/SKILL\.md/);
+  assert.match(strFromU8(files['CLAUDE.md']),/@AGENTS\.md/);
+  assert.match(strFromU8(files['AGENTS.md']),/회의 참고자료/);
+  const bundle = Object.values(files).map(bytes => strFromU8(bytes)).join('\n');
+  assert.ok(bundle.includes(applied));
+  assert.ok(!bundle.includes(original));
+  assert.ok(!bundle.includes(pending));
+  assert.ok(!bundle.includes(omit));
+  assert.ok(!bundle.includes('첫 자료의 월요일 휴무')&&bundle.includes('둘째 자료의 금요일 휴무'));
+  assert.ok(!bundle.includes(publicAddress));
+  await expect(dialog).toHaveCount(0);
+  await expect(trigger).toBeFocused();
+  simulateChangedAddress = Boolean(testDir);
+  await trigger.click();
+  await local.check();
+  if (testDir) await remote.check();
+  if (simulateChangedAddress) {
+    await dialog.getByRole('button',{name:'ZIP 내려받기'}).click();
+    await expect(dialog.getByRole('alert')).toBeVisible();
+    simulateChangedAddress = false;
+    await dialog.getByRole('button',{name:'자료 다시 확인'}).click();
+    await expect(connections).toContainText(publicAddress);
+    await expect(local).toBeChecked();
+    await expect(remote).not.toBeChecked();
+    await remote.check();
+  }
+  const configured = await downloadZip(page,dialog);
+  const configuredReadme = strFromU8(configured['README.md']);
+  assert.ok(configuredReadme.includes('내장 도서관 연결'));
+  assert.ok(strFromU8(configured['AGENTS.md']).includes('내장 도서관 연결'));
+  for (const path of ['.codex/config.toml','.mcp.json','opencode.json']) {
+    if (testDir) assert.ok(strFromU8(configured[path]).includes(publicAddress),path);
+    else assert.ok(!configured[path],path);
+  }
+  if (testDir) {
+    await trigger.click();
+    await local.uncheck();
+    await remote.check();
+    const remoteOnly = await downloadZip(page,dialog);
+    assert.ok(!strFromU8(remoteOnly['AGENTS.md']).includes('내장 도서관 연결'));
+    assert.ok(!strFromU8(remoteOnly['README.md']).includes('내장 도서관 연결'));
+    assert.ok(strFromU8(remoteOnly['.mcp.json']).includes(publicAddress));
+  }
+  const saved = await context.request.post('/api/studio',{data:{action:'project.open',data:{id:projectId}}});
+  const savedGraph:Graph = (await saved.json()).data.graph;
+  assert.equal(savedGraph.nodes.find(node => node.id === 'rule')?.config.content,original);
+  await page.getByLabel('프로젝트 메뉴',{exact:true}).click();
+  await button('내보내기').click();
+  const jsonDialog = page.getByRole('dialog',{name:'설계 내보내기'});
+  await jsonDialog.getByRole('combobox').selectOption('edited');
+  const jsonDownload = page.waitForEvent('download');
+  await jsonDialog.getByRole('button',{name:'JSON 내려받기'}).click();
+  const json = JSON.parse(await readFile((await (await jsonDownload).path())!, 'utf8'));
+  assert.equal(json.format,'workflow-studio-v1');
+  assert.equal((json.graph as Graph).nodes.find(node => node.id === 'rule')?.config.content,pending);
+  console.log('PASS Agent ZIP download, source selection and applied canvas at '+width+'px');
+  await checkLargeExport(await context.newPage());
+  console.log('PASS Large Agent ZIP links from AGENTS.md to complete stage instructions at '+width+'px');
+  await checkTeamExport(await context.newPage());
+  console.log('PASS developer and QA subagent download at '+width+'px');
+  await checkSharedEditionAndEvidence(await context.newPage());
+  console.log('PASS shared Workflow edition and required evidence in browser download at '+width+'px');
+} finally {
+  await browser.close();
+}

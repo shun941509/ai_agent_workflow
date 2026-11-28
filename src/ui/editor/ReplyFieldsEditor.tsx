@@ -18,12 +18,19 @@ export function ReplyFieldsEditor({entries,onChange}:{entries:unknown[];onChange
     {!fields.length&&<p className="ws-hint">항목이 없으면 이용자가 글로 답할 수 있습니다.</p>}
     {fields.map((field,index)=>{
       const matches=(entry:unknown)=>replyFields([entry])[0]?.name===field.name;
+      function setOption(key:'required'|'multiline',checked:boolean) {
+        onChange(entries.map(entry=>matches(entry)
+          ? {...(typeof entry==='object' && entry!==null?entry:{name:field.name}),[key]:checked}
+          : entry));
+      }
       return <div className="ws-reply-field" key={field.name}>
         <span>{field.name}</span>
-        <label className="ws-check"><input type="checkbox" checked={field.required} aria-label={field.name+' 필수'}
-          onChange={e=>onChange(entries.map(entry=>matches(entry)
-            ? {...(typeof entry==='object' && entry!==null?entry:{name:field.name}),required:e.target.checked}
-            : entry))}/>필수</label>
+        <div className="ws-reply-field-options">
+          <label className="ws-check"><input type="checkbox" checked={field.required} aria-label={field.name+' 필수'}
+            onChange={e=>setOption('required',e.target.checked)}/>필수</label>
+          <label className="ws-check"><input type="checkbox" checked={field.multiline===true} aria-label={field.name+' 여러 줄'}
+            onChange={e=>setOption('multiline',e.target.checked)}/>여러 줄</label>
+        </div>
         <button type="button" className="ws-icon-button" aria-label={field.name+' 삭제'}
           ref={button=>{if(button)removeButtons.current.set(field.name,button);else removeButtons.current.delete(field.name);}}
           onClick={()=>{

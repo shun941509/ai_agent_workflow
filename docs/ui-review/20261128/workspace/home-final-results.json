@@ -1,0 +1,180 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "state": "home",
+      "document": [
+        360,
+        360
+      ],
+      "shell": [
+        360,
+        360
+      ],
+      "main": [
+        360,
+        360
+      ],
+      "table": null,
+      "lessonList": [
+        328,
+        328
+      ],
+      "row": [
+        326,
+        326
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "home",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        390,
+        390
+      ],
+      "main": [
+        390,
+        390
+      ],
+      "table": null,
+      "lessonList": [
+        358,
+        358
+      ],
+      "row": [
+        356,
+        356
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 768,
+      "state": "home",
+      "document": [
+        768,
+        768
+      ],
+      "shell": [
+        578,
+        578
+      ],
+      "main": [
+        578,
+        578
+      ],
+      "table": null,
+      "lessonList": [
+        523,
+        523
+      ],
+      "row": [
+        521,
+        521
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1024,
+      "state": "home",
+      "document": [
+        1024,
+        1024
+      ],
+      "shell": [
+        834,
+        834
+      ],
+      "main": [
+        834,
+        834
+      ],
+      "table": null,
+      "lessonList": [
+        760,
+        760
+      ],
+      "row": [
+        758,
+        758
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1280,
+      "state": "home",
+      "document": [
+        1280,
+        1280
+      ],
+      "shell": [
+        1090,
+        1090
+      ],
+      "main": [
+        1090,
+        1090
+      ],
+      "table": null,
+      "lessonList": [
+        998,
+        998
+      ],
+      "row": [
+        996,
+        996
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "home",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "lessonList": [
+        1146,
+        1146
+      ],
+      "row": [
+        1144,
+        1144
+      ],
+      "dialog": null,
+      "count": null
+    }
+  ],
+  "failures": [],
+  "errors": [],
+  "scans": [
+    {
+      "width": 390,
+      "state": "home",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "home",
+      "violations": []
+    }
+  ]
+}

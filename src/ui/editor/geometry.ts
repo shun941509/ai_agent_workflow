@@ -4,7 +4,7 @@ import { compactRouteLabels, routeLabelWidth, shortBranchLabel, type EdgeGroup }
 import { nodeLayout } from './node-layout';
 
 export { H, W, ROUTE_H, nodeLayout } from './node-layout';
-export const color = { flow: '#485568', data: '#367e80', reference: '#7064ae' };
+export const color = { flow: 'var(--wire-flow)', data: 'var(--wire-data)', reference: 'var(--wire-reference)' };
 export type Point = { x: number; y: number };
 export type CanvasView = Point & { zoom: number };
 export const PORT_DIRECTION_SIZE = 12;

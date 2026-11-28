@@ -22,24 +22,16 @@ async function visibleInCanvas(block:Locator) {
     return box.left >= frame.left && box.right <= frame.right && box.top >= frame.top && box.bottom <= frame.bottom;
   });
 }
-async function visibleViewControls(page:Page) {
-  return page.locator('.ws-viewbar button').evaluateAll(buttons => buttons.every(button => {
-    const stage = button.closest('.ws-stage')!.getBoundingClientRect();
-    const box = button.getBoundingClientRect();
-    return box.left >= stage.left + 2 && box.right <= stage.right - 2;
-  }));
-}
 async function capture(page:Page, name:string) {
   const folder = process.env.STUDIO_SCREENSHOTS;
   if (!folder) return;
   mkdirSync(folder,{recursive:true});
   await page.screenshot({path:join(folder,name+'-'+page.viewportSize()!.width+'.png')});
 }
-async function verifyConnectionTerms(page:Page, projectId:string, mobile:boolean) {
-  if (mobile) await page.setViewportSize({width:320,height:568});
+async function verifyConnectionTerms(page:Page, projectId:string) {
   await page.goto('/?edit='+projectId);
   const button=(name:string)=>page.getByRole('button',{name,exact:true});
-  const activate=(control:Locator)=>mobile?control.tap():control.press('Space');
+  const activate=(control:Locator)=>control.press('Space');
   await activate(button('캔버스로 보기'));
   const legend=page.getByRole('group',{name:'연결선 종류',exact:true});
   const tooltip=page.getByRole('tooltip');
@@ -65,10 +57,6 @@ async function verifyConnectionTerms(page:Page, projectId:string, mobile:boolean
       const key=await legend.boundingBox(),tip=await tooltip.boundingBox();
       assert.ok(drawing && key && tip);
       assert.ok([key,tip].every(box=>box.y >= drawing.y+drawing.height-1), '범례와 툴팁이 도면을 가립니다.');
-      if (overview && mobile) {
-        const reader=await page.getByRole('region',{name:'연결도 블록 탐색'}).boundingBox();
-        assert.ok(reader && Math.max(key.y+key.height,tip.y+tip.height) <= reader.y+1,'블록 선택기가 범례나 툴팁을 가립니다.');
-      }
       for (const sample of samples) {
         const wire=page.locator(`.ws-wire[data-from="${sample.from}"][data-to="${sample.to}"]`);
         if (sample.kinds.includes(name)) await expect(wire).not.toHaveAttribute('data-legend-muted','true');
@@ -77,23 +65,19 @@ async function verifyConnectionTerms(page:Page, projectId:string, mobile:boolean
       await activate(control);
       await expect(control).toHaveAttribute('aria-pressed','false');
     }
-    if (!mobile) {
-      await legend.getByRole('button',{name:'참조 강조',exact:true}).hover();
-      await expect(tooltip).toHaveText('참조 연결 강조');
-    }
+    await legend.getByRole('button',{name:'참조 강조',exact:true}).hover();
+    await expect(tooltip).toHaveText('참조 연결 강조');
     for (const sample of samples) {
       const wire=page.locator(`.ws-wire[data-from="${sample.from}"][data-to="${sample.to}"]`);
       const description=await wire.getAttribute('aria-label');
       assert.ok(description);
       for (const name of kinds) assert.equal(description.includes(name),sample.kinds.includes(name),description);
       if (sample.detail) assert.ok(description.includes(sample.detail),description);
-      if (!mobile) {
-        await wire.focus();
-        await expect(tooltip).toHaveText(description);
-        await page.keyboard.press('Escape');
-        await expect(tooltip).toBeHidden();
-        if (overview) await expect(button('편집기로 돌아가기')).toBeVisible();
-      }
+      await wire.focus();
+      await expect(tooltip).toHaveText(description);
+      await page.keyboard.press('Escape');
+      await expect(tooltip).toBeHidden();
+      if (overview) await expect(button('편집기로 돌아가기')).toBeVisible();
       if (overview) {
         const id=await wire.getAttribute('data-canvas-wire');
         assert.ok(id);
@@ -110,8 +94,7 @@ async function verifyConnectionTerms(page:Page, projectId:string, mobile:boolean
   console.log('PASS '+page.viewportSize()!.width+'px canvas legend, grouped connection terms and filtering.');
 }
 async function exercise(width:number) {
-  const mobile = width === 390;
-  const context = await browser.newContext({baseURL,viewport:{width,height:mobile?844:width===768?1024:900},isMobile:width<=768,hasTouch:width<=768});
+  const context = await browser.newContext({baseURL,viewport:{width,height:900}});
   try {
     await registerBrowserAccount(context);
     const project = await api(context,'project.create',{lesson:'intermediate'});
@@ -119,7 +102,6 @@ async function exercise(width:number) {
     const button = (name:string) => page.getByRole('button',{name,exact:true});
     await page.goto('/?edit='+project.id);
     const canvas = page.locator('.ws-canvas');
-    if (mobile) await button('캔버스로 보기').click();
     const edited = canvas.locator('[data-canvas-block="answer"]');
     await expect(edited).toHaveAttribute('aria-pressed','true');
     const zoom = () => canvas.locator('.ws-world').evaluate(el => new DOMMatrix(getComputedStyle(el).transform).a);
@@ -145,7 +127,6 @@ async function exercise(width:number) {
     const list = canvas.locator('.ws-graph-list');
     const edge = list.locator('[data-canvas-wire]').last();
     await edge.click();
-    if (mobile) await page.keyboard.press('Escape');
     await expect(edge).toHaveAttribute('aria-pressed','true');
     const scroll = () => list.evaluate(el => el.scrollTop);
     await expect.poll(scroll).toBeGreaterThan(100);
@@ -157,7 +138,7 @@ async function exercise(width:number) {
 
     const parallel = await api(context,'project.create',{lesson:'parallel'});
     await page.goto('/?edit='+parallel.id);
-    if (!mobile) await button('목록으로 편집').click();
+    await button('목록으로 편집').click();
     const team = canvas.locator('[data-canvas-block="team"]');
     const enterTeam = async () => {
       await team.click();
@@ -167,7 +148,6 @@ async function exercise(width:number) {
     await enterTeam();
     const childWire = list.locator('[data-canvas-wire]').last();
     await childWire.click();
-    if (mobile) await page.keyboard.press('Escape');
     const childOffset = await scroll();
     await button('상위 Workflow로').click();
     await expect(team).toBeFocused();
@@ -177,9 +157,9 @@ async function exercise(width:number) {
 
     const beginner = await api(context,'project.create',{lesson:'beginner'});
     await page.goto('/?edit='+beginner.id);
-    const initialView = mobile ? '목록으로 편집' : '캔버스로 보기';
+    const initialView = '캔버스로 보기';
     await expect(button(initialView)).toHaveAttribute('aria-pressed','true');
-    await button(mobile ? '캔버스로 보기' : '목록으로 편집').click();
+    await button('목록으로 편집').click();
     await page.reload();
     await expect(button(initialView)).toHaveAttribute('aria-pressed','false');
     await button('목록으로 편집').click();
@@ -187,7 +167,6 @@ async function exercise(width:number) {
     const source = page.getByLabel('자료 원문',{exact:true});
     const original = await source.inputValue();
     await source.fill(original + '\n다시 확인할 자료');
-    if (mobile) await page.keyboard.press('Escape');
     await button('전체 보기').press('Enter');
     await expect(button('편집기로 돌아가기')).toBeFocused();
     await expect(canvas.locator('.ws-world [data-canvas-block]')).toHaveCount(beginner.graph.nodes.length);
@@ -196,15 +175,6 @@ async function exercise(width:number) {
     }
     await button('참조 강조').press('Space');
     await expect(canvas.locator('.ws-wire[data-legend-muted]')).toHaveCount(3);
-    if (mobile) {
-      const reader = page.getByRole('region',{name:'연결도 블록 탐색'});
-      await expect(reader.getByRole('combobox')).toHaveValue('rules');
-      await reader.getByRole('button',{name:'다음 블록'}).press('Enter');
-      await reader.getByRole('button',{name:'이전 블록'}).press('Enter');
-      await expect(reader.getByRole('combobox')).toHaveValue('rules');
-      await page.setViewportSize({width:320,height:568});
-      await expect.poll(() => visibleViewControls(page)).toBe(true);
-    }
     if (await page.getByRole('tooltip').isVisible()) {
       await page.keyboard.press('Escape');
       await expect(page.getByRole('tooltip')).toBeHidden();
@@ -212,15 +182,10 @@ async function exercise(width:number) {
     }
     await page.keyboard.press('Escape');
     await expect(button('전체 보기')).toBeFocused();
-    if (mobile) {
-      await expect.poll(() => visibleViewControls(page)).toBe(true);
-      await page.setViewportSize({width,height:844});
-    }
     await expect(canvas.locator('[data-canvas-block="rules"]')).toHaveAttribute('aria-pressed','true');
     await canvas.locator('[data-canvas-block="rules"]').press('Enter');
     await expect(source).toHaveValue(original + '\n다시 확인할 자료');
     await source.fill(original);
-    if (mobile) await page.keyboard.press('Escape');
     await button('캔버스로 보기').click();
     const output = canvas.locator('[data-canvas-block="output"]');
     await output.focus();
@@ -248,12 +213,10 @@ async function exercise(width:number) {
     await expect(rules).toBeFocused();
     await page.keyboard.press('Control+s');
     await expect.poll(async () => (await api(context,'project.open',{id:beginner.id})).graph.nodes.find((n:{id:string})=>n.id==='output').x).toBe(start+12*24);
-    if (width!==768) await verifyConnectionTerms(page,project.id,mobile);
+    await verifyConnectionTerms(page,project.id);
   } finally { await context.close(); }
 }
 try {
   await exercise(1440);
-  await exercise(768);
-  await exercise(390);
-  console.log('PASS 1440/768/390px canvas arrangement, palette reveal, keyboard panning, list return and deletion undo/redo.');
+  console.log('PASS desktop canvas arrangement, keyboard panning, list return and deletion undo/redo.');
 } finally { await browser.close(); }

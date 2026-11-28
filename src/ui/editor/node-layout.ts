@@ -58,7 +58,7 @@ export function overviewTargetLimits(nodes: readonly Block[], minimumHeight = 0)
       }
       // Two cards in the same row may share a thin vertical strip at their
       // edges. Keep the left port on its anchor, but let both cards use the
-      // free space above and below their row for a full-height touch target.
+      // free space above and below their row for a full-height button.
       if (a.target && b.target && a.top === b.top && b.left >= a.right - maxOutside) {
         a.target.maxPortOutside = 0;
         b.coveredLeft = Math.max(b.coveredLeft, a.right - b.left);
@@ -102,7 +102,7 @@ export function overviewTargetLimits(nodes: readonly Block[], minimumHeight = 0)
     const upperRoom = upper.height + up.above + up.below - minimumHeight;
     const lowerRoom = lower.height + down.above + down.below - minimumHeight;
     // Give the control directly under named outputs extra separation from the
-    // tiny row above it. Chrome also considers nearby controls on touch.
+    // tiny row above it when the diagram is zoomed out.
     const preferredExtra = upper.belowRoutes ? minimumHeight * 0.25 : 0;
     const takeUp = Math.max(0, Math.min(preferredExtra - upperRoom, lowerRoom, down.above));
     const takeDown = Math.max(0, Math.min(-lowerRoom, upperRoom, up.below));
@@ -117,7 +117,7 @@ export function overviewTargetLimits(nodes: readonly Block[], minimumHeight = 0)
       // output zone into the opposite gap, retaining at least a quarter for wires.
       port.maxPortOutside = Math.min(port.maxPortOutside, gap / 2 + Math.min(left.coveredLeft, gap / 4));
       // A name that needs more room may use a wider body. Move its output
-      // into the adjacent gap, stopping short of the next card's touch area.
+      // into the adjacent gap, stopping short of the next card.
       if (minimumHeight && port.maxPortOutside > 0) {
         port.namePortOutside = Math.min(port.namePortOutside ?? maxOutside, gap * .9);
       }

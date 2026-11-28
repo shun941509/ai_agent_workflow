@@ -6,9 +6,9 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  border-block-end: 1px solid #c1d2cf;
-  background: #f6f9f7;
-  color: #21332f;
+  border-block-end: 1px solid light-dark(#c1d2cf, var(--night-subtle));
+  background: light-dark(#f6f9f7, var(--surface));
+  color: light-dark(#21332f, var(--ink));
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
@@ -23,8 +23,8 @@
   padding: 7px 12px;
   border: 0;
   text-align: left;
-  background: #e6efeb;
-  color: #214f44;
+  background: light-dark(#e6efeb, var(--night-raised));
+  color: light-dark(#214f44, var(--night-green));
 }
 
 .practiceName {
@@ -69,8 +69,8 @@
 .coach .check {
   margin: 0 0 8px;
   padding-inline-start: 8px;
-  border-inline-start: 2px solid #608779;
-  color: #304d40;
+  border-inline-start: 2px solid light-dark(#608779, var(--night-green));
+  color: light-dark(#304d40, var(--night-green));
 }
 
 .check strong {
@@ -78,7 +78,7 @@
 }
 
 .prerequisite {
-  border-inline-start: 2px solid #ad792d;
+  border-inline-start: 2px solid light-dark(#ad792d, var(--night-amber));
   padding-inline-start: 8px;
   margin-block: 8px;
 }
@@ -103,7 +103,7 @@
   padding-block: 4px;
   cursor: pointer;
   font-weight: 650;
-  color: #31584d;
+  color: light-dark(#31584d, var(--night-green));
 }
 
 .coach .help p {
@@ -116,7 +116,7 @@
   gap: 3px;
   margin-top: 7px;
   padding-top: 8px;
-  border-top: 1px solid #ccd9d3;
+  border-top: 1px solid light-dark(#ccd9d3, var(--night-soft-green));
 }
 
 .coach .continue p {
@@ -125,7 +125,7 @@
 
 .coach .continue button,
 .coach .overview {
-  color: #17594a;
+  color: light-dark(#17594a, var(--night-green));
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -145,8 +145,8 @@
   align-items: center;
   gap: 3px;
   padding: 3px 8px;
-  border-top: 1px solid #d6e1db;
-  background: #f6f9f7;
+  border-top: 1px solid light-dark(#d6e1db, var(--night-raised));
+  background: light-dark(#f6f9f7, var(--surface));
 }
 
 .coach .controls button {
@@ -168,18 +168,12 @@
 }
 
 .coach button:hover:not(:disabled) {
-  background-color: #ddeae3;
+  background-color: light-dark(#ddeae3, var(--night-soft-green));
 }
 
 .coach .toggle:focus-visible,
 .coach .reading:focus-visible {
   outline-offset: -3px;
-}
-
-@media (max-width: 680px) {
-  .coach {
-    max-height: min(30dvh, 245px);
-  }
 }
 
 @media (max-height: 540px) {

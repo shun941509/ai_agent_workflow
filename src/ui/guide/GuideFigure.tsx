@@ -77,6 +77,7 @@ export function GuideFigure({id, title = captureNames[id] ?? '실습 화면', ea
   if (!capture) return <figure className={styles.pending}>
     <figcaption><strong>추가 캡처 필요</strong><span>{title}</span></figcaption>
   </figure>;
+  const dialogSize = capture.width <= 720 ? 'form' : capture.width <= 1400 ? 'settings' : 'workspace';
 
   return <figure className={styles.figure}>
     <button ref={opener} type="button" className={styles.pictureButton} aria-label={title + ' 확대'}
@@ -97,7 +98,7 @@ export function GuideFigure({id, title = captureNames[id] ?? '실습 화면', ea
           {mark.label}</span>)}
       </span>}
     </figcaption>
-    {zoom && <StudioDialog size="workspace" title={title + ' 확대'} descriptionId={descriptionId} onClose={() => {
+    {zoom && <StudioDialog size={dialogSize} title={title + ' 확대'} descriptionId={descriptionId} onClose={() => {
       setZoom(false);
       requestAnimationFrame(() => opener.current?.focus({preventScroll: true}));
     }}>

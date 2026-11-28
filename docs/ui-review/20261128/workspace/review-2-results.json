@@ -1,0 +1,3366 @@
+{
+  "rows": [
+    {
+      "width": 1440,
+      "state": "home",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "lessonList": [
+        1146,
+        1146
+      ],
+      "row": [
+        1144,
+        1144
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "projects",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        1150,
+        1150
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "nav",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": [
+        1150,
+        1150
+      ],
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": [
+        1319,
+        1370
+      ]
+    },
+    {
+      "width": 1440,
+      "state": "create",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        1150,
+        1150
+      ],
+      "dialog": [
+        638,
+        638,
+        550
+      ],
+      "field": 590,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "create-ai",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        1150,
+        1150
+      ],
+      "dialog": [
+        638,
+        638,
+        424
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "project-delete",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        1150,
+        1150
+      ],
+      "dialog": [
+        414,
+        414,
+        320
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "project-share",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        1150,
+        1150
+      ],
+      "dialog": [
+        862,
+        862,
+        503
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "projects-empty",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        1150,
+        1150
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "projects-trash",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        1150,
+        1150
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "assets",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": [
+        1150,
+        1150
+      ],
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": [
+        1319,
+        1370
+      ]
+    },
+    {
+      "width": 1440,
+      "state": "asset-create",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "asset-dirty",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "asset-detail",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "asset-delete",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": [
+        502,
+        502,
+        379
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "asset-edit",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "assets-trash",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        1150,
+        1150
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "shared",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        1150,
+        1150
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "shared-agent",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        1150,
+        1150
+      ],
+      "dialog": [
+        502,
+        502,
+        187
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "shared-assets",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": [
+        1150,
+        1150
+      ],
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": [
+        1319,
+        1370
+      ]
+    },
+    {
+      "width": 1440,
+      "state": "shared-asset",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1440,
+      "state": "connect",
+      "document": [
+        1440,
+        1440
+      ],
+      "shell": [
+        1250,
+        1250
+      ],
+      "main": [
+        1250,
+        1250
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        452,
+        452
+      ],
+      "dialog": [
+        502,
+        502,
+        286
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 1280,
+      "state": "home",
+      "document": [
+        1280,
+        1280
+      ],
+      "shell": [
+        1090,
+        1090
+      ],
+      "main": [
+        1090,
+        1090
+      ],
+      "table": null,
+      "lessonList": [
+        998,
+        998
+      ],
+      "row": [
+        996,
+        996
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1280,
+      "state": "projects",
+      "document": [
+        1280,
+        1280
+      ],
+      "shell": [
+        1090,
+        1090
+      ],
+      "main": [
+        1090,
+        1090
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        1001,
+        1001
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1280,
+      "state": "nav",
+      "document": [
+        1280,
+        1280
+      ],
+      "shell": [
+        1090,
+        1090
+      ],
+      "main": [
+        1090,
+        1090
+      ],
+      "table": [
+        1001,
+        1001
+      ],
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": [
+        1165,
+        1215
+      ]
+    },
+    {
+      "width": 1280,
+      "state": "create",
+      "document": [
+        1280,
+        1280
+      ],
+      "shell": [
+        1090,
+        1090
+      ],
+      "main": [
+        1090,
+        1090
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        1001,
+        1001
+      ],
+      "dialog": [
+        638,
+        638,
+        550
+      ],
+      "field": 590,
+      "count": null
+    },
+    {
+      "width": 1280,
+      "state": "create-ai",
+      "document": [
+        1280,
+        1280
+      ],
+      "shell": [
+        1090,
+        1090
+      ],
+      "main": [
+        1090,
+        1090
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        1001,
+        1001
+      ],
+      "dialog": [
+        638,
+        638,
+        424
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 1280,
+      "state": "project-delete",
+      "document": [
+        1280,
+        1280
+      ],
+      "shell": [
+        1090,
+        1090
+      ],
+      "main": [
+        1090,
+        1090
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        1001,
+        1001
+      ],
+      "dialog": [
+        414,
+        414,
+        320
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 1280,
+      "state": "project-share",
+      "document": [
+        1280,
+        1280
+      ],
+      "shell": [
+        1090,
+        1090
+      ],
+      "main": [
+        1090,
+        1090
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        1001,
+        1001
+      ],
+      "dialog": [
+        862,
+        862,
+        503
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 1280,
+      "state": "projects-empty",
+      "document": [
+        1280,
+        1280
+      ],
+      "shell": [
+        1090,
+        1090
+      ],
+      "main": [
+        1090,
+        1090
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        1001,
+        1001
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1280,
+      "state": "projects-trash",
+      "document": [
+        1280,
+        1280
+      ],
+      "shell": [
+        1090,
+        1090
+      ],
+      "main": [
+        1090,
+        1090
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        1001,
+        1001
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1280,
+      "state": "assets",
+      "document": [
+        1280,
+        1280
+      ],
+      "shell": [
+        1090,
+        1090
+      ],
+      "main": [
+        1090,
+        1090
+      ],
+      "table": [
+        1001,
+        1001
+      ],
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": [
+        1165,
+        1215
+      ]
+    },
+    {
+      "width": 1280,
+      "state": "asset-create",
+      "document": [
+        1280,
+        1280
+      ],
+      "shell": [
+        1090,
+        1090
+      ],
+      "main": [
+        1090,
+        1090
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1280,
+      "state": "asset-dirty",
+      "document": [
+        1280,
+        1280
+      ],
+      "shell": [
+        1090,
+        1090
+      ],
+      "main": [
+        1090,
+        1090
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1280,
+      "state": "asset-detail",
+      "document": [
+        1280,
+        1280
+      ],
+      "shell": [
+        1090,
+        1090
+      ],
+      "main": [
+        1090,
+        1090
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1280,
+      "state": "asset-delete",
+      "document": [
+        1280,
+        1280
+      ],
+      "shell": [
+        1090,
+        1090
+      ],
+      "main": [
+        1090,
+        1090
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": [
+        502,
+        502,
+        379
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 1280,
+      "state": "asset-edit",
+      "document": [
+        1280,
+        1280
+      ],
+      "shell": [
+        1090,
+        1090
+      ],
+      "main": [
+        1090,
+        1090
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1280,
+      "state": "assets-trash",
+      "document": [
+        1280,
+        1280
+      ],
+      "shell": [
+        1090,
+        1090
+      ],
+      "main": [
+        1090,
+        1090
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        1001,
+        1001
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1280,
+      "state": "shared",
+      "document": [
+        1280,
+        1280
+      ],
+      "shell": [
+        1090,
+        1090
+      ],
+      "main": [
+        1090,
+        1090
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        1001,
+        1001
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1280,
+      "state": "shared-agent",
+      "document": [
+        1280,
+        1280
+      ],
+      "shell": [
+        1090,
+        1090
+      ],
+      "main": [
+        1090,
+        1090
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        1001,
+        1001
+      ],
+      "dialog": [
+        502,
+        502,
+        187
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 1280,
+      "state": "shared-assets",
+      "document": [
+        1280,
+        1280
+      ],
+      "shell": [
+        1090,
+        1090
+      ],
+      "main": [
+        1090,
+        1090
+      ],
+      "table": [
+        1001,
+        1001
+      ],
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": [
+        1165,
+        1215
+      ]
+    },
+    {
+      "width": 1280,
+      "state": "shared-asset",
+      "document": [
+        1280,
+        1280
+      ],
+      "shell": [
+        1090,
+        1090
+      ],
+      "main": [
+        1090,
+        1090
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1280,
+      "state": "connect",
+      "document": [
+        1280,
+        1280
+      ],
+      "shell": [
+        1090,
+        1090
+      ],
+      "main": [
+        1090,
+        1090
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        452,
+        452
+      ],
+      "dialog": [
+        502,
+        502,
+        286
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 1024,
+      "state": "home",
+      "document": [
+        1024,
+        1024
+      ],
+      "shell": [
+        834,
+        834
+      ],
+      "main": [
+        834,
+        834
+      ],
+      "table": null,
+      "lessonList": [
+        760,
+        760
+      ],
+      "row": [
+        758,
+        758
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1024,
+      "state": "projects",
+      "document": [
+        1024,
+        1024
+      ],
+      "shell": [
+        834,
+        834
+      ],
+      "main": [
+        834,
+        834
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        762,
+        762
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1024,
+      "state": "nav",
+      "document": [
+        1024,
+        1024
+      ],
+      "shell": [
+        834,
+        834
+      ],
+      "main": [
+        834,
+        834
+      ],
+      "table": [
+        762,
+        762
+      ],
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": [
+        917,
+        968
+      ]
+    },
+    {
+      "width": 1024,
+      "state": "create",
+      "document": [
+        1024,
+        1024
+      ],
+      "shell": [
+        834,
+        834
+      ],
+      "main": [
+        834,
+        834
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        762,
+        762
+      ],
+      "dialog": [
+        638,
+        638,
+        550
+      ],
+      "field": 590,
+      "count": null
+    },
+    {
+      "width": 1024,
+      "state": "create-ai",
+      "document": [
+        1024,
+        1024
+      ],
+      "shell": [
+        834,
+        834
+      ],
+      "main": [
+        834,
+        834
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        762,
+        762
+      ],
+      "dialog": [
+        638,
+        638,
+        424
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 1024,
+      "state": "project-delete",
+      "document": [
+        1024,
+        1024
+      ],
+      "shell": [
+        834,
+        834
+      ],
+      "main": [
+        834,
+        834
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        762,
+        762
+      ],
+      "dialog": [
+        414,
+        414,
+        320
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 1024,
+      "state": "project-share",
+      "document": [
+        1024,
+        1024
+      ],
+      "shell": [
+        834,
+        834
+      ],
+      "main": [
+        834,
+        834
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        762,
+        762
+      ],
+      "dialog": [
+        862,
+        862,
+        503
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 1024,
+      "state": "projects-empty",
+      "document": [
+        1024,
+        1024
+      ],
+      "shell": [
+        834,
+        834
+      ],
+      "main": [
+        834,
+        834
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        762,
+        762
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1024,
+      "state": "projects-trash",
+      "document": [
+        1024,
+        1024
+      ],
+      "shell": [
+        834,
+        834
+      ],
+      "main": [
+        834,
+        834
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        762,
+        762
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1024,
+      "state": "assets",
+      "document": [
+        1024,
+        1024
+      ],
+      "shell": [
+        834,
+        834
+      ],
+      "main": [
+        834,
+        834
+      ],
+      "table": [
+        762,
+        762
+      ],
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": [
+        917,
+        968
+      ]
+    },
+    {
+      "width": 1024,
+      "state": "asset-create",
+      "document": [
+        1024,
+        1024
+      ],
+      "shell": [
+        834,
+        834
+      ],
+      "main": [
+        834,
+        834
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1024,
+      "state": "asset-dirty",
+      "document": [
+        1024,
+        1024
+      ],
+      "shell": [
+        834,
+        834
+      ],
+      "main": [
+        834,
+        834
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1024,
+      "state": "asset-detail",
+      "document": [
+        1024,
+        1024
+      ],
+      "shell": [
+        834,
+        834
+      ],
+      "main": [
+        834,
+        834
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1024,
+      "state": "asset-delete",
+      "document": [
+        1024,
+        1024
+      ],
+      "shell": [
+        834,
+        834
+      ],
+      "main": [
+        834,
+        834
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": [
+        502,
+        502,
+        379
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 1024,
+      "state": "asset-edit",
+      "document": [
+        1024,
+        1024
+      ],
+      "shell": [
+        834,
+        834
+      ],
+      "main": [
+        834,
+        834
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1024,
+      "state": "assets-trash",
+      "document": [
+        1024,
+        1024
+      ],
+      "shell": [
+        834,
+        834
+      ],
+      "main": [
+        834,
+        834
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        762,
+        762
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1024,
+      "state": "shared",
+      "document": [
+        1024,
+        1024
+      ],
+      "shell": [
+        834,
+        834
+      ],
+      "main": [
+        834,
+        834
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        762,
+        762
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1024,
+      "state": "shared-agent",
+      "document": [
+        1024,
+        1024
+      ],
+      "shell": [
+        834,
+        834
+      ],
+      "main": [
+        834,
+        834
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        762,
+        762
+      ],
+      "dialog": [
+        502,
+        502,
+        187
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 1024,
+      "state": "shared-assets",
+      "document": [
+        1024,
+        1024
+      ],
+      "shell": [
+        834,
+        834
+      ],
+      "main": [
+        834,
+        834
+      ],
+      "table": [
+        762,
+        762
+      ],
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": [
+        917,
+        968
+      ]
+    },
+    {
+      "width": 1024,
+      "state": "shared-asset",
+      "document": [
+        1024,
+        1024
+      ],
+      "shell": [
+        834,
+        834
+      ],
+      "main": [
+        834,
+        834
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 1024,
+      "state": "connect",
+      "document": [
+        1024,
+        1024
+      ],
+      "shell": [
+        834,
+        834
+      ],
+      "main": [
+        834,
+        834
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        452,
+        452
+      ],
+      "dialog": [
+        502,
+        502,
+        286
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 768,
+      "state": "home",
+      "document": [
+        768,
+        768
+      ],
+      "shell": [
+        578,
+        578
+      ],
+      "main": [
+        578,
+        578
+      ],
+      "table": null,
+      "lessonList": [
+        523,
+        523
+      ],
+      "row": [
+        521,
+        521
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 768,
+      "state": "projects",
+      "document": [
+        768,
+        768
+      ],
+      "shell": [
+        578,
+        578
+      ],
+      "main": [
+        578,
+        578
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        524,
+        524
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 768,
+      "state": "nav",
+      "document": [
+        768,
+        768
+      ],
+      "shell": [
+        578,
+        578
+      ],
+      "main": [
+        578,
+        578
+      ],
+      "table": [
+        524,
+        524
+      ],
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": [
+        674,
+        725
+      ]
+    },
+    {
+      "width": 768,
+      "state": "create",
+      "document": [
+        768,
+        768
+      ],
+      "shell": [
+        578,
+        578
+      ],
+      "main": [
+        578,
+        578
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        524,
+        524
+      ],
+      "dialog": [
+        638,
+        638,
+        541
+      ],
+      "field": 600,
+      "count": null
+    },
+    {
+      "width": 768,
+      "state": "create-ai",
+      "document": [
+        768,
+        768
+      ],
+      "shell": [
+        578,
+        578
+      ],
+      "main": [
+        578,
+        578
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        524,
+        524
+      ],
+      "dialog": [
+        638,
+        638,
+        414
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 768,
+      "state": "project-delete",
+      "document": [
+        768,
+        768
+      ],
+      "shell": [
+        578,
+        578
+      ],
+      "main": [
+        578,
+        578
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        524,
+        524
+      ],
+      "dialog": [
+        414,
+        414,
+        310
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 768,
+      "state": "project-share",
+      "document": [
+        768,
+        768
+      ],
+      "shell": [
+        578,
+        578
+      ],
+      "main": [
+        578,
+        578
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        524,
+        524
+      ],
+      "dialog": [
+        728,
+        728,
+        493
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 768,
+      "state": "projects-empty",
+      "document": [
+        768,
+        768
+      ],
+      "shell": [
+        578,
+        578
+      ],
+      "main": [
+        578,
+        578
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        524,
+        524
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 768,
+      "state": "projects-trash",
+      "document": [
+        768,
+        768
+      ],
+      "shell": [
+        578,
+        578
+      ],
+      "main": [
+        578,
+        578
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        524,
+        524
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 768,
+      "state": "assets",
+      "document": [
+        768,
+        768
+      ],
+      "shell": [
+        578,
+        578
+      ],
+      "main": [
+        578,
+        578
+      ],
+      "table": [
+        524,
+        524
+      ],
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": [
+        674,
+        725
+      ]
+    },
+    {
+      "width": 768,
+      "state": "asset-create",
+      "document": [
+        768,
+        768
+      ],
+      "shell": [
+        578,
+        578
+      ],
+      "main": [
+        578,
+        578
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 768,
+      "state": "asset-dirty",
+      "document": [
+        768,
+        768
+      ],
+      "shell": [
+        578,
+        578
+      ],
+      "main": [
+        578,
+        578
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 768,
+      "state": "asset-detail",
+      "document": [
+        768,
+        768
+      ],
+      "shell": [
+        578,
+        578
+      ],
+      "main": [
+        578,
+        578
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 768,
+      "state": "asset-delete",
+      "document": [
+        768,
+        768
+      ],
+      "shell": [
+        578,
+        578
+      ],
+      "main": [
+        578,
+        578
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": [
+        502,
+        502,
+        369
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 768,
+      "state": "asset-edit",
+      "document": [
+        768,
+        768
+      ],
+      "shell": [
+        578,
+        578
+      ],
+      "main": [
+        578,
+        578
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 768,
+      "state": "assets-trash",
+      "document": [
+        768,
+        768
+      ],
+      "shell": [
+        578,
+        578
+      ],
+      "main": [
+        578,
+        578
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        524,
+        524
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 768,
+      "state": "shared",
+      "document": [
+        768,
+        768
+      ],
+      "shell": [
+        578,
+        578
+      ],
+      "main": [
+        578,
+        578
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        524,
+        524
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 768,
+      "state": "shared-agent",
+      "document": [
+        768,
+        768
+      ],
+      "shell": [
+        578,
+        578
+      ],
+      "main": [
+        578,
+        578
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        524,
+        524
+      ],
+      "dialog": [
+        502,
+        502,
+        177
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 768,
+      "state": "shared-assets",
+      "document": [
+        768,
+        768
+      ],
+      "shell": [
+        578,
+        578
+      ],
+      "main": [
+        578,
+        578
+      ],
+      "table": [
+        524,
+        524
+      ],
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": [
+        674,
+        725
+      ]
+    },
+    {
+      "width": 768,
+      "state": "shared-asset",
+      "document": [
+        768,
+        768
+      ],
+      "shell": [
+        578,
+        578
+      ],
+      "main": [
+        578,
+        578
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 768,
+      "state": "connect",
+      "document": [
+        768,
+        768
+      ],
+      "shell": [
+        578,
+        578
+      ],
+      "main": [
+        578,
+        578
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        462,
+        462
+      ],
+      "dialog": [
+        502,
+        502,
+        277
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "home",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        390,
+        390
+      ],
+      "main": [
+        390,
+        390
+      ],
+      "table": null,
+      "lessonList": [
+        358,
+        358
+      ],
+      "row": [
+        356,
+        356
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "projects",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        390,
+        390
+      ],
+      "main": [
+        390,
+        390
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        352,
+        352
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "nav",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        390,
+        390
+      ],
+      "main": [
+        390,
+        390
+      ],
+      "table": [
+        352,
+        352
+      ],
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": [
+        304,
+        355
+      ]
+    },
+    {
+      "width": 390,
+      "state": "create",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        390,
+        390
+      ],
+      "main": [
+        390,
+        390
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        352,
+        352
+      ],
+      "dialog": [
+        356,
+        356,
+        534
+      ],
+      "field": 324,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "create-ai",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        390,
+        390
+      ],
+      "main": [
+        390,
+        390
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        352,
+        352
+      ],
+      "dialog": [
+        356,
+        356,
+        429
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "project-delete",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        390,
+        390
+      ],
+      "main": [
+        390,
+        390
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        352,
+        352
+      ],
+      "dialog": [
+        356,
+        356,
+        304
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "project-share",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        390,
+        390
+      ],
+      "main": [
+        390,
+        390
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        352,
+        352
+      ],
+      "dialog": [
+        356,
+        356,
+        690
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "projects-empty",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        390,
+        390
+      ],
+      "main": [
+        390,
+        390
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        352,
+        352
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "projects-trash",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        390,
+        390
+      ],
+      "main": [
+        390,
+        390
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        352,
+        352
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "assets",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        390,
+        390
+      ],
+      "main": [
+        390,
+        390
+      ],
+      "table": [
+        352,
+        352
+      ],
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": [
+        304,
+        355
+      ]
+    },
+    {
+      "width": 390,
+      "state": "asset-create",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        390,
+        390
+      ],
+      "main": [
+        390,
+        390
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "asset-dirty",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        390,
+        390
+      ],
+      "main": [
+        390,
+        390
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "asset-detail",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        390,
+        390
+      ],
+      "main": [
+        390,
+        390
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "asset-delete",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        390,
+        390
+      ],
+      "main": [
+        390,
+        390
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": [
+        356,
+        356,
+        406
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "asset-edit",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        390,
+        390
+      ],
+      "main": [
+        390,
+        390
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "assets-trash",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        390,
+        390
+      ],
+      "main": [
+        390,
+        390
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        352,
+        352
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "shared",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        390,
+        390
+      ],
+      "main": [
+        390,
+        390
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        352,
+        352
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "shared-agent",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        390,
+        390
+      ],
+      "main": [
+        390,
+        390
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        352,
+        352
+      ],
+      "dialog": [
+        356,
+        356,
+        171
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "shared-assets",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        390,
+        390
+      ],
+      "main": [
+        390,
+        390
+      ],
+      "table": [
+        352,
+        352
+      ],
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": [
+        304,
+        355
+      ]
+    },
+    {
+      "width": 390,
+      "state": "shared-asset",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        390,
+        390
+      ],
+      "main": [
+        390,
+        390
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 390,
+      "state": "connect",
+      "document": [
+        390,
+        390
+      ],
+      "shell": [
+        390,
+        390
+      ],
+      "main": [
+        390,
+        390
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        322,
+        322
+      ],
+      "dialog": [
+        356,
+        356,
+        292
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 360,
+      "state": "home",
+      "document": [
+        360,
+        360
+      ],
+      "shell": [
+        360,
+        360
+      ],
+      "main": [
+        360,
+        360
+      ],
+      "table": null,
+      "lessonList": [
+        328,
+        328
+      ],
+      "row": [
+        326,
+        326
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 360,
+      "state": "projects",
+      "document": [
+        360,
+        360
+      ],
+      "shell": [
+        360,
+        360
+      ],
+      "main": [
+        360,
+        360
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        322,
+        322
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 360,
+      "state": "nav",
+      "document": [
+        360,
+        360
+      ],
+      "shell": [
+        360,
+        360
+      ],
+      "main": [
+        360,
+        360
+      ],
+      "table": [
+        322,
+        322
+      ],
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": [
+        274,
+        325
+      ]
+    },
+    {
+      "width": 360,
+      "state": "create",
+      "document": [
+        360,
+        360
+      ],
+      "shell": [
+        360,
+        360
+      ],
+      "main": [
+        360,
+        360
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        322,
+        322
+      ],
+      "dialog": [
+        326,
+        326,
+        553
+      ],
+      "field": 294,
+      "count": null
+    },
+    {
+      "width": 360,
+      "state": "create-ai",
+      "document": [
+        360,
+        360
+      ],
+      "shell": [
+        360,
+        360
+      ],
+      "main": [
+        360,
+        360
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        322,
+        322
+      ],
+      "dialog": [
+        326,
+        326,
+        499
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 360,
+      "state": "project-delete",
+      "document": [
+        360,
+        360
+      ],
+      "shell": [
+        360,
+        360
+      ],
+      "main": [
+        360,
+        360
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        322,
+        322
+      ],
+      "dialog": [
+        326,
+        326,
+        304
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 360,
+      "state": "project-share",
+      "document": [
+        360,
+        360
+      ],
+      "shell": [
+        360,
+        360
+      ],
+      "main": [
+        360,
+        360
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        322,
+        322
+      ],
+      "dialog": [
+        326,
+        326,
+        690
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 360,
+      "state": "projects-empty",
+      "document": [
+        360,
+        360
+      ],
+      "shell": [
+        360,
+        360
+      ],
+      "main": [
+        360,
+        360
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        322,
+        322
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 360,
+      "state": "projects-trash",
+      "document": [
+        360,
+        360
+      ],
+      "shell": [
+        360,
+        360
+      ],
+      "main": [
+        360,
+        360
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        322,
+        322
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 360,
+      "state": "assets",
+      "document": [
+        360,
+        360
+      ],
+      "shell": [
+        360,
+        360
+      ],
+      "main": [
+        360,
+        360
+      ],
+      "table": [
+        322,
+        322
+      ],
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": [
+        274,
+        325
+      ]
+    },
+    {
+      "width": 360,
+      "state": "asset-create",
+      "document": [
+        360,
+        360
+      ],
+      "shell": [
+        360,
+        360
+      ],
+      "main": [
+        360,
+        360
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 360,
+      "state": "asset-dirty",
+      "document": [
+        360,
+        360
+      ],
+      "shell": [
+        360,
+        360
+      ],
+      "main": [
+        360,
+        360
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 360,
+      "state": "asset-detail",
+      "document": [
+        360,
+        360
+      ],
+      "shell": [
+        360,
+        360
+      ],
+      "main": [
+        360,
+        360
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 360,
+      "state": "asset-delete",
+      "document": [
+        360,
+        360
+      ],
+      "shell": [
+        360,
+        360
+      ],
+      "main": [
+        360,
+        360
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": [
+        326,
+        326,
+        406
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 360,
+      "state": "asset-edit",
+      "document": [
+        360,
+        360
+      ],
+      "shell": [
+        360,
+        360
+      ],
+      "main": [
+        360,
+        360
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 360,
+      "state": "assets-trash",
+      "document": [
+        360,
+        360
+      ],
+      "shell": [
+        360,
+        360
+      ],
+      "main": [
+        360,
+        360
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        322,
+        322
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 360,
+      "state": "shared",
+      "document": [
+        360,
+        360
+      ],
+      "shell": [
+        360,
+        360
+      ],
+      "main": [
+        360,
+        360
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        322,
+        322
+      ],
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 360,
+      "state": "shared-agent",
+      "document": [
+        360,
+        360
+      ],
+      "shell": [
+        360,
+        360
+      ],
+      "main": [
+        360,
+        360
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        322,
+        322
+      ],
+      "dialog": [
+        326,
+        326,
+        171
+      ],
+      "field": null,
+      "count": null
+    },
+    {
+      "width": 360,
+      "state": "shared-assets",
+      "document": [
+        360,
+        360
+      ],
+      "shell": [
+        360,
+        360
+      ],
+      "main": [
+        360,
+        360
+      ],
+      "table": [
+        322,
+        322
+      ],
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": [
+        274,
+        325
+      ]
+    },
+    {
+      "width": 360,
+      "state": "shared-asset",
+      "document": [
+        360,
+        360
+      ],
+      "shell": [
+        360,
+        360
+      ],
+      "main": [
+        360,
+        360
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": null,
+      "dialog": null,
+      "count": null
+    },
+    {
+      "width": 360,
+      "state": "connect",
+      "document": [
+        360,
+        360
+      ],
+      "shell": [
+        360,
+        360
+      ],
+      "main": [
+        360,
+        360
+      ],
+      "table": null,
+      "lessonList": null,
+      "row": [
+        292,
+        292
+      ],
+      "dialog": [
+        326,
+        326,
+        292
+      ],
+      "field": null,
+      "count": null
+    }
+  ],
+  "failures": [],
+  "errors": [],
+  "scans": [
+    {
+      "width": 1440,
+      "state": "home",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "projects",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "nav",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "create",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "project-delete",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "project-share",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "projects-trash",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "assets",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "asset-create",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "asset-detail",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "asset-delete",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "assets-trash",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "shared-agent",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "shared-assets",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "shared-asset",
+      "violations": []
+    },
+    {
+      "width": 1440,
+      "state": "connect",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "home",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "projects",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "nav",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "create",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "project-delete",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "project-share",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "projects-trash",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "assets",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "asset-create",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "asset-detail",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "asset-delete",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "assets-trash",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "shared-agent",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "shared-assets",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "shared-asset",
+      "violations": []
+    },
+    {
+      "width": 390,
+      "state": "connect",
+      "violations": []
+    }
+  ]
+}

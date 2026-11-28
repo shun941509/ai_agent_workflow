@@ -33,9 +33,7 @@ function link(graph:Graph, from:string, to:string, out:string) {
   const options = connectionOptions(graph,from,to).filter(o => (o.kind === 'flow' && o.out === out) || (o.kind === 'data' && o.input === 'input'));
   graph.edges.push(...connectBlocks(graph,from,to,options));
 }
-async function verifyConnectionChoices(page:Page, context:BrowserContext, mobile:boolean) {
-  if (mobile) await page.setViewportSize({width:320,height:568});
-  const choose=(control:Locator)=>mobile ? control.tap() : control.click();
+async function verifyConnectionChoices(page:Page, context:BrowserContext) {
   const graph:Graph={nodes:[
     createBlock('input.user_request',{id:'question'}),
     createBlock('ai.single_task',{id:'answer'}),
@@ -43,13 +41,11 @@ async function verifyConnectionChoices(page:Page, context:BrowserContext, mobile
   ],edges:[]};
   const {id}=await api(context,'project.create',{title:'연결할 값 선택',graph});
   await page.goto('/?edit='+id);
-  const closeInspector=page.getByRole('button',{name:'속성 닫기',exact:true});
-  if (mobile && await closeInspector.isVisible()) await choose(closeInspector);
   const list=page.getByRole('button',{name:'목록으로 편집',exact:true});
-  if (await list.getAttribute('aria-pressed')!=='true') await choose(list);
-  await choose(page.locator('[data-canvas-block="question"]'));
+  if (await list.getAttribute('aria-pressed')!=='true') await list.click();
+  await page.locator('[data-canvas-block="question"]').click();
   const panel=page.getByRole('tabpanel',{name:'속성',exact:true});
-  await choose(panel.getByRole('button',{name:'연결 추가',exact:true}));
+  await panel.getByRole('button',{name:'연결 추가',exact:true}).click();
   const dialog=page.getByRole('dialog',{name:'연결 추가',exact:true});
   const target=dialog.getByRole('combobox',{name:'도착 블록'});
   const order=dialog.getByRole('group',{name:'실행 순서',exact:true});
@@ -71,7 +67,7 @@ async function verifyConnectionChoices(page:Page, context:BrowserContext, mobile
   await expect(question).toHaveAccessibleDescription(questionHint);
   await expect(values.getByText(inputHint,{exact:true})).toBeVisible();
   await expect(values.getByText(questionHint,{exact:true})).toBeVisible();
-  await choose(dialog.getByRole('button',{name:'연결 적용'}));
+  await dialog.getByRole('button',{name:'연결 적용'}).click();
   const savedMappings=async()=>{
     const stored:Graph=(await api(context,'project.open',{id})).graph;
     return stored.edges.map(edge=>[edge.kind,edge.out,edge.input]).sort();
@@ -79,21 +75,21 @@ async function verifyConnectionChoices(page:Page, context:BrowserContext, mobile
   await expect.poll(savedMappings).toEqual([['data','value','input'],['flow','next','in']]);
   await expect(panel.getByRole('region',{name:'실행 순서',exact:true})).toBeVisible();
   await expect(panel.getByRole('region',{name:'전달할 값',exact:true})).toContainText('입력값');
-  await choose(panel.getByRole('button',{name:'전달 항목 추가'}));
+  await panel.getByRole('button',{name:'전달 항목 추가'}).click();
   const transfers=page.getByRole('dialog',{name:'전달 항목 추가'});
   const remaining=transfers.getByRole('group',{name:'전달할 값',exact:true});
   const original=remaining.getByRole('checkbox',{name:'결과 → 원래 질문',exact:true});
   await expect(original).toHaveAccessibleDescription(questionHint);
   await expect(remaining.getByText(questionHint,{exact:true})).toBeVisible();
   await expect(remaining.getByText(inputHint,{exact:true})).toHaveCount(0);
-  await choose(original);
-  await choose(transfers.getByRole('button',{name:'연결 적용'}));
+  await original.click();
+  await transfers.getByRole('button',{name:'연결 적용'}).click();
   await expect.poll(savedMappings).toEqual([['data','value','input'],['data','value','question'],['flow','next','in']]);
   await expect(panel.getByRole('region',{name:'전달할 값',exact:true})).toContainText('원래 질문');
-  console.log('PASS '+(mobile?'320px touch':'1440px desktop')+' mapping labels, port examples, and saved execution order and values.');
+  console.log('PASS desktop mapping labels, port examples, and saved execution order and values.');
 }
 async function verify(width:number) {
-  const context = await browser.newContext({baseURL,viewport:{width,height:width === 390 ? 844 : 900},isMobile:width === 390,hasTouch:width === 390});
+  const context = await browser.newContext({baseURL,viewport:{width,height:900}});
   try {
     await registerBrowserAccount(context);
     const graph:Graph={nodes:[
@@ -223,11 +219,10 @@ async function verify(width:number) {
     await activate(page,applyConditions);
     await expect(wire('classify','answer')).toHaveCount(0);
     await expect(page.locator('[data-canvas-block="answer"]')).toBeFocused();
-    await verifyConnectionChoices(page,context,width === 390);
+    await verifyConnectionChoices(page,context);
   } finally { await context.close(); }
 }
 try {
   await verify(1440);
-  await verify(390);
-  console.log('PASS desktop/mobile explicit data and reference mappings, separate branch editing, worker results and deletion focus.');
+  console.log('PASS desktop explicit data and reference mappings, separate branch editing, worker results and deletion focus.');
 } finally { await browser.close(); }

@@ -227,6 +227,8 @@ export default function ResourceLibrary({assets,onChange,api,initial,initialVers
   const [latest,setLatest]=useState<ResourceDetail|null>(null);
   const [backupError,setBackupError]=useState(false);
   const importCancel=useRef<HTMLButtonElement>(null);
+  const importTrigger=useRef<HTMLButtonElement>(null);
+  const saveButton=useRef<HTMLButtonElement>(null);
   const editMode=mode==='create'||mode==='edit';
   const original=mode==='edit'?detail:null;
   const dirty=editMode && (name!==(original?.asset.name??'') || changedPayload(payload,original?.payload)
@@ -461,6 +463,15 @@ export default function ResourceLibrary({assets,onChange,api,initial,initialVers
     setMode('edit');setErr('');setNotice('');
   }
   function change(p:Partial<Payload>){setPayload(old=>({...old,...p}));}
+  function chooseImportFile(trigger:HTMLButtonElement,picker:HTMLInputElement|null){
+    importTrigger.current=trigger;
+    picker?.click();
+  }
+  function closeImport(){
+    setPendingImport(null);
+    const trigger=importTrigger.current;
+    requestAnimationFrame(()=>trigger?.focus());
+  }
   function applyImport(next:SkillImport) {
     const keep=new Set(next.changed.filter(path=>!next.replace.includes(path)));
     const current=new Map(payload.files?.map(file=>[pathKey(file.path),file]));
@@ -468,7 +479,8 @@ export default function ResourceLibrary({assets,onChange,api,initial,initialVers
     try{checkBundleSize(files);}catch(error){setErr(message(error));return;}
     change({files,content:next.content});
     setSelectedFile(next.main);setName(current=>current.trim()?current:next.name);
-    setPendingImport(null);setErr('');setNotice('Skill 파일 구성을 반영했습니다. 저장하면 새 판이 만들어집니다.');
+    if(pendingImport)closeImport();
+    setErr('');setNotice('Skill 파일 구성을 반영했습니다. 저장하면 새 판이 만들어집니다.');
   }
   async function upload(e:ChangeEvent<HTMLInputElement>,type:'md'|'zip'|'folder'){
     const files=Array.from(e.target.files??[]);e.target.value='';if(!files.length)return;
@@ -505,6 +517,10 @@ export default function ResourceLibrary({assets,onChange,api,initial,initialVers
       if(seq===requestNumber.current)setLatest(current);
     }catch(error){if(seq===requestNumber.current)setErr(message(error));}
     finally{if(seq===requestNumber.current)setBusy(false);}
+  }
+  function closeComparison(){
+    setLatest(null);
+    requestAnimationFrame(()=>saveButton.current?.focus());
   }
   async function save(asCopy=false,baseVersion=detail?.version){
     const seq=requestNumber.current;
@@ -649,13 +665,13 @@ export default function ResourceLibrary({assets,onChange,api,initial,initialVers
         <Field label="종류"><select data-resource-return="kind" aria-label="종류" value={kindFilter} onChange={e=>filterList({kind:e.target.value as Kind|'all'})}><option value="all">모든 종류</option>
         {Object.entries(labels).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></Field>
         <span className="rl-result-count" role="status">자료 {list.length.toLocaleString()}개</span></div>
-      {list.length?<><div className="rl-column-head" aria-hidden="true"><span>이름</span><span>종류</span><span>자료판</span><span>공유 범위</span></div>
+      {list.length?<div className="rl-table-scroll"><div className="rl-column-head" aria-hidden="true"><span>이름</span><span>종류</span><span>자료판</span><span>공유 범위</span></div>
         <ul className="rl-assets" aria-label="자료 목록">{list.map(a=><li key={a.id}><button className="rl-asset-open" data-resource-return={a.id} disabled={busy} onClick={()=>onRoute({id:a.id,edition:String(a.version)})}>
         <span className="rl-name"><KindIcon kind={a.kind}/><span><strong>{a.name}</strong>{a.exampleLesson&&<small>실습 예제 (원본 1판)</small>}{duplicates.has(a.name)&&<small>자료 번호 {assetNumber(a.id)}</small>}</span></span>
         <span className="rl-kind-label">{labels[a.kind]}</span><span className="rl-edition">{a.version}판</span>
         <span className="rl-scope-label">{scopes[a.visibility]}</span><ChevronRight className="rl-open-arrow" size={16} aria-hidden="true"/></button>
         {!sharedCatalog&&a.mine&&<button type="button" className="rl-delete" aria-label={a.name+' 삭제'} disabled={busy}
-          onClick={event=>askDelete(a,event.currentTarget)}><Trash2 size={16} aria-hidden="true"/></button>}</li>)}</ul></>:
+          onClick={event=>askDelete(a,event.currentTarget)}><Trash2 size={16} aria-hidden="true"/></button>}</li>)}</ul></div>:
         sharedCatalog&&!scoped.length?<div className="rl-empty"><h2>{scope==='shared'?'직접 받은 자료가 없습니다':'모두에게 공개된 자료가 없습니다'}</h2>
           {scope==='shared'&&<p>받은 비밀 링크를 열면 이곳에서 자료를 다시 찾을 수 있습니다.</p>}</div>:
         <div className="rl-empty"><FolderSearch size={28} aria-hidden="true"/><h2>{assets.length?'조건에 맞는 자료가 없습니다':'아직 등록한 자료가 없습니다'}</h2>
@@ -668,12 +684,12 @@ export default function ResourceLibrary({assets,onChange,api,initial,initialVers
     }} onSubmit={e=>{e.preventDefault();if(!busy)void (conflictKey?compareLatest():save());}}>
       {mode==='create'&&<fieldset className="rl-kind-field"><legend>자료 종류</legend><div className="rl-kindchoices">{(Object.keys(labels) as Kind[]).map(id=><button type="button" key={id}
         aria-pressed={id===kind} disabled={busy||(id==='mcp'&&isAdmin===false)} onClick={()=>selectKind(id)}>
-        <strong><KindIcon kind={id}/>{labels[id]}</strong><small>{id==='mcp'&&isAdmin===false?'관리자만 등록할 수 있습니다.':kindDescriptions[id]}</small></button>)}</div>
-        <p className="rl-selected-help">{kindDescriptions[kind]}{isAdmin===false&&' · MCP 등록은 관리자 전용'}</p></fieldset>}
+        <strong><KindIcon kind={id}/>{labels[id]}</strong><small>{id==='mcp'&&isAdmin===false?'관리자만 등록할 수 있습니다.':kindDescriptions[id]}</small></button>)}</div></fieldset>}
       <Field label="이름"><input required maxLength={120} value={name} onChange={e=>setName(e.target.value)} placeholder={kind==='skill'?'예: 근거 인용 Skill':'예: 도서관 이용규정'}/></Field>
       {kind==='skill'&&<><fieldset><legend>Skill 가져오기</legend><div className="rl-actions">
-        <button type="button" disabled={busy} onClick={()=>mdPicker.current?.click()}>.md 파일</button><button type="button" disabled={busy} onClick={()=>folderPicker.current?.click()}>폴더 선택</button>
-        <button type="button" disabled={busy} onClick={()=>zipPicker.current?.click()}>ZIP 파일</button></div>
+        <button type="button" disabled={busy} onClick={event=>chooseImportFile(event.currentTarget,mdPicker.current)}>.md 파일</button>
+        <button type="button" disabled={busy} onClick={event=>chooseImportFile(event.currentTarget,folderPicker.current)}>폴더 선택</button>
+        <button type="button" disabled={busy} onClick={event=>chooseImportFile(event.currentTarget,zipPicker.current)}>ZIP 파일</button></div>
         <input type="file" hidden accept=".md,text/markdown" ref={mdPicker} onChange={e=>void upload(e,'md')}/>
         <input type="file" hidden multiple ref={folderPicker} onChange={e=>void upload(e,'folder')}/><input type="file" hidden accept=".zip,application/zip" ref={zipPicker} onChange={e=>void upload(e,'zip')}/>
         <small>SKILL.md와 부속 파일을 합쳐 최대 128개, 5MB</small>
@@ -693,7 +709,7 @@ export default function ResourceLibrary({assets,onChange,api,initial,initialVers
       </section>}
       <div className="rl-actions rl-save-actions"><button type="button" disabled={busy} onClick={()=>leave.proceed(()=>detail?show(detail):toList())}>취소</button>
         {conflictKey&&<button type="button" disabled={busy} onClick={()=>void save(true)}>내 사본으로 저장</button>}
-        <button disabled={busy} className="rl-primary" type="submit">{busy?'처리 중…':conflictKey?'최신판과 비교':mode==='edit'?'새 버전 저장':'등록'}</button></div>
+        <button ref={saveButton} disabled={busy} className="rl-primary" type="submit">{busy?'처리 중…':conflictKey?'최신판과 비교':mode==='edit'?'새 버전 저장':'등록'}</button></div>
     </form>}
     {mode==='view'&&detail&&<div className="rl-form rl-detail-layout"><div className="rl-actions rl-view-actions"><KindIcon kind={kind}/><strong>{labels[kind]}</strong>
         <select aria-label="자료 버전" value={detail.version} disabled={busy} onChange={e=>onRoute({id:detail.asset.id,edition:e.target.value,token:token??undefined})}>
@@ -750,8 +766,8 @@ export default function ResourceLibrary({assets,onChange,api,initial,initialVers
       </fieldset>}
     </div>}
   </section>
-    {pendingImport&&<StudioDialog title="Skill 가져오기 확인" size={pendingImport.changed.length||pendingImport.removed.length?'form':'confirm'} onClose={()=>setPendingImport(null)} initialFocus={importCancel}
-      footer={<><button type="button" ref={importCancel} className="btn" onClick={()=>setPendingImport(null)}>현재 내용 유지</button>
+    {pendingImport&&<StudioDialog title="Skill 가져오기 확인" size={pendingImport.changed.length||pendingImport.removed.length?'form':'confirm'} onClose={closeImport} initialFocus={importCancel}
+      footer={<><button type="button" ref={importCancel} className="btn" onClick={closeImport}>현재 내용 유지</button>
         <button type="button" className="btn primary" onClick={()=>applyImport(pendingImport)}>가져온 내용 적용</button></>}>
       {pendingImport.overwrite&&<p>작성 중인 SKILL.md 지침이 가져온 본문으로 교체됩니다.</p>}
       {pendingImport.removed.length>0&&<><p>새 파일 구성에서 빠지는 파일 {pendingImport.removed.length}개</p>
@@ -763,8 +779,8 @@ export default function ResourceLibrary({assets,onChange,api,initial,initialVers
       </fieldset>}
       {err&&<p className="rl-error" role="alert">{err}</p>}
     </StudioDialog>}
-    {latest&&detail&&<StudioDialog title="최신판과 내 초안 비교" size="settings" dismissDisabled={busy} onClose={()=>setLatest(null)}
-      footer={<><button type="button" className="btn" disabled={busy} onClick={()=>setLatest(null)}>계속 편집</button>
+    {latest&&detail&&<StudioDialog title="최신판과 내 초안 비교" size="settings" dismissDisabled={busy} onClose={closeComparison}
+      footer={<><button type="button" className="btn" disabled={busy} onClick={closeComparison}>계속 편집</button>
         <button type="button" className="btn" disabled={busy} onClick={()=>void save(true)}>내 사본으로 저장</button>
         <button type="button" className="btn primary" disabled={busy} onClick={()=>void save(false,latest.version)}>내 초안을 {latest.version+1}판으로 저장</button></>}>
       {err&&<p className="rl-error" role="alert">{err}</p>}

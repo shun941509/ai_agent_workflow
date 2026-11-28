@@ -1,0 +1,1127 @@
+{
+  "version": 1,
+  "historyId": "27db13c4-6c29-4f58-8645-cd4817db3507",
+  "currentRevision": "c708cc74-e9eb-4f95-8835-a39773731ad7",
+  "pendingChanges": false,
+  "files": {
+    "AGENTS.md": {
+      "hash": "729e31835a21c7b42ee006e2aacc63016abc05d26883f871ad3bf206943f2cfb",
+      "content": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\72\\729e31835a21c7b42ee006e2aacc63016abc05d26883f871ad3bf206943f2cfb"
+    },
+    "CLAUDE.md": {
+      "hash": "729e31835a21c7b42ee006e2aacc63016abc05d26883f871ad3bf206943f2cfb",
+      "content": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\72\\729e31835a21c7b42ee006e2aacc63016abc05d26883f871ad3bf206943f2cfb"
+    },
+    "CREDITS.md": {
+      "hash": "b88aca994da71ae65c5bf84345f7a5a1f2a5498a0f785e3cf422fdd32e56855b",
+      "content": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\b8\\b88aca994da71ae65c5bf84345f7a5a1f2a5498a0f785e3cf422fdd32e56855b"
+    },
+    "SPEC.md": {
+      "hash": "64040017ff8c6b7fa35d5f0d6b3e544fe514952006b64a5204b24b3e159cca35",
+      "content": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\64\\64040017ff8c6b7fa35d5f0d6b3e544fe514952006b64a5204b24b3e159cca35"
+    },
+    "STORYLINES.md": {
+      "hash": "ac3d62486af39ba1dfb9a9072ea275ecc916d51e14bf0027b5b81b67424137a8",
+      "content": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\ac\\ac3d62486af39ba1dfb9a9072ea275ecc916d51e14bf0027b5b81b67424137a8"
+    },
+    "assets/fonts/NotoSansKR-OFL.txt": {
+      "hash": "1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9",
+      "content": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\1c\\1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9"
+    },
+    "assets/fonts/NotoSerifKR-OFL.txt": {
+      "hash": "5e0da210fb04058a8c0087985d2d456b931c2579811a49655721d3cf0c36b6d6",
+      "content": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\5e\\5e0da210fb04058a8c0087985d2d456b931c2579811a49655721d3cf0c36b6d6"
+    },
+    "assets/fonts/studio-sans.woff2": {
+      "hash": "73bb87ed8e71caf58a63da1e3a0ab74f6693906745937e044ca9d96aeff7dfd2",
+      "content": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\73\\73bb87ed8e71caf58a63da1e3a0ab74f6693906745937e044ca9d96aeff7dfd2"
+    },
+    "assets/fonts/studio-serif.woff2": {
+      "hash": "9390635d552d8c5e0ecabe68944218cfb68cef887462fd40bbf67b6fc44d3954",
+      "content": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\93\\9390635d552d8c5e0ecabe68944218cfb68cef887462fd40bbf67b6fc44d3954"
+    },
+    "assets/gsap.min.js": {
+      "hash": "92bb9a96476f983d212a2bc4f54c889039c1696dd4461d40a736860938570fbb",
+      "content": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\92\\92bb9a96476f983d212a2bc4f54c889039c1696dd4461d40a736860938570fbb"
+    },
+    "assets/guide.png": {
+      "hash": "d7e319ac3b4a6ed232089d5f12266c20cf111e4adee6178bdc749f79a6161bce",
+      "content": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\d7\\d7e319ac3b4a6ed232089d5f12266c20cf111e4adee6178bdc749f79a6161bce"
+    },
+    "assets/studio-icon.svg": {
+      "hash": "223a84cd40b11a008a2ccf9c91d629d0e451a555617083073189e5768bd4849e",
+      "content": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\22\\223a84cd40b11a008a2ccf9c91d629d0e451a555617083073189e5768bd4849e"
+    },
+    "compositions/cover.html": {
+      "hash": "4bf71855de735b0b84307d2f0ab711d80f1dbb6ec95a10c0f9b04e23993870f5",
+      "content": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\4b\\4bf71855de735b0b84307d2f0ab711d80f1dbb6ec95a10c0f9b04e23993870f5"
+    },
+    "compositions/guide.html": {
+      "hash": "ac2bd1fa2854f4397d106b69f0cc679b99af93137d90f438e95791e932adf11e",
+      "content": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\ac\\ac2bd1fa2854f4397d106b69f0cc679b99af93137d90f438e95791e932adf11e"
+    },
+    "compositions/measure.html": {
+      "hash": "c3a2d0aecacc0c36669ba66d34c9aeb07d4305015a8cf0cd3a80fe964d2212ab",
+      "content": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\c3\\c3a2d0aecacc0c36669ba66d34c9aeb07d4305015a8cf0cd3a80fe964d2212ab"
+    },
+    "compositions/minutes.html": {
+      "hash": "2eceb854370c9395bcb2a8aaa9651c9d0581bb0d72e63686da9555b6b8faeb87",
+      "content": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\2e\\2eceb854370c9395bcb2a8aaa9651c9d0581bb0d72e63686da9555b6b8faeb87"
+    },
+    "compositions/requirements.html": {
+      "hash": "c8d3ad1b72209aa6724958dc7e41c0dcf38e9eade8d4b8d115342450cd63363b",
+      "content": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\c8\\c8d3ad1b72209aa6724958dc7e41c0dcf38e9eade8d4b8d115342450cd63363b"
+    },
+    "hyperframes.json": {
+      "hash": "35a6d4ea79ebe911f0d81705f7aace5d8ff0316b745b0311d56af50c9c237cb7",
+      "content": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\35\\35a6d4ea79ebe911f0d81705f7aace5d8ff0316b745b0311d56af50c9c237cb7"
+    },
+    "index.html": {
+      "hash": "dfcb024534f58c7bd3660eb858c598dfd8b6a361f0ad37480ff1308451ee37a7",
+      "content": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\df\\dfcb024534f58c7bd3660eb858c598dfd8b6a361f0ad37480ff1308451ee37a7"
+    },
+    "meta.json": {
+      "hash": "69b4eb0ad115b4bdb06d6297c556ba41e4368d5c208cfe427179acf1e5a09034",
+      "content": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\69\\69b4eb0ad115b4bdb06d6297c556ba41e4368d5c208cfe427179acf1e5a09034"
+    },
+    "package.json": {
+      "hash": "bd164006b32a4c0b306db15b3a2fddf9b387d2be4fa104bb0245f040a4b6fd8f",
+      "content": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\bd\\bd164006b32a4c0b306db15b3a2fddf9b387d2be4fa104bb0245f040a4b6fd8f"
+    },
+    "assets/sound.wav": {
+      "hash": "0ccc60ca0a0d285fee6974b9ee838a234cfac11e1572b1f3c1a7c788c2aa278f",
+      "content": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\0c\\0ccc60ca0a0d285fee6974b9ee838a234cfac11e1572b1f3c1a7c788c2aa278f"
+    },
+    "REVIEW.md": {
+      "hash": "0e31286add68e4068efb2a316dae0697473996a32865d8998828f342dada953c",
+      "content": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\0e\\0e31286add68e4068efb2a316dae0697473996a32865d8998828f342dada953c"
+    }
+  },
+  "revisions": {
+    "05f5525a-40de-45cd-9ace-6d18d1347651": {
+      "actor": {
+        "kind": "outside",
+        "name": "Outside"
+      },
+      "label": "Changed outside the app",
+      "startedAt": 1795886487970,
+      "endedAt": 1795886490014,
+      "files": {
+        "compositions/guide.html": {
+          "before": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\a9\\a998ab6d6c53deb03bccb7fe80d0cf61848ba4d4aefa878b276362000e1ea611",
+          "after": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\ac\\ac2bd1fa2854f4397d106b69f0cc679b99af93137d90f438e95791e932adf11e"
+        },
+        "compositions/requirements.html": {
+          "before": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\3c\\3c916890834866553ac9003e889853f7a879e7f150b07625b384350c39722d53",
+          "after": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\c8\\c8d3ad1b72209aa6724958dc7e41c0dcf38e9eade8d4b8d115342450cd63363b"
+        },
+        "index.html": {
+          "before": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\8b\\8b95eb98848cc213df418b260cf83e5db386d9acb8263bd275e8501796b78368",
+          "after": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\df\\dfcb024534f58c7bd3660eb858c598dfd8b6a361f0ad37480ff1308451ee37a7"
+        }
+      }
+    },
+    "dc920ba5-e2a1-4143-b5d9-d488a68308fa": {
+      "actor": {
+        "kind": "outside",
+        "name": "Outside"
+      },
+      "label": "Changed outside the app",
+      "startedAt": 1795886526673,
+      "endedAt": 1795886528683,
+      "files": {
+        "REVIEW.md": {
+          "before": null,
+          "after": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\3a\\3a2402c7cd668f83f99b518624f4970a4aece62b99f3ec105398a4df0ed686cb"
+        }
+      }
+    },
+    "c708cc74-e9eb-4f95-8835-a39773731ad7": {
+      "actor": {
+        "kind": "outside",
+        "name": "Outside"
+      },
+      "label": "Changed outside the app",
+      "startedAt": 1795887147899,
+      "endedAt": 1795887149905,
+      "files": {
+        "REVIEW.md": {
+          "before": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\3a\\3a2402c7cd668f83f99b518624f4970a4aece62b99f3ec105398a4df0ed686cb",
+          "after": "C:\\Users\\ght11111\\.cache\\hyperframes\\history\\27db13c4-6c29-4f58-8645-cd4817db3507\\blobs\\0e\\0e31286add68e4068efb2a316dae0697473996a32865d8998828f342dada953c"
+        }
+      }
+    }
+  },
+  "checks": {
+    "latest": {
+      "revision": "05f5525a-40de-45cd-9ace-6d18d1347651",
+      "id": "4bb40fc3-ffe3-48b1-907e-836629b778dc"
+    },
+    "revisions": {
+      "05f5525a-40de-45cd-9ace-6d18d1347651": [
+        {
+          "id": "4bb40fc3-ffe3-48b1-907e-836629b778dc",
+          "scope": "project",
+          "report": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\checks\\4bb40fc3-ffe3-48b1-907e-836629b778dc.json",
+          "metadata": {
+            "ok": true,
+            "browserSkipped": false,
+            "options": {
+              "samples": 9,
+              "atTransitions": false,
+              "maxIssues": 80,
+              "collapseStatic": true,
+              "tolerance": 2,
+              "timeout": 45000,
+              "cache": true,
+              "contrast": true,
+              "craft": true,
+              "strict": false,
+              "snapshots": false,
+              "safeZones": [
+                "tiktok",
+                "reels",
+                "shorts"
+              ],
+              "browserGpuMode": "auto",
+              "includeUnmounted": false
+            }
+          },
+          "createdAt": 1795886520929,
+          "contentHash": "fade001ae85639754044afb4cb4a3aad6e62db2c08e3f83bc81410de6d1887d4",
+          "revision": "05f5525a-40de-45cd-9ace-6d18d1347651",
+          "inputFingerprint": "d76ba27d685f0f6a3cec3b5f28f7aaf5d565f875e82f8431fceb54ba7604deea",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        }
+      ]
+    },
+    "unversioned": [
+      {
+        "id": "66643f52-c5b2-4d83-bd8b-348549abb677",
+        "scope": "project",
+        "report": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\checks\\66643f52-c5b2-4d83-bd8b-348549abb677.json",
+        "metadata": {
+          "ok": true,
+          "browserSkipped": false,
+          "options": {
+            "samples": 9,
+            "atTransitions": false,
+            "maxIssues": 80,
+            "collapseStatic": true,
+            "tolerance": 2,
+            "timeout": 45000,
+            "cache": true,
+            "contrast": true,
+            "craft": true,
+            "strict": false,
+            "snapshots": false,
+            "safeZones": [
+              "tiktok",
+              "reels",
+              "shorts"
+            ],
+            "browserGpuMode": "auto",
+            "includeUnmounted": false
+          }
+        },
+        "createdAt": 1795886450419,
+        "contentHash": "cd192733b201b575585a769690c30f3434a441ee5c9b2a60bc728dc295cdc0f8",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      }
+    ]
+  },
+  "snapshots": {
+    "latest": null,
+    "revisions": {
+      "05f5525a-40de-45cd-9ace-6d18d1347651": [
+        {
+          "scope": "full",
+          "id": "2a562e69-e355-472a-81c4-346de106ef76-0",
+          "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\5c01292e-d044-4757-80a9-8159bd3ee2a5\\frame-00-at-0s.png",
+          "time": 0,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1795886513068,
+          "contentHash": "110f543e506e99aba010fb6d8fe66dfef34cb32adacd21612c56272803527581",
+          "revision": "05f5525a-40de-45cd-9ace-6d18d1347651",
+          "inputFingerprint": "d76ba27d685f0f6a3cec3b5f28f7aaf5d565f875e82f8431fceb54ba7604deea",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "2a562e69-e355-472a-81c4-346de106ef76-1",
+          "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\5c01292e-d044-4757-80a9-8159bd3ee2a5\\frame-01-at-2s.png",
+          "time": 2,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1795886513080,
+          "contentHash": "66d30611f96eabc5864d2045b506b151224c95074782fe25fc756146199270ff",
+          "revision": "05f5525a-40de-45cd-9ace-6d18d1347651",
+          "inputFingerprint": "d76ba27d685f0f6a3cec3b5f28f7aaf5d565f875e82f8431fceb54ba7604deea",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "2a562e69-e355-472a-81c4-346de106ef76-2",
+          "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\5c01292e-d044-4757-80a9-8159bd3ee2a5\\frame-02-at-10.7s.png",
+          "time": 10.7,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1795886513092,
+          "contentHash": "f86bb1d1d97b891b09771c6d46b3519f777c0a98aa0471d6d18b0e9a913eae87",
+          "revision": "05f5525a-40de-45cd-9ace-6d18d1347651",
+          "inputFingerprint": "d76ba27d685f0f6a3cec3b5f28f7aaf5d565f875e82f8431fceb54ba7604deea",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "2a562e69-e355-472a-81c4-346de106ef76-3",
+          "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\5c01292e-d044-4757-80a9-8159bd3ee2a5\\frame-03-at-16s.png",
+          "time": 16,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1795886513105,
+          "contentHash": "607a7c4ac9fa1e8226bb4beee84b3ddc84f021b56f0ec5c532e75d36d3abee10",
+          "revision": "05f5525a-40de-45cd-9ace-6d18d1347651",
+          "inputFingerprint": "d76ba27d685f0f6a3cec3b5f28f7aaf5d565f875e82f8431fceb54ba7604deea",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "2a562e69-e355-472a-81c4-346de106ef76-4",
+          "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\5c01292e-d044-4757-80a9-8159bd3ee2a5\\frame-04-at-18.7s.png",
+          "time": 18.7,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1795886513118,
+          "contentHash": "8157a92c8d2fa6da050e7cd522c73c1f0bbe1d44affe3c814806f6a388fa8240",
+          "revision": "05f5525a-40de-45cd-9ace-6d18d1347651",
+          "inputFingerprint": "d76ba27d685f0f6a3cec3b5f28f7aaf5d565f875e82f8431fceb54ba7604deea",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "2a562e69-e355-472a-81c4-346de106ef76-5",
+          "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\5c01292e-d044-4757-80a9-8159bd3ee2a5\\frame-05-at-27.5s.png",
+          "time": 27.5,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1795886513131,
+          "contentHash": "735ed34616fcd41a1fccb2b52d23febc05d6489dcf035f37af5e34dbdfa930fd",
+          "revision": "05f5525a-40de-45cd-9ace-6d18d1347651",
+          "inputFingerprint": "d76ba27d685f0f6a3cec3b5f28f7aaf5d565f875e82f8431fceb54ba7604deea",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "2a562e69-e355-472a-81c4-346de106ef76-6",
+          "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\5c01292e-d044-4757-80a9-8159bd3ee2a5\\frame-06-at-34.967s.png",
+          "time": 34.9667,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1795886513143,
+          "contentHash": "7e3dee70a73861066060eb68eb2313ea01adb280335b522bde8d1b1d3034ab68",
+          "revision": "05f5525a-40de-45cd-9ace-6d18d1347651",
+          "inputFingerprint": "d76ba27d685f0f6a3cec3b5f28f7aaf5d565f875e82f8431fceb54ba7604deea",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        },
+        {
+          "scope": "full",
+          "id": "2a562e69-e355-472a-81c4-346de106ef76-7",
+          "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\5c01292e-d044-4757-80a9-8159bd3ee2a5\\frame-07-at-34.75s.png",
+          "time": 34.75,
+          "metadata": {
+            "width": 1920,
+            "height": 1080,
+            "zoomScale": 1,
+            "browserGpuMode": "auto",
+            "warnings": [],
+            "partial": false
+          },
+          "createdAt": 1795886513159,
+          "contentHash": "7e3dee70a73861066060eb68eb2313ea01adb280335b522bde8d1b1d3034ab68",
+          "revision": "05f5525a-40de-45cd-9ace-6d18d1347651",
+          "inputFingerprint": "d76ba27d685f0f6a3cec3b5f28f7aaf5d565f875e82f8431fceb54ba7604deea",
+          "inputScope": "local-project-files",
+          "attribution": "recorded-revision"
+        }
+      ],
+      "dc920ba5-e2a1-4143-b5d9-d488a68308fa": []
+    },
+    "unversioned": [
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-0",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\beat-01-at-0.3s.png",
+        "time": 0.3,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "beat",
+            "label": "cover"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445442,
+        "contentHash": "a5df90a1a350170a14e0c1cd00fb32e67e669a3c42f7c6038f3cb2d1dfccf944",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-1",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\beat-02-at-2s.png",
+        "time": 2,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "beat",
+            "label": "cover mid"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445442,
+        "contentHash": "8ee26e982782d1b510b74497c2c0881f0c2eef29f3216cbbfbc583c72eb5c241",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-2",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\beat-03-at-4.3s.png",
+        "time": 4.3,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "beat",
+            "label": "minutes"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445443,
+        "contentHash": "f259950c7da82d56ebe2a3b693de0f081aae9896aaddad95219d0d5baa2b0b8b",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-3",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\beat-04-at-8s.png",
+        "time": 8,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "beat",
+            "label": "minutes mid"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445444,
+        "contentHash": "92a5d2b63d7b8240e4722972bdd61362713565d95b1e895ee7d1e4876839e0dd",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-4",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\beat-05-at-12.3s.png",
+        "time": 12.3,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "beat",
+            "label": "requirements"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445445,
+        "contentHash": "3a5208847a424df62b9a05fcb1b29cabfb1979937953bacb754de8a4920367ea",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-5",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\beat-06-at-16s.png",
+        "time": 16,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "beat",
+            "label": "requirements mid"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445448,
+        "contentHash": "c1f78797a6d116d64440e58a90ea969681d06b15feb45bfa89ecc4c561c0ee5a",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-6",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\beat-07-at-20.3s.png",
+        "time": 20.3,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "beat",
+            "label": "measure"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445450,
+        "contentHash": "0b96a4d9077f94999907fd078f376543b6028d15ecb92606a116bde7ffacb7eb",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-7",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\beat-08-at-24.5s.png",
+        "time": 24.5,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "beat",
+            "label": "measure mid"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445452,
+        "contentHash": "c37f1f887f73cf81066ca6c57707294606b93fe01231023b7c3dec3651c9cb70",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-8",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\beat-09-at-29.3s.png",
+        "time": 29.3,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "beat",
+            "label": "guide"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445454,
+        "contentHash": "55c895521e869f5105a23b0933ae6c5cd2f7988ee7e6afb7b0e80b6a4adbb0a1",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-9",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\beat-10-at-32s.png",
+        "time": 32,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "beat",
+            "label": "guide mid"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445457,
+        "contentHash": "c47ba3bee1201e01ddddba591a98a97d510cab7d94b45340df05979b41b21e74",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-10",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\seam-01-1-at-3.8s.png",
+        "time": 3.8,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "seam",
+            "label": "cut -0.2"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445461,
+        "contentHash": "66d30611f96eabc5864d2045b506b151224c95074782fe25fc756146199270ff",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-11",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\seam-01-2-at-3.9s.png",
+        "time": 3.9,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "seam",
+            "label": "-0.1"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445464,
+        "contentHash": "66d30611f96eabc5864d2045b506b151224c95074782fe25fc756146199270ff",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-12",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\seam-01-3-at-4s.png",
+        "time": 4,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "seam",
+            "label": "cut cover -> minutes"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445468,
+        "contentHash": "393f70a0086cd520ce2bfeb5f03159a4c3a502ef1a1377edd90a490381eb142a",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-13",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\seam-01-4-at-4.1s.png",
+        "time": 4.1,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "seam",
+            "label": "+0.1"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445473,
+        "contentHash": "9077a588162cac4094c1f572aaca1906002a8090958992af45f305986ddb138d",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-14",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\seam-01-5-at-4.2s.png",
+        "time": 4.2,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "seam",
+            "label": "+0.2"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445478,
+        "contentHash": "6319622fed1ff5777777c91398650a480a5d25e2fbb421e6b924a86fc2fb9fc1",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-15",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\seam-02-1-at-11.8s.png",
+        "time": 11.8,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "seam",
+            "label": "cut -0.2"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445483,
+        "contentHash": "71ea3ee466423bfa95957b9102de4d0312fda026caf35385cd812810ed1e5d1d",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-16",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\seam-02-2-at-11.9s.png",
+        "time": 11.9,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "seam",
+            "label": "-0.1"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445489,
+        "contentHash": "71ea3ee466423bfa95957b9102de4d0312fda026caf35385cd812810ed1e5d1d",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-17",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\seam-02-3-at-12s.png",
+        "time": 12,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "seam",
+            "label": "cut minutes -> requirements"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445495,
+        "contentHash": "26378bd33790b6a7fc5f544df289c00deede83d16f9ee4d2193a7b62a4137770",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-18",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\seam-02-4-at-12.1s.png",
+        "time": 12.1,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "seam",
+            "label": "+0.1"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445502,
+        "contentHash": "ecff849ae6498d1146f1eace9f77eddc0aa9cb2a2757ac30b99dc346b856998f",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-19",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\seam-02-5-at-12.2s.png",
+        "time": 12.2,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "seam",
+            "label": "+0.2"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445508,
+        "contentHash": "7c3ae348eac78d1be859f307b3f36e8509cc0c656df040c70831a6f07cc3a635",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-20",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\seam-03-1-at-19.8s.png",
+        "time": 19.8,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "seam",
+            "label": "cut -0.2"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445515,
+        "contentHash": "54bf8f71efb13d47ddf825e096989843a8c5dc3ca8cdb242fef43249af93548b",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-21",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\seam-03-2-at-19.9s.png",
+        "time": 19.9,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "seam",
+            "label": "-0.1"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445522,
+        "contentHash": "54bf8f71efb13d47ddf825e096989843a8c5dc3ca8cdb242fef43249af93548b",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-22",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\seam-03-3-at-20s.png",
+        "time": 20,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "seam",
+            "label": "cut requirements -> measure"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445530,
+        "contentHash": "462d7adbd7ca69622b46294b84ec7e8fe9cb0f0c27f7bb7c3ed7e00dcf3994f1",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-23",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\seam-03-4-at-20.1s.png",
+        "time": 20.1,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "seam",
+            "label": "+0.1"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445538,
+        "contentHash": "150e7e7c1627109c9bea6e5af7fb242e52efb691a6a8b89a32a5c682b448b05e",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-24",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\seam-03-5-at-20.2s.png",
+        "time": 20.2,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "seam",
+            "label": "+0.2"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445547,
+        "contentHash": "3c159f9346dce85e4e49fc951ab971f94ef57054dd904414e287f5e09011f8ea",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-25",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\seam-04-1-at-28.8s.png",
+        "time": 28.8,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "seam",
+            "label": "cut -0.2"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445555,
+        "contentHash": "4c91ef2a92795ffeca7b4b678dce8c6db90d00261ad7d3086b76cf05f976a185",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-26",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\seam-04-2-at-28.9s.png",
+        "time": 28.9,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "seam",
+            "label": "-0.1"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445564,
+        "contentHash": "4c91ef2a92795ffeca7b4b678dce8c6db90d00261ad7d3086b76cf05f976a185",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-27",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\seam-04-3-at-29s.png",
+        "time": 29,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "seam",
+            "label": "cut measure -> guide"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445574,
+        "contentHash": "1843a1ed2df008986c886f5161f2563a4a73e880d3fc074cd1c2fc8903014f88",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-28",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\seam-04-4-at-29.1s.png",
+        "time": 29.1,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "seam",
+            "label": "+0.1"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445584,
+        "contentHash": "89426fb00680ebb1f232f5c99e02ed33c935b108f56c44a7f2306ec57c7fb4c2",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      },
+      {
+        "scope": "full",
+        "id": "24991e9b-bcf9-4577-8a68-e4c2675a67d6-29",
+        "image": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\artifacts\\agent-showcase\\.hyperframes\\artifacts\\snapshots\\32573096-4cbd-44ac-8922-647b8dd0c354\\seam-04-5-at-29.2s.png",
+        "time": 29.2,
+        "metadata": {
+          "width": 1920,
+          "height": 1080,
+          "zoomScale": 1,
+          "browserGpuMode": "auto",
+          "review": {
+            "role": "seam",
+            "label": "+0.2"
+          },
+          "warnings": [],
+          "partial": false
+        },
+        "createdAt": 1795886445595,
+        "contentHash": "a2ecd543876c319fa3d94c714527880330b9d03492e6daf861fe62a0e34e5800",
+        "revision": null,
+        "inputFingerprint": "8fbd5c911317dabf3e8642afc87f29920aa670a8359d915602c538ab462c545c",
+        "inputScope": "local-project-files",
+        "attribution": "unversioned"
+      }
+    ]
+  }
+}

@@ -43,7 +43,7 @@ export default function WorkspaceHome({ project, lesson, selection = null, onOpe
       </article>
       <article><BookOpen size={27} aria-hidden="true"/><h2>예제로 시작</h2>
         <p>실습 사본에서 블록과 자료를 바꾸고 답변을 비교하세요.</p>
-        <button type="button" className="btn" onClick={onTemplates}>예제로 배우기<ArrowRight size={16} aria-hidden="true"/></button>
+        <button type="button" className="btn" onClick={onTemplates}>예제 템플릿 보기<ArrowRight size={16} aria-hidden="true"/></button>
       </article>
     </section>}
     {project && lesson && lesson.steps.length > 0 && <details className={styles.practice}><summary>실습 순서</summary>

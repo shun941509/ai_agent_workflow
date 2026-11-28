@@ -138,10 +138,11 @@ async function verifySoftwareLessons(page: Page) {
   assert.equal(software.length, 5);
   for (const lesson of software) {
     await page.goto('/?view=templates');
-    await page.getByRole('button', {name:lesson.level, exact:true}).click();
+    await page.getByRole('combobox', {name:'실습 주제', exact:true}).selectOption({label:'소프트웨어 개발'});
+    await page.getByRole('combobox', {name:'실습 수준', exact:true}).selectOption({label:lesson.level});
     await page.locator('[data-lesson-trigger="'+lesson.id+'"]').click();
     const dialog = page.getByRole('dialog', {name:lesson.title, exact:true});
-    await expect(dialog.getByText('할 일 앱 실습', {exact:true})).toBeVisible();
+    await expect(dialog.getByText('소프트웨어 개발', {exact:true})).toBeVisible();
     await dialog.getByRole('button', {name:'내 사본으로 시작', exact:true}).click();
     await expect(page).toHaveURL(url => url.searchParams.has('edit'));
     await page.getByRole('button', {name:'시험 실행', exact:true}).click();
@@ -158,9 +159,28 @@ async function verifySoftwareLessons(page: Page) {
   }
 }
 
-async function verify(mobile: boolean) {
-  const context = await browser.newContext({baseURL, viewport:mobile ? {width:390,height:844} : {width:1440,height:900},
-    isMobile:mobile, hasTouch:mobile});
+async function checkLessonSizeAndClose(page: Page, dialog: Locator) {
+  const original = page.viewportSize()!;
+  for (const section of ['실습 순서 보기', '제공된 예시', '선택 실습']) {
+    await dialog.getByText(section, {exact:true}).click();
+  }
+
+  const box = (await dialog.boundingBox())!;
+  assert.equal(box.width, 1120);
+  expect(box.height).toBeCloseTo(original.height * .92, 0);
+  const close = dialog.getByRole('button', {name:'닫기', exact:true});
+  const beforeScroll = (await close.boundingBox())!;
+  const lastStep = dialog.getByRole('listitem').last();
+  await lastStep.scrollIntoViewIfNeeded();
+  await expect(lastStep).toBeInViewport();
+  await expect(close).toBeInViewport({ratio:1});
+  assert.deepEqual(await close.boundingBox(), beforeScroll);
+  await page.mouse.click(beforeScroll.x + beforeScroll.width / 2, beforeScroll.y + beforeScroll.height / 2);
+  await expect(dialog).toHaveCount(0);
+}
+
+async function verify() {
+  const context = await browser.newContext({baseURL, viewport:{width:1440,height:900}});
   try {
     await registerBrowserAccount(context);
     const page = await context.newPage();
@@ -172,9 +192,12 @@ async function verify(mobile: boolean) {
       await page.getByLabel('만들고 싶은 Agent').fill('모델 연결 전 안내자');
       await page.getByRole('button', {name:'AI 설계 제안 열기'}).click();
       await expect(dialog.getByRole('status')).toContainText('작업실 운영자가 모델을 연결');
+      const proposalBox = (await dialog.boundingBox())!;
+      assert.ok(proposalBox.width === 640,
+        '실습 상세 전용 크기가 다른 작업실 입력 창에도 적용됐습니다.');
       await expect(dialog.getByRole('button',{name:'초안 제안받기'})).toHaveCount(0);
       await capture(page,'model-setup-alternatives');
-      await dialog.getByRole('button',{name:'수준별 템플릿 보기'}).click();
+      await dialog.getByRole('button',{name:'예제 템플릿 보기'}).click();
       await expect(page.locator('.lesson-tile').first()).toBeVisible();
       await page.goto('/');
       await page.getByLabel('만들고 싶은 Agent').fill('모델 연결 전 안내자');
@@ -210,7 +233,8 @@ async function verify(mobile: boolean) {
       service.modelReady = true;
       await page.goto('/');
     }
-    await recoverProposal(page, mobile, service);
+    await recoverProposal(page, false, service);
+    await recoverProposal(page, true, service);
     const prompt = page.getByLabel('만들고 싶은 Agent');
     const open = page.getByRole('button', {name:'AI 설계 제안 열기'});
     await prompt.fill('지난주 도서관 공지를 정리해 줘');
@@ -253,8 +277,24 @@ async function verify(mobile: boolean) {
     assert.equal((await saved.json()).data.graph.nodes[0].title,latest);
 
     await page.goto('/?view=templates');
-    const filter = page.getByRole('button',{name:'전문가',exact:true});
-    await filter.click();
+    const level = page.getByRole('combobox', {name:'실습 수준', exact:true});
+    const topic = page.getByRole('combobox', {name:'실습 주제', exact:true});
+    const cards = page.locator('.lesson-tile');
+    await expect(level.locator('option:checked')).toHaveText('전체');
+    await expect(topic.locator('option:checked')).toHaveText('전체');
+    await expect(cards).toHaveCount(templates.length);
+    await topic.selectOption({label:'도서관'});
+    await expect(cards).toHaveCount(8);
+    await topic.selectOption({label:'소프트웨어 개발'});
+    await expect(cards).toHaveCount(5);
+    await level.selectOption({label:'중급'});
+    await expect(cards).toHaveCount(1);
+    await expect(cards).toContainText('오류 제보에서 빠진 정보 되묻기');
+    await expect(page.getByRole('status').filter({hasText:'1개 실습'})).toBeVisible();
+
+    await topic.selectOption({label:'도서관'});
+    await level.selectOption({label:'전문가'});
+    await expect(cards).toHaveCount(2);
     const card = page.locator('[data-lesson-trigger="dynamic"]');
     await card.scrollIntoViewIfNeeded();
     await card.focus();
@@ -274,6 +314,13 @@ async function verify(mobile: boolean) {
     const criteria = dialog.getByRole('region', {name:'선택한 정책의 완료 기준'});
     await expect(criteria).toContainText('선택 제외는 0곳');
     await expect(criteria).toContainText('‘지점별 결과 정리’는 실행되지 않습니다.');
+    const footerPosition = (await start.boundingBox())!.y;
+    await dialog.getByRole('region', {name:'실습 안내'}).evaluate(el => {
+      const body = el.parentElement!;
+      body.scrollTop = body.scrollHeight;
+    });
+    await expect(start).toBeInViewport();
+    assert.equal((await start.boundingBox())!.y, footerPosition);
     await total.selectOption('1');
     await expect(start).toBeDisabled();
     await expect(parallel).toHaveAccessibleDescription(/총 생성 한도가 1명.*다시 선택/);
@@ -287,7 +334,9 @@ async function verify(mobile: boolean) {
     await capture(page, 'expert-decisions');
     await page.goBack();
     await expect(dialog).toHaveCount(0);
-    await expect(filter).toHaveAttribute('aria-pressed','true');
+    await expect(level.locator('option:checked')).toHaveText('전문가');
+    await expect(topic.locator('option:checked')).toHaveText('도서관');
+    await expect(cards).toHaveCount(2);
     await expect(card).toBeFocused();
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeCloseTo(listY,-1);
     await page.goForward();
@@ -295,7 +344,9 @@ async function verify(mobile: boolean) {
     await page.reload();
     await expect(parallel).toHaveValue('1');
     await expect(failure).toHaveValue('stop');
-    await dialog.getByRole('button',{name:'닫기',exact:true}).click();
+    await checkLessonSizeAndClose(page, dialog);
+    await expect(level.locator('option:checked')).toHaveText('전문가');
+    await expect(topic.locator('option:checked')).toHaveText('도서관');
     await expect(card).toBeFocused();
     await card.click();
     await expect(total).toHaveValue('3');
@@ -329,7 +380,6 @@ async function verify(mobile: boolean) {
   } finally { await context.close(); }
 }
 try {
-  await verify(false);
-  await verify(true);
-  console.log('PASS desktop/mobile proposal retry, expert policy, catalog history and five ready-to-run SW lesson copies with saved cases.');
+  await verify();
+  console.log('PASS desktop proposal retry and reload recovery, expert policy, catalog history and five ready-to-run SW lesson copies with saved cases.');
 } finally { await browser.close(); }

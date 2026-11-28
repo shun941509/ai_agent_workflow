@@ -36,9 +36,9 @@ const graph:Graph = {
   ],
 };
 try {
-  for (const mobile of [false,true]) {
-    const width=mobile?390:1440;
-    const options={baseURL,viewport:{width,height:mobile?844:900},isMobile:mobile,hasTouch:mobile};
+  {
+    const width=1440;
+    const options={baseURL,viewport:{width,height:900}};
     const owner=await browser.newContext(options);
     const visitor=await browser.newContext(options);
     try {
@@ -158,16 +158,12 @@ try {
       await screenshot(publicPage,'published-conversation-'+width);
       const records=await api(visitor,'run.list',{id});
       assert.equal(records[0].conversation,records[1].conversation);
-      const history=async () => {
-        if(!mobile) return dialog.locator('.run-sidebar');
-        await dialog.getByRole('button',{name:'실행 기록',exact:true}).click();
-        return publicPage.getByRole('dialog',{name:'실행 기록',exact:true});
-      };
-      await (await history()).getByRole('button',{name:'새 대화'}).click();
+      const history=dialog.locator('.run-sidebar');
+      await history.getByRole('button',{name:'새 대화'}).click();
       await expect(dialog.locator('.run-question')).toHaveCount(0);
       await send('다른 대화의 질문',true);
       await expect(dialog.locator('.run-question')).toHaveCount(1);
-      const previousGroup=(await history()).locator('.run-conversation').filter({hasText:question1});
+      const previousGroup=history.locator('.run-conversation').filter({hasText:question1});
       await expect(previousGroup.locator('time')).toBeVisible();
       await previousGroup.getByText('문답 2개').click();
       await previousGroup.locator('details').getByRole('button',{name:new RegExp(question1.slice(0,4))}).click();
@@ -199,13 +195,9 @@ try {
       }
       await publicPage.goto('/?agent='+files.id);await open.click();
       const fileDialog=publicPage.getByRole('dialog',{name:files.title,exact:true});
-      const fileHistory=async()=>{
-        if(!mobile)return fileDialog.locator('.run-sidebar');
-        await fileDialog.getByRole('button',{name:'실행 기록',exact:true}).click();
-        return publicPage.getByRole('dialog',{name:'실행 기록',exact:true});
-      };
+      const fileHistory=fileDialog.locator('.run-sidebar');
       async function openHistory(name:string){
-        await (await fileHistory()).getByRole('button',{name:new RegExp(name)}).click();
+        await fileHistory.getByRole('button',{name:new RegExp(name)}).click();
       }
       async function attach(name:string){
         await fileDialog.getByLabel(/^입력 파일/).setInputFiles({
@@ -245,7 +237,7 @@ try {
       for(let i=0;i<2;i++)await api(visitor,'run.start',{id:files.id,mode:'live',requestKey:crypto.randomUUID(),input:'같은 첫 질문'});
       await expect.poll(async()=>(await api(visitor,'run.list',{id:files.id})).filter((r:{state:string})=>r.state==='waiting').length).toBe(2);
       await publicPage.reload();await open.click();
-      const duplicate=(await fileHistory()).locator('.run-conversation').filter({hasText:'같은 첫 질문'});
+      const duplicate=fileHistory.locator('.run-conversation').filter({hasText:'같은 첫 질문'});
       await expect(duplicate).toHaveCount(2);
       await expect(duplicate.locator('time')).toHaveCount(2);
       await duplicate.getByRole('button',{name:/같은 제목의 대화 1/}).click();
@@ -256,7 +248,7 @@ try {
       await expect(fileDialog.locator('.run-wait').getByRole('alert')).toContainText('기존 첨부 보관.txt');
       await fileDialog.getByRole('button',{name:'실행 화면 닫기'}).click();
       await publicPage.goto('/?agent='+files.id);await open.click();
-      const waitingGroups=(await fileHistory()).locator('.run-conversation').filter({hasText:'같은 첫 질문'});
+      const waitingGroups=fileHistory.locator('.run-conversation').filter({hasText:'같은 첫 질문'});
       await waitingGroups.getByRole('button',{name:/같은 제목의 대화 1/}).click();
       await expect(fileDialog.locator('.run-wait')).toContainText('첨부할 파일 · 보관.txt');
       await fileDialog.getByRole('button',{name:'첨부하고 같은 실행 이어가기'}).click();

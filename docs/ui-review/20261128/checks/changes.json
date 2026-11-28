@@ -1,0 +1,441 @@
+{
+  "buildId": "--f0fEroMpSeXCpgp_L6h",
+  "snapshot": "ship",
+  "files": [
+    {
+      "file": "public/guide/captures/01-start.png",
+      "before": "4aa3d9ff378d6bbb213d2086c0dd8ebe7b23576d9bd8c380d970bf17df87eddb",
+      "after": "80a6589d0ff12a9110d26afbea406487d2b863d1202889519f80705f571de8d4"
+    },
+    {
+      "file": "public/guide/captures/02-editor.png",
+      "before": "25636a8bd0de260cb34a41426c220a825cd419dd0144b169f1671ccf78b7e878",
+      "after": "776d9e138fd2f5e16d9d63c4ce5b38f43ea0703676513c1912cac7b86d354718"
+    },
+    {
+      "file": "public/guide/captures/02-start-example.png",
+      "before": "f2da46249fac1d9862c780bfc431eff85936504efbb00d89c4a03a9691e946f8",
+      "after": "13f6895a64658a8ec26213a84dae43dd9f307c80ae538f37c767519fd5340489"
+    },
+    {
+      "file": "public/guide/captures/03-question.png",
+      "before": "910e716f46cfa52a7e715acc5c5946384d0420e157fc5ce3af3086b87791e2a8",
+      "after": "9bd91b36a8a89d5951ddb32d3d912b8964779b9fe7adbb737984708223937890"
+    },
+    {
+      "file": "public/guide/captures/05-instruction.png",
+      "before": "36a5e4cfe4ee37e6bd3ffec6ff45a6c4f2110a17965644d99b61df4b14cf64ba",
+      "after": "1631f2d68ca33239d3a8df2cc98313f2b7adb81d556d8cd0c54ade46e00508c3"
+    },
+    {
+      "file": "public/guide/captures/create-name.webp",
+      "before": "100750271b2e421ca27a3267de68a4426c31fb14d9846c01c5082d2acbf2a181",
+      "after": "f1742e6becdab87db8fbb798bbffd710f7e4977af9841ee95fbfe56e89365590"
+    },
+    {
+      "file": "public/guide/captures/error-model-home.png",
+      "before": "83cbb05d8ea2769116a40e7a5aaaf5063623d5ae8ed762eb9cedb0061fb6bb66",
+      "after": "41245ef5d4b3b2e2cc1885c9a88b1b20df22de85510bbbdaba06bc6b76394ab0"
+    },
+    {
+      "file": "public/guide/captures/error-model.png",
+      "before": "a23e92d3c6439e663c0bce8e288f0fcd8bfe42528470661e479c223454f639dd",
+      "after": "879a589a8f5da2a023008705cba4e14aa478d6956e3b2ef01cb97093ecc08f70"
+    },
+    {
+      "file": "public/guide/captures/error-source.png",
+      "before": "52f3ad05c193159dd372fc7ae55fbee98a40f9ed1c3e88c21599289fb81247bc",
+      "after": "60fc8cec067ddf626f8264cf0590864fa0cf929dbdee655c967e8a1788a23497"
+    },
+    {
+      "file": "public/guide/captures/goal-beginner.png",
+      "before": "e4d49fd3a54d9cf6d896f950bc22bfa6e68e03c40b961b277c3f2a89656f922c",
+      "after": "b698702f51a33a5b5d27267da3c4f422a04b3dc5a3b3eb689dc96a8e50a1928e"
+    },
+    {
+      "file": "public/guide/captures/goal-dynamic-team.png",
+      "before": "7777b332ff0e62a814db877e2e03f52febb1ad12cfa94cfb7a9ef377ba5da40f",
+      "after": "0010e02522a97baae758926f43b49a6c5b797782dfdcc8e764e01e451144c58f"
+    },
+    {
+      "file": "public/guide/captures/goal-dynamic.png",
+      "before": "7dcdc7b3779b60e965cf94de8e2d61ad5c88dd536eee629a07da9eb603a8f484",
+      "after": "38b371b4234615b5503823df5c112af2dbcfb33a34cc3bfcef8fe0f34e28bf27"
+    },
+    {
+      "file": "public/guide/captures/goal-intermediate.png",
+      "before": "3cd1a15b2df4a5ed8d9e82f2bfd2664c3b4f48d07c15c64202ec66145de07571",
+      "after": "dd64991f6cb250d47401a1ccafb860f892ce0a71063a60c2d8ebe437a8620062"
+    },
+    {
+      "file": "public/guide/captures/goal-library-visit.png",
+      "before": "5ea386d635f796b8787c46c4d69e2160660dc382b404169af491a8b2d4bbeab3",
+      "after": "21b8d47e34de5f78f8aa955744b61220930bd29f30cdcb663e1e45e0bce7daa6"
+    },
+    {
+      "file": "public/guide/captures/goal-parallel-team.png",
+      "before": "836261484f12055294a2abeb33005a32a71e17e40795b9e4e4ca4de4c06fd38e",
+      "after": "e50f2bf7957506d3b8aa77eafe7100eb1f735041204a0a8c5df1cbc393b21d19"
+    },
+    {
+      "file": "public/guide/captures/goal-parallel.png",
+      "before": "c24ab8d839edbe796ef68d9273c108d053967597b477bca0892f98a90c94b416",
+      "after": "f0da88ffcbabacdb4710d6b65bbf74654798a6c708c83dac57407c1d297bb528"
+    },
+    {
+      "file": "public/guide/captures/goal-peer-review-team.png",
+      "before": "9a17f61c8cd0fb4f37ed0aac3fbc9f43f68560c9d7c1c60b10151d6ac27cf8f6",
+      "after": "5782ccc3714ea38623ba87624f04d0f5bf0e8d0c61f29fc8180eb14faec24c8e"
+    },
+    {
+      "file": "public/guide/captures/goal-peer-review.png",
+      "before": "b474f01d20547ddeb2f53aac9cb4b6cd7d686cd2f60d521488bfd21689430d6a",
+      "after": "2435355f4c8d8b1506b9685bf76e871829531c0ced259066a9378b28d363d646"
+    },
+    {
+      "file": "public/guide/captures/goal-release.png",
+      "before": "8b779ad8131b63b647713cbcb868cad903b42e60ec7ea15a8bc5999f65e5c363",
+      "after": "f200ce9235fb85beaff31227eeed369eb519122ed4bb6b95c153e4e297c9ef25"
+    },
+    {
+      "file": "public/guide/captures/help-empty-source.webp",
+      "before": "b57d5a3f1e0affcdf3bac2d63dc5ecca3af1491742691b9750ea85648838b414",
+      "after": "84a03ec9a916be436284fdf2b48c1b710d3fce74ba30ca3bc06d4ba24fe76fa9"
+    },
+    {
+      "file": "public/guide/captures/help-inspect.webp",
+      "before": "7aa8cbab78240f07529de279218b53e3c6337bbbe6acc755ccedc99b4811ae19",
+      "after": "6443bc55483f3e9d96d03a2eec73fa37d8b27110d7b4bdd5fc78387ad35b97ac"
+    },
+    {
+      "file": "public/guide/captures/help-model-status.webp",
+      "before": "581a4d0804d2ed35aff8a43bc785a2f7eb2cb8dfd5f19314abe76d7e1c84952b",
+      "after": "4cd9e4690d2ff13cbde8628b652d5d6280d66d73d8d1b7ae7aee2a48a7d455de"
+    },
+    {
+      "file": "public/guide/captures/help-question-blocked.png",
+      "before": "2f1b9a661f62638bbc8c8252d4bff05475c6d3ebfcce866391a1ed814508792a",
+      "after": "89c7286218f0e46f55a54cd7b594c8c523686f5ff40469c8cd751b394f790401"
+    },
+    {
+      "file": "public/guide/captures/help-source-line.webp",
+      "before": "6ef46583a944c5d617091a8749a84ac041b943a8e399a37656fd7f3201a11520",
+      "after": "5f6377ef2d21c5e4811f0401bcf9037edd6aa716171ab831131c7efab91f214e"
+    },
+    {
+      "file": "public/guide/captures/quick-open.webp",
+      "before": "91a128526a03215983593632b987054f681e92252ebd5c04e854014a912fdfba",
+      "after": "a473db96d8b58cc382bbaa2cffb328290c1d22363d215b1e27ed235815c73bae"
+    },
+    {
+      "file": "public/guide/captures/quick-question.webp",
+      "before": "d676f270ffc8502e23539686c3718725afaa9980034b9d4bc2a70e29ea835a54",
+      "after": "685ea74b2c62da58b467493ed389245308266a0c15d8c0d9fb9db1d6ac9004e5"
+    },
+    {
+      "file": "public/guide/captures/source-rule.png",
+      "before": "a6e0ac45f10476d9b4c3f52d4c46d2d75f7e632b1c764714e1bc08d93e5a8a5c",
+      "after": "71d769962fb8ef849aee378e010a2fa3ee7dbd582945b08ce4e778325f8fc420"
+    },
+    {
+      "file": "public/guide/captures/terms-agent.png",
+      "before": "587bb8538cda997620cd5335f703b193534a94d3b890f91f5a124b5099a28133",
+      "after": "3ad6a67bc4fea26572f68695b395e5c7adb638e4c35d6a556986e2ff7014d66a"
+    },
+    {
+      "file": "public/guide/captures/terms-block.png",
+      "before": "b46c0d958c3c735930185d7ad0ceb32a374a8e30349d37e7b85e29d78bb0d150",
+      "after": "b76eb0cfebbbd4dbd9c8db9c772b449e2f70a6ed4c19d19ce29cd64a76574ff8"
+    },
+    {
+      "file": "public/guide/captures/terms-tool.png",
+      "before": "5bb1b77e44ee39712de1de731f24b408e27b2af133cc7690ab49d848a6e51eee",
+      "after": "7d57d3598615f17db92aa9ea7e30c4fe6688c2ef0a973992eeec4475770c7428"
+    },
+    {
+      "file": "public/guide/captures/terms-workflow.png",
+      "before": "896d2ac8a3f62282e89bafb0ba3e155d0db9d9325ac6579e11691ffed67e29fe",
+      "after": "03e52eea49290bd3d64b54a01ae080b93bc09f15341eea82d579d6a08d650aa9"
+    },
+    {
+      "file": "src/app/prototype/library/editor.css",
+      "before": "75706fc5d8a4b9c031bf921e4680cee5510816ebd4935d94c68c547a508ecadb",
+      "after": "91e553c879fb6b53a1581c6a179a63a01e04c573103b06a95d23449a7b5a9d97"
+    },
+    {
+      "file": "src/app/prototype/library/Editor.tsx",
+      "before": "084fb2cd0c09ee1b301e46f8475342cd3fc3e81ae803991a2067fe51d73ec10e",
+      "after": "849799fdf8c8d3059f30db5b68caac475b844f2d33942353ff6f6f5ec1007e70"
+    },
+    {
+      "file": "src/app/prototype/library/graph.css",
+      "before": "05e9c528a1801986e4cf5fa9d10d69af1a023d4a1332ca6ff901bc8118c5c7ed",
+      "after": "4ba7104e8d1c72bf1a8c2be7c6bfd569e2ba79a6ad4ae6ca97c286d4f8422eb3"
+    },
+    {
+      "file": "src/app/prototype/library/preview.css",
+      "before": "1a2ad6eeeebd12c4f05f2de211ed4a7316e271b87b8f4eeb6ca40e266d7d0bf5",
+      "after": "8453722b306753d5c6a10558d1d17dd870937f8bd8cc93ed8729d4ae0d71514c"
+    },
+    {
+      "file": "src/app/studio.css",
+      "before": "43b9c25ab2187b527c5e016c447620b47bad10a40ed35a01eb717492105adc11",
+      "after": "dfa7a5e1fc275cd65bab3929974d8bc3a7a6d1b8a4225904b978288e501c46c7"
+    },
+    {
+      "file": "src/ui/account-entry.css",
+      "before": "e21e20735af8e6962d755bd05da480734451b7400baaa09c8abc468cf9e6b621",
+      "after": "35bfa1478c287b30993db83fce3c55ea56cdd5e60cdd8772d9debfd8ef9c687a"
+    },
+    {
+      "file": "src/ui/AccountEntry.tsx",
+      "before": "4a5fb50a7a8b15bb31b037d1919da123c2ba74cd82f9ecfbde61f5544c061b10",
+      "after": "ce6e4f651181cda806c511912be957eb5f0abee6accc641175fe41bf00428860"
+    },
+    {
+      "file": "src/ui/DynamicLessonSetup.tsx",
+      "before": "febe9ac908a8f18e0bc04c4b63155195797cacbedfc990203e38879c0b425d81",
+      "after": "16fb5cec8b3170b573e9fa254cbe914bff75c1646d5217a94ec62a891ef79c4a"
+    },
+    {
+      "file": "src/ui/editor/Canvas.tsx",
+      "before": "d8c70471e2b7dbd44f405df5d48755611e3054e83e10192d65bcdc03b3b95268",
+      "after": "d68a7f2556a000647d0bbfe29b46d05b0fb795b1301e54c7408ecf42739f7ca8"
+    },
+    {
+      "file": "src/ui/editor/CategoryEditor.tsx",
+      "before": "07ef8344ec5b4f991b725fc65392e0cd99d5742413096197630b5e807699d1b7",
+      "after": "d42290ade62866d4dca0006cb319adff1449980cfe450ebf32ca31d7c9c8f3cb"
+    },
+    {
+      "file": "src/ui/editor/editor.css",
+      "before": "a54fca4eff0edb430049c7c318a38e621d15505a11516f0e08d889630c59904b",
+      "after": "ffcd56f3f9d27fa4c8ea8680e90442313ff1426a135764a86202faac371c8f84"
+    },
+    {
+      "file": "src/ui/editor/Editor.tsx",
+      "before": "6c3b6d94cee505aa9ee0743fa3c61bf9544b296a34ff46654ee769dec3bd0218",
+      "after": "fc6ce802749a315ff8e168dbc9072ab5914d7c6efa9f0626cc6220f545db5449"
+    },
+    {
+      "file": "src/ui/editor/FlowConditionsModal.tsx",
+      "before": "714369619f5f5b215e7d5752cd7f3e66cdafbce9ab3204bcf51aa84056a1f043",
+      "after": "7420ff7b09bf67cf551153c80b49fef171b9a208c4512cf8b31d67844b3429e9"
+    },
+    {
+      "file": "src/ui/editor/geometry.ts",
+      "before": "8d94a00dbd0f5554ec0d311f59f872306c6f81b42dabac7335d150f250ec8b34",
+      "after": "257f286c8f79b0d33f4f79e23ec338b08f17295471ba93064de516eecb943261"
+    },
+    {
+      "file": "src/ui/editor/inline-source.css",
+      "before": "054020a3d57cdf46a7a5ec180519a9d06dc9e98904172ce78db0e17bd214e51e",
+      "after": "180e7a9323a0768126a946e196a2aaa1c44c57657fc1f9261c86e185f73b3742"
+    },
+    {
+      "file": "src/ui/editor/inspector-tabs.css",
+      "before": "373c5ec8ac16b283bc04ea2ff53515061f3f77f3ad5bcb23db615f965d4c6d62",
+      "after": "47fbce045408418990259c8b839c3d660bcb61fec4ff1a88018b4877dbe595e9"
+    },
+    {
+      "file": "src/ui/editor/Modal.tsx",
+      "before": "1c55aa16cf692bb21c9a48ea4993d3463008557e9857eaa9cac4719ec06f29f2",
+      "after": "59f4d9ec0cea643e1a49360ddd5b95073b16b9de842a264391891aa7b98cebbb"
+    },
+    {
+      "file": "src/ui/editor/Panels.tsx",
+      "before": "7713470348aff600b7544b8cf25f1f727f9959e3faf2d6dad4f021dd091770f0",
+      "after": "abcb99f6dcffcf1c8556baa52d891412df5480b30a06dcdcd163fa021195b9f6"
+    },
+    {
+      "file": "src/ui/editor/PracticeCoach.module.css",
+      "before": "30e8ca30ef24902445da6cbe0d93a6b721ce39765e4e03293f871f7e514bc473",
+      "after": "36f246ef13b87bcea3917709a2ab7d0e5c4c1d535ed74f70df3f05e935163ab0"
+    },
+    {
+      "file": "src/ui/editor/schematic.css",
+      "before": "eab69539b1ffc460efb45b732305ff9600303c1b99c64ac87072b67940695fd6",
+      "after": "104fad4b9c5e1d71dfcea5db8091de5ac3dc6e0d32d30145cf216c8ace06770c"
+    },
+    {
+      "file": "src/ui/editor/workspace-editor.css",
+      "before": "e6c4f43cd6f2becce02052fdcded8707da51874519316c10cc8585a88d0eafff",
+      "after": "8a8083569c6f943e6080aec7c52911c0edac982c9febb40bc796f3986e41d918"
+    },
+    {
+      "file": "src/ui/guide/captures.ts",
+      "before": "b7b7500a42b63269aaeef6a664f7ba2996c7c023d4a05d08651eaad8ebe891be",
+      "after": "afe771651014f06a68a1872b5d1f2cf0f5fe62600fd57b6c80494d764e32b604"
+    },
+    {
+      "file": "src/ui/guide/FirstGuideStart.tsx",
+      "before": "7d59012f0a248523acd63a2683f154fa03f391fc7334f1d5a03873fbb9b537ec",
+      "after": "6cb61d516ddc27bfe8a18ca4e4e76dff73c01bd5b725756ce272524d4a8507d3"
+    },
+    {
+      "file": "src/ui/guide/goal-captures.ts",
+      "before": "2a7a2b94705e739775bcbbb045764a68eebac07c4e563214652b98faaaf0567c",
+      "after": "58c2e099ef7961154923d573dacf3f5a54bb12e9f865434386f81bc54784941f"
+    },
+    {
+      "file": "src/ui/guide/GuideCreationVisual.tsx",
+      "before": "78178b9b6c1a6be344692a921a0978f108df1a111b7c4c8570f86f4bf37945cc",
+      "after": "1bbf762ee9b20e716806b4334e81eefcf5d85556328274b2a815d244aabf3407"
+    },
+    {
+      "file": "src/ui/guide/GuideFigure.tsx",
+      "before": "bcc97527bbe7e4cf4c59087fcf46dc01c5efbb1f0651cd8800ae8a441af5e4bd",
+      "after": "824aff53fea9c5520b15e521b018d2d8ba6c843ce8cc085d41a2b30bdb849bb7"
+    },
+    {
+      "file": "src/ui/guide/GuideHelpVisual.tsx",
+      "before": "d39ac6af1800cc354dedd2d2db656ad875001a6711761208232bedb2092589a3",
+      "after": "4f9dc010fd4ee4958c2a09e9d6d5d508c73a983137201bbb1601d327e5b79dba"
+    },
+    {
+      "file": "src/ui/guide/GuidePage.module.css",
+      "before": "d4bc362e226794cad403bfec9c7388a5d1bd67fedcb37efc4789be6862f40614",
+      "after": "c349d6dc4c7ecc768ea3a5f1ac5e50255e73672381c199080c8cf1bdbd09ec9c"
+    },
+    {
+      "file": "src/ui/guide/GuideVisual.tsx",
+      "before": "f968e76cf7345ef20bf338ab901550e346a2f8732784434373a83dac8ee768e5",
+      "after": "dc98704bf826f3ee1c8bb86d0e508281195c8e1cda505dfe98f4663cd79f198b"
+    },
+    {
+      "file": "src/ui/guide/LessonHandout.module.css",
+      "before": "d9b31ae47ab5d3a4220cc0099e802d7345fb950e64475139f6fdd3276a86cba6",
+      "after": "6230c55088aeb4b61c04c79057cab31b804eb97f5d7c746af7c205846b6cf5d7"
+    },
+    {
+      "file": "src/ui/guide/LessonHandout.tsx",
+      "before": "32dbb26675189f6af2bb332d72f4242cab54b7851b79c01a3578bae96c9ec75b",
+      "after": "a9aa24bbc2dc1221a3574672e0b90a325a0a59ac2dd3fa5b313d2bd54c2ece0a"
+    },
+    {
+      "file": "src/ui/guide/TemplateGallery.module.css",
+      "before": "e92c2e84f8939e9f6a48dc2dc13c74a0840fdd5f95eb864c44979953ddc5fd19",
+      "after": "143d76947d31ff49ac45e92f2711c436b1507d6211d4751b3dc852f6f99ce68c"
+    },
+    {
+      "file": "src/ui/guide/TemplateGallery.tsx",
+      "before": "a08db8f748e5d194f8a08d1cf6cededb5376c4e1921c0518bc7791a707387644",
+      "after": "9e9aa9088ac3ffaf05cd0e1a714584e87c434fee2541f300c2e023bfd3b91b97"
+    },
+    {
+      "file": "src/ui/guide/VisualGlossary.module.css",
+      "before": "347a69cce9ff277a6ca6c18d9ec0f24435f204df76e58bc145ca04a1325f4c5d",
+      "after": "b6c956ebbc443f8af22c34e4491ae3c6b7ac07f5b551e9d000e64b4aedeea08d"
+    },
+    {
+      "file": "src/ui/home/SavedCanvas.tsx",
+      "before": "e8fa7278238fea0bce5361650ea59aa47b719f427a43c9ac3e646f7a2b5c6633",
+      "after": "b8ae153e0a3bf390c2cbd780848114bee7135235f5c10fc0926a6d93ebb90f7a"
+    },
+    {
+      "file": "src/ui/home/workspace-home.css",
+      "before": "babab9c1651ad339e87b0fe0f5b37db3bb4b5242742138a48781578068077f6e",
+      "after": "abecdd024fe04815c51e999570caff380ebb3fac6da7908f711fed144301c171"
+    },
+    {
+      "file": "src/ui/home/WorkspaceDesk.module.css",
+      "before": "7ce587f820063894f3ef8e9a6288ef02e2d5713fdbbae52292616ed26c189c3a",
+      "after": "d82a08ed9446f52ff7d8470223bf8d5604548d9ffa13eeee17a719ac7330ec91"
+    },
+    {
+      "file": "src/ui/prompt-textarea.css",
+      "before": "8b93fb34e25a0e675db379c789fb73518fd932663b14016ba47760e984e9a446",
+      "after": "95f27de317e394e27dd216ac06974923ce6bffab47f42e4536217404a5075fd5"
+    },
+    {
+      "file": "src/ui/ResourceLibrary.css",
+      "before": "622f1301df2ac46fabd02afcdc1b2f61e7a17161d69cd2e6ffd0b2294befb231",
+      "after": "4a2ce0b1655d95f7e17e40f98745c82e0f0157fa35adfc0154e3d45f2ba0d6a3"
+    },
+    {
+      "file": "src/ui/ResourceLibrary.tsx",
+      "before": "94a8727786cf1be1a8a5a13b36f4a2437bf32af787b267cc4ded1c66896cda47",
+      "after": "849d9dab38c0f40c15c08cef80e106c7b1b8f18dc9ae146996a3ebc492134691"
+    },
+    {
+      "file": "src/ui/run-panel.css",
+      "before": "32d62528a4911b2ea8919523f27d330a22af37951dfdef4a57a480d6afe31395",
+      "after": "a17ead9593af249b68c2994dc29f857647c4454ecd0671307a2fff48a8a3de37"
+    },
+    {
+      "file": "src/ui/RunPanel.tsx",
+      "before": "6ed38a7a53db06134966d0c5f42d646ccfecad6d8be7cbd02df707890fb706e4",
+      "after": "ed45a1d6966baabb256e4f2e774fddd3259426af25aa35bcf3a0eb18ce401b9f"
+    },
+    {
+      "file": "src/ui/Studio.tsx",
+      "before": "5d5cb841e6d5e25eaf622f0ebdbeeee7208a4476bf457af65301a3cabf7870b7",
+      "after": "3a6e873c48db2c638974a19bbd3f6d7f3938516b659067493a61d89f436a4827"
+    },
+    {
+      "file": "src/ui/StudioDialog.tsx",
+      "before": "25fb21ee221aff202add3a296fe845d6fb118a7c6b5b657dbe8b794c126f6620",
+      "after": "8ac625d87d403da7dadb2639bc44cbd5d034b8060db139bdcb22072b81359331"
+    },
+    {
+      "file": "src/ui/WorkflowGuide.module.css",
+      "before": "f3f4a529c8c37710a423cf5634e7bf8d657795db8507edd37169e54ead58980e",
+      "after": "cf2877b0c61cfa4c7abc33ba763afc0cfdbda3b297720834de6dd66d4be1235d"
+    },
+    {
+      "file": "src/ui/workspace-nav.css",
+      "before": "93555c9c4480d5f511073dc2ccc662c9af69c10d56c86e327f8043275bbee25a",
+      "after": "054f433b655e24282648969a52666c8bf57660e48c44e9c897c8c89d2e0ff71b"
+    },
+    {
+      "file": "src/ui/WorkspaceNav.tsx",
+      "before": "f9ac92980ef8adb974248086befbd092f7761babf1f4cc6e481d6c348818f315",
+      "after": "e4622ada838c86ef97683fab82f905077599cafa390f1ed11fb25bd5380ac577"
+    },
+    {
+      "file": "tests/browser-smoke.ts",
+      "before": "b60bd17e24faf4d2c629e97c6dc440e9e17101e741206feb516c30eaaf914c2e",
+      "after": "629f61b43aa446526f623fd126a9cfe25bfa4d87abbf863acb413f50a2f11c74"
+    },
+    {
+      "file": "tests/canvas-gesture-browser.ts",
+      "before": "7e77e25dd4bd1e3044980aa80320a423678a06a3f08407b8b29890c042252ea1",
+      "after": "cb19ce78e1f678f0ab3c24fd74931db4eb36048106f55a5c2f6f3e105a722e6a"
+    },
+    {
+      "file": "tests/canvas-wire-browser.ts",
+      "before": "9d1f22ca28b4c662b417c4217d89ebade993d2186b657dc344adfda96d883eb1",
+      "after": "2331c0bbd8d94c823d11b9a09e7cadced0fbe41272365aaccea886062fe87b17"
+    },
+    {
+      "file": "tests/creation-sharing-browser.ts",
+      "before": "bc13278a78a062c3c82879771f6f5b2c87a722525332f26c470b007645d3d481",
+      "after": "5f12dedafd3494c131d20fa3373163daf41d803f0f815da0c96b7e2cf43d9468"
+    },
+    {
+      "file": "tests/editor-contracts-browser.ts",
+      "before": "35f0265632e0b427ade511c8defd2366886701327c403b7b16bb1299e9670a0f",
+      "after": "261ff83be4eb03b4b72b037f559c5cab2fd99504f1d895d6edc46ff93bb7cd43"
+    },
+    {
+      "file": "tests/editor-repair-browser.ts",
+      "before": "c24538356999aa55000a62342e17e2c1a5638a7ebf16c49b87a56869bb4d3270",
+      "after": "26a7a9cd521fc8566915d4767396153ace5d207ae3d08838e517e2ec9568d2dc"
+    },
+    {
+      "file": "tests/guide-visuals-browser.ts",
+      "before": "38a36d35df426fc136762f0285be68753989d7ed09d69062f8207277ab48c644",
+      "after": "320f4a736144ba6a4bb4689799a307682bc4f4452d2dbefb3ab111c98aeb17ab"
+    },
+    {
+      "file": "tests/home-lesson-browser.ts",
+      "before": "ed43792b26d81824352d3bb1088e5f183bca81e0e2870864777623245a51641e",
+      "after": "2a4b31dbae9e3ae9bce1af3a9413a8b7c72e5cbaac6abf1a37e0f24b840b6001"
+    },
+    {
+      "file": "tests/resource-editing-browser.ts",
+      "before": "f46bb71fdfd79338c3d7302b83d52ba4ed2e6b8b80070db1e016362670ae3c93",
+      "after": "70403074d1f6a3fc01729a37d859b23f538864584acba6c1e4948937ffae59e5"
+    }
+  ]
+}

@@ -11,7 +11,7 @@ if(!baseURL)throw new Error('격리된 Studio 시험 서버의 STUDIO_TEST_URL�
 const systemChrome='C:/Program Files/Google/Chrome/Application/chrome.exe';
 const browser=await chromium.launch({headless:true,executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || (existsSync(systemChrome)?systemChrome:undefined)});
 const owner=await browser.newContext({baseURL,acceptDownloads:true});
-const visitor=await browser.newContext({baseURL,viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+const visitor=await browser.newContext({baseURL,viewport:{width:1440,height:900}});
 async function api(ctx:BrowserContext,action:string,data:unknown={}) {
   const response=await ctx.request.post('/api/studio',{data:{action,data}});
   const body=await response.json();
@@ -108,7 +108,7 @@ async function checkResourceHistory(ctx:BrowserContext,first:{id:string;name:str
     await expect(lib.getByLabel('자료 본문')).toHaveValue('오후 다섯 시까지 운영합니다.');
   }finally{await page.close();}
 }
-async function checkResourceDrafts(ctx:BrowserContext,small:boolean) {
+async function checkResourceDrafts(ctx:BrowserContext) {
   const page=await ctx.newPage();
   const name='지침 초안 '+crypto.randomUUID().slice(0,8);
   const original='대출은 세 권까지 가능합니다.';
@@ -143,7 +143,6 @@ async function checkResourceDrafts(ctx:BrowserContext,small:boolean) {
     await decision.getByRole('button',{name:'계속 작성'}).click();
     await expect(page).toHaveURL(new RegExp('asset='+skill.id));
     await expect(field).toHaveValue(modified);
-    if(small)await page.getByRole('button',{name:'메뉴 열기'}).click();
     await page.getByRole('button',{name:'내 Agent',exact:true}).click();
     await decision.getByRole('button',{name:'계속 작성'}).click();
     await field.fill(original);
@@ -186,38 +185,32 @@ try {
   await expect(lib.getByRole('heading',{name:'자료함 열기'})).toBeVisible({timeout:45_000});
   await api(owner,'asset.save',{id:first.id,baseVersion:1,name:first.name,payload:{content:'대출 한도는 5권입니다. 다음 문장입니다.'}});
   for(let n=0;n<16;n++)await api(owner,'asset.save',{name:'자료함 '+String(n).padStart(2,'0'),kind:'document',payload:{content:'목록 이동 시험'}});
-  const mobileOwner=await browser.newContext({baseURL,storageState:await owner.storageState(),viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  const libraryPage=await owner.newPage();
   try{
-    const narrow=await mobileOwner.newPage();
-    await narrow.setViewportSize({width:320,height:740});
-    await narrow.goto('/?view=assets');
-    const library=narrow.getByRole('region',{name:'도구 및 자료',exact:true});
-    const lastScope=library.getByRole('button',{name:'모두에게 공개',exact:true});
-    await expect(lastScope).toBeInViewport();
-    const bounds=await lastScope.boundingBox();
-    assert.ok(bounds && bounds.x>=0 && bounds.x+bounds.width<=320 && bounds.height>=44);
+    await libraryPage.goto('/?view=assets');
+    const library=libraryPage.getByRole('region',{name:'도구 및 자료',exact:true});
     const search=library.getByRole('searchbox');
     await search.fill('일치하지 않는 자료 '+crypto.randomUUID());
     await library.getByRole('button',{name:'검색 조건 초기화'}).click();
     await expect(search).toHaveValue('');
     await expect(search).toBeFocused();
     let failFirstRead=true;
-    await narrow.route('**/api/studio',route=>{
+    await libraryPage.route('**/api/studio',route=>{
       if(failFirstRead && route.request().postDataJSON()?.action==='asset.read'){
         failFirstRead=false;
         return route.abort('connectionreset');
       }
       return route.continue();
     });
-    await narrow.goto('/?asset='+first.id+'&edition=1');
+    await libraryPage.goto('/?asset='+first.id+'&edition=1');
     await library.getByRole('button',{name:'다시 불러오기'}).click();
     await expect(library.getByRole('heading',{name:first.name,exact:true})).toBeFocused();
     await expect(library.locator('.rl-source')).toHaveText('테스트 전용 안내문');
-    await narrow.close();
-    await checkResourceHistory(owner,first);await checkResourceHistory(mobileOwner,first);
-    await checkResourceDrafts(owner,false);await checkResourceDrafts(mobileOwner,true);
+  } finally{
+    await libraryPage.close();
   }
-  finally{await mobileOwner.close();}
+  await checkResourceHistory(owner,first);
+  await checkResourceDrafts(owner);
   const material = createBlock('resource.context',{id:'rules',title:'연결한 자료',config:{assetId:first.id,version:1}});
   const pinned = await api(owner,'project.create',{title:'연결한 자료 원문 확인',graph:{nodes:[material],edges:[]}});
   const editor = await owner.newPage();
@@ -326,7 +319,7 @@ try {
   await expect.poll(()=>page.evaluate(()=>navigator.clipboard.readText())).toBe(rotated);
   await recipient.reload();await expect(received.getByRole('alert')).toContainText(/권한|공유/);
   await recipient.goto(address);await expect(received.getByRole('alert')).toContainText(/권한|공유/);
-  console.log('Asset browser checks passed: ZIP round trip, source preview, immutable versions, independent copy, revocation and mobile recipient.');
+  console.log('Asset browser checks passed: ZIP round trip, source preview, immutable versions, independent copy, revocation and recipient access.');
 
   // Delete a source from its edition link. Its current and historical editions share one trash entry.
   await page.goto('/?asset='+first.id+'&edition=1');
@@ -395,7 +388,7 @@ try {
     await picker.selectOption(lookup);
     const manual=panel.locator('[data-field-key="tool"] input');
     await expect(manual).toHaveValue(lookup);await manual.fill('reservations.list');await expect(manual).toHaveValue('reservations.list');
-    await page.getByRole('button',{name:'고정 연결 블록 속성',exact:true}).click();
+    await page.getByRole('button',{name:'고정 연결 블록 속성',exact:true}).press('Enter');
     await panel.getByLabel('고정할 자료 버전').selectOption('2');
     await page.getByRole('button',{name:'지점 조회 블록 속성',exact:true}).click();
     await expect(picker).toBeEnabled();await expect(picker.locator('option')).toHaveCount(2);

@@ -12,12 +12,16 @@ import type { EngineEvent, Prompt } from '../src/engine/types';
 import { newAgentPurpose, type DesignProposal } from '../src/domain/design-proposal';
 import { Drawing } from '../src/domain/template-drawing';
 import {workDocumentGraph, workDocuments} from '../src/domain/work-documents';
+import {applyInspectionDelivery, createInspectionSession, makeInspectionReceipt} from '../src/domain/inspection-receiver.mjs';
+import {applyRecoveryDelivery, createRecoverySession, makeRecoveryRecord, recoveryScenarios,
+  scenarioDeliveries, type RecoverySession} from '../src/domain/inspection-recovery.mjs';
 import type { ReleaseAction, ReleaseDecision } from '../src/domain/release-decision';
 import type { SharedAssetPin } from '../src/ui/editor/asset-attachment';
 import { checkLiveTeamInheritance, checkLiveTeamModes } from './live-team-inheritance';
 import { checkVisitAnswer, checkVisitResources, visitCaseName } from './library-visit-checks';
 import { checkOptionalReview, checkOptionalRiver, eventData } from './optional-team-exercises';
 import { softwareScenarios, checkReleaseDownloads } from './live-software';
+import { webDesignScenarios } from './live-web-design';
 
 const base = process.env.STUDIO_TEST_URL;
 assert.ok(
@@ -34,6 +38,7 @@ export type Run = {
   conversation: string;
   version: number | null;
   prompt?: Prompt;
+  files?: {fileName:string; content:string}[];
   events: EngineEvent[];
 };
 export type Project = {
@@ -701,6 +706,204 @@ async function runTeamGraph(graph: Graph, input: string) {
   return ask(author, project, input);
 }
 
+async function runSample(project: Project) {
+  const samples = await author<{id:string; input:string; expected:string}[]>('cases.list', {id:project.id});
+  assert.equal(samples.length, 1, '실습 사본의 기본 시험 사례');
+  const [sample] = samples;
+  assert.ok(sample.expected.trim());
+  return ask(author, project, sample.input, {caseId:sample.id});
+}
+
+async function equipmentInspectionStarterScenario(lesson:string) {
+  const session = createInspectionSession();
+  const initialEquipment = structuredClone(session.equipment);
+  const event = {eventId:'live-single-B08', equipmentId:'B-08', type:'inspection.completed'};
+  const inventory = lesson === 'equipment-return-inventory';
+  if (!inventory) applyInspectionDelivery(session,event);
+  const evidence = {initialEquipment, initialHistory:[], ...session};
+  const field = inventory ? '장비 반납 목록' : '검수 알림 1회 기록';
+  const waiting = await runSample(await create(lesson));
+  const result = await reply(waiting,JSON.stringify({[field]:JSON.stringify(evidence,null,2)}));
+  assert.equal(result.state,'completed');
+  if (lesson === 'equipment-inspection-compare') {
+    const report = result.files?.find(file=>file.fileName==='검수-알림-전후-검증.md')?.content ?? '';
+    for (const value of [event.equipmentId,event.eventId,'검수 대기','검수 완료','보류']) assert.ok(report.includes(value),value);
+  } else {
+    const filename = inventory ? '장비-반납-목록.json' : '검수-알림-1회-기록.json';
+    const record = result.files?.find(file=>file.fileName===filename)?.content;
+    assert.ok(record,filename);
+    assert.deepEqual(JSON.parse(record),evidence);
+  }
+}
+
+async function equipmentInspectionWebScenario() {
+  const session = createInspectionSession();
+  const event = {eventId:'live-inspection-B-08', equipmentId:'B-08', type:'inspection.completed'};
+  applyInspectionDelivery(session, event);
+  applyInspectionDelivery(session, event);
+  const receipt = makeInspectionReceipt(session);
+  assert.equal(receipt.verified,true);
+  const pending = await runSample(await create('equipment-inspection-web'));
+  const result = await reply(pending, JSON.stringify({'검증 기록':JSON.stringify(receipt)}));
+  assert.equal(result.state,'completed');
+  const files = new Map(result.files?.map(file=>[file.fileName,file.content]));
+  assert.match(files.get('검수-알림-개발-보고서.md') ?? '', /live-inspection-B-08/);
+  assert.match(files.get('SKILL.md') ?? '', /name:\s*inspect-equipment-sync/);
+  for (const role of ['docs','design','developer','ui','backend','creator']) {
+    assert.ok(result.events.some(event=>event.nodeId===role && event.kind==='start'),role);
+  }
+  return files;
+}
+
+async function equipmentInspectionRecoveryScenario() {
+  const advanced = await equipmentInspectionWebScenario();
+  const sessions:Record<string,RecoverySession> = {};
+  for (const {id} of recoveryScenarios) {
+    const session = sessions[id] = createRecoverySession();
+    for (const {event,fault} of scenarioDeliveries(id,'B-08')) applyRecoveryDelivery(session,event,fault);
+  }
+  const record = makeRecoveryRecord('B-08',sessions);
+  assert.ok(record.verified);
+  const pending = await runSample(await create('equipment-inspection-recovery'));
+  const priorSkill = advanced.get('SKILL.md')!;
+  const result = await reply(pending,JSON.stringify({
+    '고급 개발 보고서':advanced.get('검수-알림-개발-보고서.md'),
+    '고급 점검 Skill':priorSkill, '시도별 검증 기록':JSON.stringify(record),
+  }));
+  assert.equal(result.state,'completed');
+  const files = new Map(result.files?.map(file=>[file.fileName,file.content]));
+  const report = files.get('시도별-검증-보고서.md') ?? '';
+  assert.match(report,/B-08/);
+  assert.match(report,/역순/);
+  assert.match(report,/응답 유실/);
+  const updated = files.get('SKILL.md') ?? '';
+  assert.ok(updated.startsWith(priorSkill.trimEnd()));
+  assert.match(updated,/재전송/);
+}
+
+async function equipmentReturnMemoScenario() {
+  const intro = await create('equipment-return-memo');
+  const record = '스캐너 창구에 “회수”라고 적혀 있습니다. 스캐너 본체를 받았고 거치대 수령란은 비어 있습니다. 이 기록에서 용어 후보 메모를 만들어 주세요.';
+  const memo = await ask(author, intro, record);
+  match(memo, /회수/);
+  assert.match(memo.output, /거치대/);
+  return memo.output;
+}
+
+async function equipmentReturnQuestionsScenario() {
+  const memo = await equipmentReturnMemoScenario();
+  const beginner = await create('equipment-return-questions');
+  const source = await runSample(beginner);
+  const first = await reply(source, JSON.stringify({'입문 용어 후보 메모':memo}));
+  assert.equal(first.state, 'waiting');
+  const second = await reply(first, JSON.stringify({'학습자 답변':'창구 직원이 어떤 상태를 적어야 할지 먼저 검수 담당자에게 묻겠습니다.'}));
+  assert.equal(second.state, 'waiting');
+  const result = await reply(second, JSON.stringify({'학습자 확인·보완 답변':'순서는 제안대로 하되, 수신인은 야간 인수 담당자로 바꿔 주세요.'}));
+  match(result, /야간/);
+  const handoff = result.files?.find(file => file.fileName === '중급-담당자-확인-질문.md');
+  assert.ok(handoff?.content);
+  assert.match(handoff.content, /회수/);
+  assert.match(handoff.content, /야간/);
+  const middle = await ask(author, await create('equipment-return-terms'), handoff.content);
+  assert.equal(middle.state, 'waiting');
+  assert.match(middle.prompt?.prompt ?? '', /야간/);
+  assert.match(middle.prompt?.prompt ?? '', /스캐너/);
+  assert.doesNotMatch(middle.prompt?.prompt ?? '', /노트북|충전기/);
+}
+
+async function equipmentReturnScenario() {
+  const project = await create('equipment-return-terms');
+  const waiting = await runSample(project);
+  assert.equal(waiting.state, 'waiting');
+  const questionnaire = eventData(waiting, 'writer').value;
+  assert.equal(typeof questionnaire, 'string');
+  assert.equal(waiting.prompt?.prompt, questionnaire);
+  assert.equal(waiting.prompt?.questionFileName, 'to-questionnaire-equipment-return.md');
+  assert.match(waiting.prompt.prompt, /충전기/);
+  assert.ok(!waiting.events.some(event => event.nodeId === 'modeler' && event.kind === 'start'));
+  const replyText = '본체를 받으면 반납 접수입니다. 구성품을 점검하면 반납 완료입니다. 충전기가 없는 장비의 재대여 여부는 아직 정하지 않았습니다.';
+  const done = await reply(waiting, JSON.stringify({'장비 담당자 회신':replyText}));
+  assert.equal(done.id, waiting.id);
+  assert.equal(done.state, 'completed');
+  const documents = new Map(done.files?.map(file => [file.fileName,file.content]));
+  assert.equal(documents.size, 3);
+  assert.equal(documents.get('to-questionnaire-equipment-return.md'), questionnaire);
+  const glossary = documents.get('GLOSSARY.md')!;
+  const rules = documents.get('판단-규칙표.md')!;
+  assert.match(glossary, /반납\s*접수/);
+  assert.match(glossary, /반납\s*완료/);
+  assert.match(rules, /충전기/);
+  assert.match(rules, /미확정/);
+  assert.ok(done.output.includes(glossary) && done.output.includes(rules));
+}
+
+async function equipmentReturnCasesScenario() {
+  const project = await create('equipment-return-cases');
+  const cases = '노트북 가-01과 나-02의 반납 상태와 재대여 가능 여부를 각각 판정해 주세요. 가-01은 본체와 충전기를 대조했고 정상 점검을 마쳤습니다. 나-02는 본체와 충전기를 대조했고 점검 기록이 비어 있습니다.';
+  const glossary = '# 용어집\n반납 접수는 본체를 받은 상태입니다. 반납 완료는 장비와 충전기를 대조하고 점검까지 마친 상태입니다.';
+  const rules = '# 판단 규칙표\n본체와 충전기를 대조하고 정상 점검을 마치면 반납 완료입니다. 재대여는 모든 장비가 보류입니다.';
+  async function enterDocuments(input:string) {
+    const start = await ask(author, project, input);
+    assert.deepEqual(start.prompt?.fields?.map(field => field.name), ['중급 용어집','중급 판단 규칙표']);
+    return reply(start, JSON.stringify({'중급 용어집':glossary,'중급 판단 규칙표':rules}));
+  }
+  const known = await enterDocuments('가-01은 본체와 충전기를 대조했고 정상 점검까지 마쳤습니다. 반납 상태와 재대여 가능 여부를 판정해 주세요.');
+  assert.equal(known.state, 'completed');
+  assert.ok(!known.events.some(event => event.nodeId === 'writer' && event.kind === 'start'));
+  const pending = await enterDocuments(cases);
+  assert.equal(pending.state, 'waiting');
+  assert.match(pending.prompt!.prompt, /나-02/);
+  assert.match(pending.prompt!.prompt, /점검/);
+  const done = await reply(pending, JSON.stringify({'장비 담당자 회신':'나-02는 본체와 충전기를 대조했고 정상 점검도 마쳤습니다.'}));
+  assert.equal(done.id, pending.id);
+  assert.equal(done.state, 'completed');
+  for (const run of [known, done]) {
+    const file = run.files?.find(item => item.fileName === '사례별-최종-판정표.md');
+    assert.ok(file && run.output.includes(file.content));
+    assert.match(file.content, /반납\s*완료/);
+    assert.match(file.content, /보류/);
+  }
+  assert.match(done.output, /나-02/);
+}
+
+async function equipmentRelendingAgreementScenario() {
+  const project = await create('equipment-relending-agreement');
+  const glossary = '# 용어집\n반납 완료는 구성품 대조와 기능 점검을 마친 상태입니다.';
+  const rules = '# 판단 규칙표\n구성품을 대조하고 기능 점검을 마치면 반납 완료입니다.';
+  const previous = '# 사례별 최종 판정표\n| 사례 | 판단 항목 | 최초 판정 | 최종 판정 | 근거 |\n| --- | --- | --- | --- | --- |\n| P-01 | 반납 상태 | 반납 완료 | 반납 완료 | 구성품 대조 및 기능 정상 기록 |';
+  async function submit(criteria:string, decision:string) {
+    const start = await runSample(project);
+    const values = {
+      '중급 용어집':glossary, '중급 판단 규칙표':rules + '\n' + criteria,
+      '고급 최종 판정표':previous + '\n| P-01 | 재대여 가능 여부 | 미확정 | ' + decision + ' | ' + criteria + ' |',
+      '새 장비 사례':'N-02는 구성품 대조와 기능 점검을 마쳤습니다. 기능 점검 결과는 정상입니다.',
+    };
+    assert.deepEqual(start.prompt?.fields?.map(field => field.name), Object.keys(values));
+    return reply(start, JSON.stringify(values));
+  }
+  const knownRule = '구성품 대조와 기능 정상 결과가 확인되면 재대여 가능입니다.';
+  const known = await submit(knownRule, '재대여 가능');
+  assert.equal(known.state, 'completed');
+  assert.equal(known.files?.find(file => file.fileName === '갱신-판단-규칙표.md')?.content, rules + '\n' + knownRule);
+  assert.equal(known.files?.find(file => file.fileName === '갱신-용어집.md')?.content, glossary);
+  const pending = await submit('재대여 승인 조건은 아직 합의하지 못했습니다.', '미확정');
+  assert.equal(pending.state, 'waiting');
+  assert.equal(pending.prompt?.questionFileName, 'to-questionnaire-equipment-relending.md');
+  assert.match(pending.prompt.prompt, /재대여/);
+  const done = await reply(pending, JSON.stringify({'장비 담당자 회신':knownRule}));
+  assert.equal(done.state, 'completed');
+  assert.equal(done.id, pending.id);
+  for (const run of [known, done]) {
+    const files = new Map(run.files?.map(file => [file.fileName,file.content]));
+    assert.equal(files.size, 3);
+    const table = files.get('기존-신규-사례-재판정표.md')!;
+    for (const id of ['P-01','N-02']) assert.ok(table.includes(id));
+    assert.match(table, /가능|허용|승인/);
+    assert.match(files.get('갱신-판단-규칙표.md')!, /정상/);
+    assert.match(files.get('갱신-용어집.md')!, /반납 완료/);
+  }
+}
+
 const scenarios = new Map<string, () => Promise<void>>([
   ['agent-scope', agentScopeScenario],
   ['new-agent-intent', newAgentIntentScenario],
@@ -716,16 +919,20 @@ const scenarios = new Map<string, () => Promise<void>>([
   ['team-inheritance', () => checkLiveTeamInheritance(runTeamGraph)],
   ['team-inheritance-modes', () => checkLiveTeamModes(runTeamGraph)],
   ...softwareScenarios({
-    create, edit, reply,
-    async runSample(project) {
-      const samples = await author<{id:string; input:string; expected:string}[]>('cases.list', {id:project.id});
-      assert.equal(samples.length, 1, '실습 사본의 기본 시험 사례');
-      const [sample] = samples;
-      assert.ok(sample.expected.trim());
-      return ask(author, project, sample.input, {caseId:sample.id});
-    },
+    create, edit, reply, runSample,
     downloads: (project, runs) => checkReleaseDownloads(base!, authorCredentials, project.id, runs),
   }),
+  ...webDesignScenarios({create, edit, runSample, reply}),
+  ...['equipment-return-inventory','equipment-inspection-first','equipment-inspection-compare'].map(
+    id => [id, () => equipmentInspectionStarterScenario(id)] as const
+  ),
+  ['equipment-inspection-web', async () => {await equipmentInspectionWebScenario();}],
+  ['equipment-inspection-recovery', equipmentInspectionRecoveryScenario],
+  ['equipment-return-memo', async () => {await equipmentReturnMemoScenario();}],
+  ['equipment-return-questions', equipmentReturnQuestionsScenario],
+  ['equipment-return-terms', equipmentReturnScenario],
+  ['equipment-return-cases', equipmentReturnCasesScenario],
+  ['equipment-relending-agreement', equipmentRelendingAgreementScenario],
 ]);
 const expectedCases = ['agent-scope', 'new-agent-intent', 'proposal', 'team-inheritance', 'team-inheritance-modes', ...templates.map((lesson) => lesson.id)];
 assert.deepEqual([...scenarios.keys()].sort(), expectedCases.sort(), '모든 실습에 실제 모델 시험이 필요합니다.');

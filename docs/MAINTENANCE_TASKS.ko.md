@@ -2,7 +2,35 @@
 
 개발 환경과 실행 흐름은 [개발자 가이드](DEVELOPER_GUIDE.ko.md)에 있습니다. 아래에서 바꾸려는 동작을 찾아 담당 함수와 그 동작을 재현하는 시험을 함께 열어 보세요.
 
-## 블록·포트·수준별 템플릿
+## 블록·포트·예제 템플릿
+
+**웹 개발 입문·초급·중급**은 독립 화면과 작업실에 같은 반납 목록 및 단건 수신 기록을 입력한다. 목록을 고쳐 새로 만든 뒤 이전 결과가 섞이지 않는지 확인하고, 대상 이외 장비의 승인 값이나 이력의 알림 ID만 바꾼 기록으로 중급 검증이 실패하는지 확인한다. ZIP의 README에서 여는 실습 단계와 담당자의 원본 Skill도 사본과 일치해야 한다. [실습 정의](../src/domain/equipment-inspection-starter-templates.ts) · [단건 수신과 검증](../src/domain/inspection-starters.mjs) · [Windows 브라우저 시험](../tests/equipment-inspection-starters-browser.ts)
+
+**웹 개발 → 검수 알림이 뒤늦게 오거나 다시 오면 무엇이 남아야 할까?**의 독립 HTML과 ZIP의 HTTP 수신기는 같은 장비 상태와 처리 이력 규칙을 사용합니다. 두 입력 문서와 장비를 바꾸고 세 시나리오를 독립적으로 실행하세요. 저장 전 실패와 응답 유실은 첫 시도 직후의 이력 건수로 구별합니다. 실습을 다시 실행하면 원래 점검 Skill의 개별 조항이 보존되고 복구 점검 절은 한 번만 들어가야 합니다. [전문가 실습 정의](../src/domain/equipment-inspection-recovery-template.ts) · [공통 처리 규칙](../src/domain/inspection-recovery.mjs) · [HTTP 재전송 시험](../src/domain/inspection-recovery-webhook.test.mjs) · [작업실 시험](../tests/equipment-inspection-recovery-catalog-browser.ts)
+
+**웹 개발 → 검수가 끝나면 장비 반납 목록은 어떻게 바뀔까?**는 독립 HTML과 ZIP의 로컬 HTTP 수신기가 같은 검수 처리 코드를 사용합니다. 학습자 화면에서 같은 알림을 두 번 입력하고, 장비 세 대의 검수·재대여 상태와 수신 두 건·이력 한 건을 대조하세요. 템플릿을 바꿀 때는 검증 기록이 여섯 담당에게 전달되고 결과 파일 두 개를 받을 수 있는지도 확인하세요. [실습 정의](../src/domain/equipment-inspection-web-template.ts) · [공통 처리 코드](../src/domain/inspection-receiver.mjs) · [원본 패키지 검증](../tests/equipment-inspection-skills.test.ts) · [Windows 브라우저 시험](../tests/equipment-inspection-example-browser.ts)
+
+**업무 용어와 판단 기준 정리**의 입문·초급은 사용자가 실습 간에 결과 본문을 직접 옮깁니다. 기본 예시와 다른 창구 기록을 넣고, 초급의 두 번째 답변에서 수신인이나 질문 순서를 바꾸세요. 원문 표현과 변경한 우선순위가 최종 Markdown과 중급의 담당자 질문지까지 이어지는지 확인하세요. [두 실습 정의](../src/domain/equipment-return-starter-templates.ts) · [실행과 답변 검증](../tests/equipment-return-starters.test.ts) · [브라우저 시험](../tests/equipment-return-starters-browser.ts)
+
+전문가 **재대여 기준을 합의하면 어떤 판정이 달라질까?**는 중급 문서 두 개, 고급 최종 판정표, 새 장비 사례를 별도 입력으로 받습니다. 고급에서 미확정으로 남긴 항목 중 정책에 관한 질문만 만들고, 담당자가 한 장비에만 허용한 예외는 해당 장비에만 적용하는지 확인하세요. 재대여 조건이 이미 확정됐을 때는 원래 문서 두 개가 그대로 전달되고 같은 기준으로 기존·신규 판정표가 작성돼야 합니다. [전문가 실습 정의](../src/domain/equipment-relending-agreement-template.ts) · [회신과 재판정 시험](../tests/equipment-relending-agreement.test.ts) · [브라우저 시험](../tests/equipment-relending-agreement-browser.ts)
+
+고급 **이 장비는 반납 완료일까, 다시 물어봐야 할까?**는 같은 주제의 중급에서 만든 문서 두 개를 별도의 필수 입력으로 받습니다. 중급 문서의 줄바꿈이 유지되는지, 이미 판정한 항목이 재질문에 섞이지 않는지 확인하세요. 미확정 목록이 비면 회신 대기 없이 최종 판정표를 전달합니다. 회신 경로에서는 한 장비에 대한 답과 여러 장비에 적용할 규칙을 구별하고, 부분 회신 뒤에도 최초 판정과 근거를 읽을 수 있어야 합니다. [고급 실습 정의](../src/domain/equipment-return-cases-template.ts) · [분기와 회신 시험](../tests/equipment-return-cases.test.ts)
+
+중급 **장비를 돌려받으면 반납이 끝난 걸까?**는 질문지 작성 후 회신 양식에서 대기합니다. 대기 화면의 **질문지 내려받기**와 완료 후 같은 이름의 결과 파일에 동일한 원문이 들어가는지 확인하세요. 충전기가 빠져도 다음 대여가 가능한지 정하지 않은 회신과, 재대여 보류를 명시한 회신을 각각 입력해 규칙표를 대조하세요. [장비 반납 실습](../src/domain/equipment-return-template.ts) · [회신별 실행 시험](../tests/equipment-return.test.ts) · [작업실과 ZIP 시험](../tests/equipment-return-browser.ts)
+
+전문가 **리뷰 지적을 고치고 다시 검증하기**는 고급의 원래 기준과 두 축의 검토 결과를 입력받습니다. 수정 범위 회신 후 같은 수정 기록이 두 재검토 담당에게 전달되는지, 한쪽의 미검증 지적과 양쪽의 지적 없음이 구별되는지 확인하세요. [전문가 실습 정의](../src/domain/web-design-review-followup-template.ts) · [후속 수정 실행 시험](../tests/web-design-review-followup.test.ts)
+
+고급 **개선 기준을 테스트로 옮겨 화면 고치기**는 처음 입력한 개선 기준과 사용자가 회신한 테스트 범위를 개발 단계에 전달합니다. 개발 기록을 받은 두 검토 담당이 병렬로 실행되고, 최종 답변에서 각각의 판정을 읽을 수 있어야 합니다. 내보내기 지침을 바꿀 때는 실패와 통과가 같은 테스트에서 관찰됐는지, 두 담당자가 같은 변경을 읽었는지 확인하세요. [고급 실습 정의](../src/domain/web-design-tdd-review-template.ts) · [단계별 실행 시험](../tests/web-design-tdd-review.test.ts) · [실제 프로젝트 작업 지침](../src/domain/web-project-work.ts)
+
+예제 템플릿을 추가할 때는 실습의 `level`과 `topic`을 함께 지정하세요. 목록에서 **실습 수준**과 **실습 주제**를 차례로 선택해 새 실습이 표시되는지 확인하세요. 주제 선택지는 `lessonTopics`에서 관리합니다. [실습 타입과 선택지](../src/domain/types.ts) · [템플릿 목록 브라우저 시험](../tests/home-lesson-browser.ts)
+
+웹 디자인 개선 예제의 필터나 데이터를 바꾸면 내려받는 HTML과 코드 발췌의 공통 원본을 고치고, 고급 **한 화면을 여러 Agent로 개선하기**의 **주문 목록 동작 설명**도 실제 화면과 대조하세요. 이 실습은 설명 하나를 네 담당자의 참고 자료에 연결합니다. 설명을 편집한 뒤 네 역할이 새 본문을 받는지, 개발자가 두 검토 의견을 받아 다음 단계로 넘기는지 확인하세요. [주문 관리 예제 원본](../src/domain/web-design-example.ts) · [입문~중급](../src/domain/web-design-starter-templates.ts) · [고급 한 화면 협업](../src/domain/web-design-single-screen-template.ts) · [한 화면 실행 시험](../tests/web-design-single-screen.test.ts) · [공통 UI·단계별 개편](../src/domain/web-design-team-templates.ts)
+
+중급 **질문으로 화면 개선 기준 정하기**는 요구사항 확인 담당의 출력을 회신 양식에 표시합니다. 사용자가 답하면 용어 정리 담당에게 최초 요청, 확인 질문, 사용자 답변, 화면 동작 설명이 전달됩니다. 이 흐름을 수정할 때는 서로 다른 답변으로 같은 예시를 실행해 개선 기준이 달라지는지 확인하세요. [질문 실습 정의](../src/domain/web-design-questions-template.ts) · [질문·회신 실행 시험](../tests/web-design-questions.test.ts)
+
+한국어 실습 지침과 원본 Skill의 역할별 연결은 템플릿에서 관리합니다. 예제 사본을 만들면 서버가 해당 템플릿이 참조한 원본 패키지를 소유자의 자료판에 연결합니다. 원본 패키지의 파일 구성이 바뀌면 서버에서 읽는 파일 목록과 ZIP의 바이트 대조 시험을 함께 확인하세요. 예전 사본은 저장 당시의 연결과 지침으로 열립니다. [템플릿의 역할별 Skill 연결](../src/domain/lesson-skills.ts) · [원본 자료판 설치](../src/server/lesson-original-skills.ts) · [사본·ZIP 시험](../tests/agent-export-data.test.ts)
+
+웹 디자인 템플릿의 해당 작업 블록에서 **속성 → 고급 설정 → 내보낸 Agent의 프로젝트 작업**을 바꾸면 ZIP에서 대표 Agent가 맡을 조사·수정·검증 범위가 달라집니다. 작업실 시험은 연결된 자료와 코드 예시를 사용합니다. [코딩 도구의 작업 정의](../src/domain/web-project-work.ts) · [템플릿 사본·ZIP 브라우저 시험](../tests/web-design-catalog-browser.ts) · [수준별 실제 모델 시험](../tests/live-web-design.ts)
 
 | 바꾸려는 것 | 구현과 확인할 동작 |
 |---|---|

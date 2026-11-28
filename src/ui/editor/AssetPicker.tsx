@@ -31,7 +31,7 @@ function Recovery({lesson, refresh}: {lesson:PickerLesson; refresh:()=>Promise<v
 }
 
 interface ReadEdition {asset:{name:string}; version:number; payload:{content:string}}
-function EditionPreview({item, version, connect}: {item:AssetOption; version:number; connect:(item:AssetOption)=>Promise<void>}) {
+function EditionPreview({id, version, connect}: {id:string; version:number; connect?:(edition:ReadEdition)=>Promise<void>}) {
   const [detail, setDetail] = useState<ReadEdition>();
   const [error, setError] = useState('');
   const [checking, setChecking] = useState(false);
@@ -40,17 +40,17 @@ function EditionPreview({item, version, connect}: {item:AssetOption; version:num
   const preview = useRef<HTMLElement>(null);
   useEffect(() => {
     const controller = new AbortController();
-    api<ReadEdition>('asset.read', {id:item.id, version}, controller.signal)
+    api<ReadEdition>('asset.read', {id, version}, controller.signal)
       .then(result => { if (!controller.signal.aborted) setDetail(result); })
       .catch(cause => { if (!controller.signal.aborted) setError(message(cause)); });
     return () => controller.abort();
-  }, [item.id, version, attempt]);
+  }, [id, version, attempt]);
   async function attach() {
-    if (!detail || checking) return;
+    if (!detail || !connect || checking) return;
     setChecking(true);
     setConnectionError('');
     try {
-      await connect({...item, name:detail.asset.name, version});
+      await connect(detail);
     } catch (cause) {
       if (cause instanceof StudioApiError && [401, 403, 404].includes(cause.status)) {
         setDetail(undefined);
@@ -60,7 +60,7 @@ function EditionPreview({item, version, connect}: {item:AssetOption; version:num
       setChecking(false);
     }
   }
-  return <section ref={preview} tabIndex={-1} className="ws-field ws-picker-preview" aria-label="연결 전 원문">
+  return <section ref={preview} tabIndex={-1} className="ws-field ws-picker-preview" aria-label={connect ? '연결 전 원문' : '연결된 SKILL.md 지침'}>
     {error ? <>
       <small role="alert">{error}</small>
       <button type="button" className="ws-btn" onClick={() => {
@@ -69,16 +69,17 @@ function EditionPreview({item, version, connect}: {item:AssetOption; version:num
         setAttempt(value => value + 1);
       }}>원문 다시 불러오기</button>
     </> : detail ? <>
-      <strong>{detail.asset.name} · {version}판</strong>
+      <strong>{detail.asset.name} · {detail.version}판{!connect && ' · SKILL.md'}</strong>
       <div className="ws-picker-text" tabIndex={0}>{detail.payload.content}</div>
       {connectionError && <small role="alert">{connectionError}</small>}
-      <button type="button" className="ws-btn ws-primary" disabled={checking} onClick={() => void attach()}>{checking ? '자료판 확인 중' : '이 판 연결'}</button>
+      {connect && <button type="button" className="ws-btn ws-primary" disabled={checking} onClick={() => void attach()}>{checking ? '자료판 확인 중' : '이 판 연결'}</button>}
     </> : <small role="status">원문을 불러오는 중입니다.</small>}
   </section>;
 }
 
-export function AssetPicker({assets, value, label, lesson, refresh, onChange}: {
+export function AssetPicker({assets, value, label, lesson, pinnedSkillVersion, refresh, onChange}: {
   assets:AssetOption[]; value:string; label:string; lesson?:PickerLesson;
+  pinnedSkillVersion?: number;
   refresh:()=>Promise<void>; onChange:(item:AssetOption)=>Promise<void>;
 }) {
   const [choice, setChoice] = useState<{id:string; version:number}>();
@@ -99,18 +100,20 @@ export function AssetPicker({assets, value, label, lesson, refresh, onChange}: {
         </option>)}
       </select>
     </label>
-    {candidate && choice && <>
+    {candidate && choice ? <>
       <label className="ws-field"><span>미리 볼 자료판</span>
         <select value={choice.version} onChange={event => setChoice({id:candidate.id, version:Number(event.target.value)})}>
           {accessibleEditions(candidate).map(version => <option key={version} value={version}>{version}판</option>)}
         </select>
       </label>
-      <EditionPreview key={JSON.stringify([candidate.id, choice.version])} item={candidate} version={choice.version}
-        connect={async item => {
+      <EditionPreview key={JSON.stringify([candidate.id, choice.version])} id={candidate.id} version={choice.version}
+        connect={async detail => {
+          const item = {...candidate, name:detail.asset.name, version:detail.version};
           await onChange(item);
           setChoice(current => current?.id === item.id && current.version === item.version ? undefined : current);
         }}/>
-    </>}
+    </> : value && pinnedSkillVersion ? <EditionPreview key={JSON.stringify([value, pinnedSkillVersion])}
+      id={value} version={pinnedSkillVersion}/> : null}
     {lesson && <Recovery lesson={lesson} refresh={async () => { await refresh(); setChoice(undefined); }}/>}
   </div>;
 }

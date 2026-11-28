@@ -69,7 +69,7 @@ function portableAttachment(path:string){
 
 function collect(user:User,input:ExportInput,selected?:Set<string>):ExportPackage {
   const projectId=stringArg(input.id,'Agent',160);
-  owned(user,projectId);
+  const project=owned(user,projectId);
   const title=stringArg(typeof input.title==='string'&&!input.title.trim()?'이름 없는 Agent':input.title,'Agent 이름',140);
   const resolved=resolveExportWorkflowRefs(graphShape(input.graph),user,projectId);
   const graph=normalizeKnowledgeReferences(resolved.graph);
@@ -252,7 +252,7 @@ function collect(user:User,input:ExportInput,selected?:Set<string>):ExportPackag
   locateMaterialFiles(materials,files,materialFiles);
   // Use the resolved editions and portable bindings in both the preview and the downloaded guide.
   const preparation=[...designPreparation(graph,toolsByPin),...resourcePreparation(graph,materials)];
-  return {title,graph,resources:materials,files,preparation};
+  return {title,lesson:project.lesson ?? undefined,graph,resources:materials,files,preparation};
 }
 
 function preview(pkg:ExportPackage){

@@ -1,0 +1,191 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      background: var(--answerPine, #10493f);
+      color: var(--answerPaper, #f6f2e7);
+      font-family: "Studio Sans", sans-serif;
+    }
+    #answer-layout {
+      position: absolute;
+      inset: 0;
+    }
+    #answer-slip {
+      position: absolute;
+      left: 195px;
+      top: 137px;
+      width: 607px;
+      height: 806px;
+      box-sizing: border-box;
+      padding: 53px 53px 48px;
+      background: var(--answerPaper, #f6f2e7);
+      color: var(--answerInk, #123c36);
+      box-shadow: 8px 11px 0 rgba(0, 0, 0, 0.12);
+    }
+    #answer-slip::before,
+    #answer-slip::after {
+      content: "";
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      top: 573px;
+      border-radius: 50%;
+      background: var(--answerPine, #10493f);
+    }
+    #answer-slip::before { left: -12px; }
+    #answer-slip::after { right: -12px; }
+    #answer-library-label {
+      display: block;
+      font-size: 29px;
+      letter-spacing: 0.13em;
+      font-weight: 680;
+    }
+    #answer-print-title {
+      margin: 11px 0 21px;
+      font-family: "Studio Serif", serif;
+      font-weight: 650;
+      font-size: 67px;
+      line-height: 1.25;
+      letter-spacing: -0.07em;
+    }
+    #answer-press-rule {
+      height: 6px;
+      border-top: 3px solid var(--answerRed, #a43939);
+      border-bottom: 1px solid var(--answerRed, #a43939);
+      transform-origin: left;
+    }
+    #answer-limit-label {
+      margin: 44px 0 0;
+      font-size: 29px;
+      font-weight: 600;
+      letter-spacing: -0.03em;
+    }
+    #answer-limit {
+      margin: 4px 0 0;
+      color: var(--answerRed, #a43939);
+      font-family: "Studio Serif", serif;
+      font-weight: 720;
+      font-size: 184px;
+      line-height: 1.25;
+      letter-spacing: -0.09em;
+    }
+    #answer-output {
+      position: absolute;
+      top: 584px;
+      left: 38px;
+      right: 38px;
+      padding: 32px 15px 0;
+      border-top: 2px dashed var(--answerInk, #123c36);
+    }
+    #answer-file-label {
+      margin: 0 0 8px;
+      font-size: 29px;
+      font-weight: 560;
+    }
+    #answer-file-name {
+      display: inline-block;
+      font-size: 48px;
+      font-weight: 750;
+      line-height: 1.35;
+      letter-spacing: -0.055em;
+    }
+    #answer-copy {
+      position: absolute;
+      left: 912px;
+      top: 144px;
+      width: 790px;
+      color: var(--answerPaper, #f6f2e7);
+    }
+    #answer-description {
+      margin: 0;
+      font-family: "Studio Serif", serif;
+      font-size: 69px;
+      font-weight: 600;
+      line-height: 1.27;
+      word-break: keep-all;
+      letter-spacing: -0.07em;
+    }
+    #answer-proof {
+      position: absolute;
+      left: 913px;
+      top: 425px;
+      width: 797px;
+    }
+    #answer-proof-label {
+      display: block;
+      margin: 0 0 16px;
+      font-size: 29px;
+      color: var(--answerLime, #d5ef93);
+      font-weight: 680;
+      letter-spacing: 0.045em;
+    }
+    #answer-image-frame {
+      position: relative;
+      width: 797px;
+      height: 474px;
+      overflow: hidden;
+      background: white;
+    }
+    #answer-image {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+  </style>
+  <div id="root" data-composition-id="answer" data-width="1920" data-height="1080"
+    data-composition-variables='[
+      {"id":"answerPine","type":"color","label":"배경","default":"#10493f"},
+      {"id":"answerPaper","type":"color","label":"종이","default":"#f6f2e7"},
+      {"id":"answerInk","type":"color","label":"잉크","default":"#123c36"},
+      {"id":"answerRed","type":"color","label":"강조 잉크","default":"#a43939"},
+      {"id":"answerLime","type":"color","label":"결과 표제","default":"#d5ef93"},
+      {"id":"answerLibrary","type":"string","label":"발행처","default":"도서관"},
+      {"id":"answerTitle","type":"string","label":"안내 제목","default":"대출 안내"},
+      {"id":"answerLimitLabel","type":"string","label":"수치 설명","default":"한 사람이 빌릴 수 있는 책"},
+      {"id":"answerLimit","type":"string","label":"대출 한도","default":"5권"},
+      {"id":"answerFileLabel","type":"string","label":"파일 설명","default":"내려받는 파일"},
+      {"id":"answerFile","type":"string","label":"파일 이름","default":"대출안내.txt"},
+      {"id":"answerCopy","type":"string","label":"장면 설명","default":"새 규정은 안내 파일에도 담깁니다."},
+      {"id":"answerProofLabel","type":"string","label":"화면 설명","default":"작업실의 시험 실행 결과"},
+      {"id":"answerSource","type":"string","label":"실행 결과 화면","default":"assets/answer.png"}
+    ]'>
+    <div id="answer-layout" class="clip" data-start="0" data-duration="6" data-track-index="1" data-track-kind="graphics">
+      <article id="answer-slip">
+        <span id="answer-library-label" data-var-text="answerLibrary">도서관</span>
+        <h2 id="answer-print-title" data-var-text="answerTitle">대출 안내</h2>
+        <div id="answer-press-rule" aria-hidden="true"></div>
+        <p id="answer-limit-label" data-var-text="answerLimitLabel">한 사람이 빌릴 수 있는 책</p>
+        <p id="answer-limit" data-var-text="answerLimit">5권</p>
+        <div id="answer-output">
+          <p id="answer-file-label" data-var-text="answerFileLabel">내려받는 파일</p>
+          <span id="answer-file-name" data-var-text="answerFile">대출안내.txt</span>
+        </div>
+      </article>
+      <div id="answer-copy">
+        <p id="answer-description" data-var-text="answerCopy">새 규정은 안내 파일에도 담깁니다.</p>
+      </div>
+      <div id="answer-proof">
+        <span id="answer-proof-label" data-var-text="answerProofLabel">작업실의 시험 실행 결과</span>
+        <div id="answer-image-frame">
+          <img id="answer-image" class="clip" data-start="0" data-duration="6" data-track-index="2"
+            data-var-src="answerSource" src="assets/answer.png"
+            width="797" height="474" alt="보낸 질문에 대출 한도는 5권입니다라고 답한 실제 실행 결과">
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#answer-slip", { y: 65 }, { y: 0, duration: 0.52, ease: "power3.out" }, 0);
+    tl.fromTo("#answer-copy", { x: 28, opacity: 0 }, { x: 0, opacity: 1, duration: 0.42, ease: "power2.out" }, 0.05);
+    tl.fromTo("#answer-press-rule", { scaleX: 0 }, { scaleX: 1, duration: 0.42, ease: "power2.out" }, 0.2);
+    tl.fromTo("#answer-limit", { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.34, ease: "power2.out" }, 0.34);
+    tl.fromTo("#answer-proof", { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.42, ease: "power2.out" }, 0.73);
+    tl.fromTo("#answer-output", { y: 19, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: "power3.out" }, 2.85);
+    window.__timelines = window.__timelines || {};
+    window.__timelines["answer"] = tl;
+  </script>
+</template>

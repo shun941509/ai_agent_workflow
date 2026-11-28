@@ -1,0 +1,66 @@
+[
+  {
+    "run": "matched-before",
+    "theme": "light",
+    "states": 120,
+    "errors": 0,
+    "warnings": 0,
+    "failed": 0,
+    "scans": 40,
+    "violations": 1
+  },
+  {
+    "run": "matched-dark-before",
+    "theme": "dark",
+    "states": 40,
+    "errors": 0,
+    "warnings": 0,
+    "failed": 0,
+    "scans": 40,
+    "violations": 1
+  },
+  {
+    "run": "signoff-1",
+    "theme": "light",
+    "buildId": "--f0fEroMpSeXCpgp_L6h",
+    "states": 120,
+    "errors": 0,
+    "warnings": 0,
+    "failed": 0,
+    "scans": 40,
+    "violations": 0
+  },
+  {
+    "run": "signoff-dark-1",
+    "theme": "dark",
+    "buildId": "--f0fEroMpSeXCpgp_L6h",
+    "states": 40,
+    "errors": 0,
+    "warnings": 0,
+    "failed": 0,
+    "scans": 40,
+    "violations": 0
+  },
+  {
+    "run": "signoff-2",
+    "theme": "light",
+    "buildId": "--f0fEroMpSeXCpgp_L6h",
+    "states": 120,
+    "errors": 0,
+    "warnings": 0,
+    "failed": 0,
+    "scans": 40,
+    "violations": 0
+  },
+  {
+    "run": "signoff-dark-2",
+    "theme": "dark",
+    "buildId": "--f0fEroMpSeXCpgp_L6h",
+    "states": 40,
+    "errors": 0,
+    "warnings": 0,
+    "failed": 0,
+    "scans": 40,
+    "violations": 0
+  }
+]

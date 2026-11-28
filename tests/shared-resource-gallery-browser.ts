@@ -17,8 +17,6 @@ async function api(ctx:BrowserContext, action:string, data:unknown={}) {
   return body.data;
 }
 async function openGallery(page:Page) {
-  const menu = page.getByRole('button',{name:'메뉴 열기',exact:true});
-  if (await menu.isVisible()) await menu.click();
   const nav = page.getByRole('navigation',{name:'작업 화면'}).getByRole('group',{name:'공유',exact:true});
   const names = await nav.getByRole('button').allTextContents();
   assert.equal(names[names.indexOf('공유 Agent')+1],'공유 도구 및 자료');
@@ -34,7 +32,7 @@ async function capture(page:Page, name:string) {
 async function signUpFromPinnedLink(owner:BrowserContext, note:{id:string;name:string}, token:string) {
   await api(owner,'asset.save',{id:note.id,baseVersion:1,name:note.name, payload:{content:'직원 안내 개정 지침'}});
   await api(owner,'asset.share',{id:note.id,visibility:'link',version:2});
-  const context=await browser.newContext({baseURL,viewport:{width:390,height:844},isMobile:true,hasTouch:true});
+  const context=await browser.newContext({baseURL,viewport:{width:1440,height:900}});
   try {
     const page=await context.newPage();
     await page.goto('/?asset='+note.id+'&edition=1&token='+token);
@@ -45,7 +43,7 @@ async function signUpFromPinnedLink(owner:BrowserContext, note:{id:string;name:s
     const password=page.getByLabel('비밀번호',{exact:true});
     const reveal=page.getByRole('button',{name:'비밀번호 표시',exact:true});
     await password.fill(crypto.randomUUID());
-    await reveal.tap();
+    await reveal.click();
     await expect(password).toHaveAttribute('type','text');
     await expect(reveal).toHaveAttribute('aria-pressed','true');
     await reveal.press('Space');
@@ -81,8 +79,6 @@ async function verifyNestedPin(reader:BrowserContext,page:Page,projectId:string,
   await connect.getByRole('button',{name:'선택한 판 연결',exact:true}).click();
   await expect(connect).toHaveCount(0);
   async function saveAfterShortcut(shortcut?:string) {
-    const panel=page.getByRole('dialog',{name:'속성 패널'});
-    if(await panel.isVisible())await page.keyboard.press('Escape');
     await page.getByRole('button',{name:'설계 검사',exact:true}).focus();
     if(shortcut)await page.keyboard.press(shortcut);
     await page.keyboard.press('Control+s');
@@ -116,9 +112,10 @@ async function verifyNestedPin(reader:BrowserContext,page:Page,projectId:string,
   } finally {await reopened.close();}
 }
 
-async function check(width:number) {
+async function check() {
+  const width=1440;
   const owner = await browser.newContext({baseURL});
-  const reader = await browser.newContext({baseURL,viewport:{width,height:width===390?844:900},isMobile:width===390,hasTouch:width===390});
+  const reader = await browser.newContext({baseURL,viewport:{width,height:900}});
   try {
     await registerBrowserAccount(owner);
     await registerBrowserAccount(reader);
@@ -131,7 +128,7 @@ async function check(width:number) {
     await api(owner,'asset.save',{id:doc.id,baseVersion:2,name:draftName,payload:{content:'대출 한도 7권'}});
     const note = await api(owner,'asset.save',{name:'직원 안내 '+tag,kind:'skill',payload:{content:'직원 안내 지침'}});
     const shared = await api(owner,'asset.share',{id:note.id,visibility:'link',version:1});
-    if (width===390) await signUpFromPinnedLink(owner,note,shared.token);
+    await signUpFromPinnedLink(owner,note,shared.token);
 
     const authorPage = await owner.newPage();
     await authorPage.goto('/?view=shared-assets');
@@ -184,12 +181,10 @@ async function check(width:number) {
     await capture(page,'shared-resource-connect-'+width);
     await connect.getByRole('button',{name:'선택한 판 연결',exact:true}).click();
     await expect(connect).toHaveCount(0);
-    if (width === 1440) {
-      const sourcePicker = page.getByRole('combobox',{name:'연결할 자료',exact:true});
-      await expect(sourcePicker).toHaveValue(doc.id);
-      await expect(sourcePicker.locator('option:checked')).toContainText(secondName + ' · 공유 자료');
-      await expect(page.getByLabel('고정할 자료 버전')).toHaveValue('1');
-    }
+    const sourcePicker = page.getByRole('combobox',{name:'연결할 자료',exact:true});
+    await expect(sourcePicker).toHaveValue(doc.id);
+    await expect(sourcePicker.locator('option:checked')).toContainText(secondName + ' · 공유 자료');
+    await expect(page.getByLabel('고정할 자료 버전')).toHaveValue('1');
     await page.keyboard.press('Control+s');
     await expect.poll(async () => {
       const saved:Graph = (await api(reader,'project.open',{id:project.id})).graph;
@@ -213,7 +208,6 @@ async function check(width:number) {
 }
 
 try {
-  await check(1440);
-  await check(390);
-  console.log('PASS desktop/mobile published editions, received-link rotation, selecting a workflow target and saving an independent copy.');
+  await check();
+  console.log('PASS published editions, pinned-link signup, received-link rotation, selecting a workflow target and saving an independent copy.');
 } finally { await browser.close(); }

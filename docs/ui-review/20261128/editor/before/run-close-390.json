@@ -1,0 +1,70 @@
+[
+  {
+    "phase": "before",
+    "theme": "light",
+    "candidateStyleInjected": false,
+    "geometry": {
+      "x": 346,
+      "y": 273.5625,
+      "width": 32,
+      "height": 32,
+      "hitTest": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    "audit": [
+      {
+        "id": "target-size",
+        "nodes": [
+          {
+            "target": [
+              "button[aria-label=\"실행 화면 닫기\"]"
+            ],
+            "failureSummary": "Fix any of the following:\n  Target has insufficient size because it is partially obscured (smallest space is 23.5px by 32px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 23.6px instead of at least 24px."
+          }
+        ]
+      }
+    ],
+    "errors": [],
+    "mouseClose": true,
+    "keyboardClose": true,
+    "focusRestored": true
+  },
+  {
+    "phase": "before",
+    "theme": "dark",
+    "candidateStyleInjected": false,
+    "geometry": {
+      "x": 346,
+      "y": 273.5625,
+      "width": 32,
+      "height": 32,
+      "hitTest": [
+        true,
+        true,
+        true,
+        true
+      ]
+    },
+    "audit": [
+      {
+        "id": "target-size",
+        "nodes": [
+          {
+            "target": [
+              "button[aria-label=\"실행 화면 닫기\"]"
+            ],
+            "failureSummary": "Fix any of the following:\n  Target has insufficient size because it is partially obscured (smallest space is 23.5px by 32px, should be at least 24px by 24px)\n  Target has insufficient space to its closest neighbors. Safe clickable space has a diameter of 23.6px instead of at least 24px."
+          }
+        ]
+      }
+    ],
+    "errors": [],
+    "mouseClose": true,
+    "keyboardClose": true,
+    "focusRestored": true
+  }
+]

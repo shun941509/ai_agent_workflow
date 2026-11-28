@@ -26,7 +26,6 @@ export function InspectorTabs({ selected, onSelect, onClose }: {
         aria-controls={'ws-panel-' + tab} aria-selected={tab === selected} tabIndex={tab === selected ? 0 : -1}
         onClick={() => onSelect(tab)}>{labels[tab]}</button>)}
     </div>
-    <button type="button" className={'ws-icon-button' + (selected === 'properties' ? ' ws-panel-close' : '')}
-      aria-label={selected === 'properties' ? '속성 닫기' : '실행 화면 닫기'} onClick={onClose}><Icon name="close" /></button>
+    {selected === 'results' && <button type="button" className="ws-icon-button" aria-label="실행 화면 닫기" onClick={onClose}><Icon name="close" /></button>}
   </div>;
 }

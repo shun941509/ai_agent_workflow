@@ -1,0 +1,918 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "route": "editor",
+      "scene": "run-settings",
+      "metrics": {
+        "root": {
+          "width": 360,
+          "scrollWidth": 360,
+          "height": 900
+        },
+        "controls": {
+          ".ws-workbench": {
+            "x": 190,
+            "y": 194,
+            "w": 170,
+            "h": 532,
+            "clientWidth": 170,
+            "scrollWidth": 846,
+            "clientHeight": 532,
+            "scrollHeight": 532,
+            "overflow": "auto hidden"
+          },
+          ".ws-inspector": {
+            "x": 66,
+            "y": 194,
+            "w": 320,
+            "h": 532,
+            "clientWidth": 319,
+            "scrollWidth": 319,
+            "clientHeight": 532,
+            "scrollHeight": 532,
+            "overflow": "hidden"
+          },
+          "#ws-panel-results": {
+            "x": 67,
+            "y": 240,
+            "w": 319,
+            "h": 486,
+            "clientWidth": 319,
+            "scrollWidth": 319,
+            "clientHeight": 486,
+            "scrollHeight": 972,
+            "overflow": "auto"
+          },
+          ".run-bar": null,
+          ".run-compose textarea": {
+            "x": 81,
+            "y": 997,
+            "w": 291,
+            "h": 124,
+            "clientWidth": 289,
+            "scrollWidth": 289,
+            "clientHeight": 122,
+            "scrollHeight": 122,
+            "overflow": "auto"
+          },
+          ".run-primary": {
+            "x": 265,
+            "y": 1129,
+            "w": 107,
+            "h": 44,
+            "clientWidth": 105,
+            "scrollWidth": 105,
+            "clientHeight": 42,
+            "scrollHeight": 42,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 360,
+      "route": "prototype",
+      "scene": "status",
+      "metrics": {
+        "status": 200
+      }
+    },
+    {
+      "width": 360,
+      "route": "prototype",
+      "scene": "prototype-preview",
+      "metrics": {
+        "root": {
+          "width": 360,
+          "scrollWidth": 391,
+          "height": 900
+        },
+        "controls": {
+          ".lp-shell": {
+            "x": 0,
+            "y": 0,
+            "w": 360,
+            "h": 923,
+            "clientWidth": 360,
+            "scrollWidth": 391,
+            "clientHeight": 923,
+            "scrollHeight": 923,
+            "overflow": "visible"
+          },
+          ".le-workspace": {
+            "x": 142,
+            "y": 278,
+            "w": 218,
+            "h": 645,
+            "clientWidth": 218,
+            "scrollWidth": 747,
+            "clientHeight": 645,
+            "scrollHeight": 645,
+            "overflow": "auto"
+          },
+          ".le-inspector": {
+            "x": 140,
+            "y": 278,
+            "w": 235,
+            "h": 645,
+            "clientWidth": 234,
+            "scrollWidth": 234,
+            "clientHeight": 645,
+            "scrollHeight": 645,
+            "overflow": "visible"
+          },
+          ".le-canvas": {
+            "x": -220,
+            "y": 278,
+            "w": 360,
+            "h": 645,
+            "clientWidth": 360,
+            "scrollWidth": 360,
+            "clientHeight": 645,
+            "scrollHeight": 645,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 390,
+      "route": "editor",
+      "scene": "run-settings",
+      "metrics": {
+        "root": {
+          "width": 390,
+          "scrollWidth": 390,
+          "height": 900
+        },
+        "controls": {
+          ".ws-workbench": {
+            "x": 190,
+            "y": 194,
+            "w": 200,
+            "h": 648,
+            "clientWidth": 200,
+            "scrollWidth": 846,
+            "clientHeight": 648,
+            "scrollHeight": 648,
+            "overflow": "auto hidden"
+          },
+          ".ws-inspector": {
+            "x": 96,
+            "y": 194,
+            "w": 320,
+            "h": 648,
+            "clientWidth": 319,
+            "scrollWidth": 319,
+            "clientHeight": 648,
+            "scrollHeight": 648,
+            "overflow": "hidden"
+          },
+          "#ws-panel-results": {
+            "x": 97,
+            "y": 240,
+            "w": 319,
+            "h": 601,
+            "clientWidth": 319,
+            "scrollWidth": 319,
+            "clientHeight": 601,
+            "scrollHeight": 972,
+            "overflow": "auto"
+          },
+          ".run-bar": null,
+          ".run-compose textarea": {
+            "x": 111,
+            "y": 892,
+            "w": 291,
+            "h": 124,
+            "clientWidth": 289,
+            "scrollWidth": 289,
+            "clientHeight": 122,
+            "scrollHeight": 122,
+            "overflow": "auto"
+          },
+          ".run-primary": {
+            "x": 295,
+            "y": 1024,
+            "w": 107,
+            "h": 44,
+            "clientWidth": 105,
+            "scrollWidth": 105,
+            "clientHeight": 42,
+            "scrollHeight": 42,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 390,
+      "route": "editor",
+      "scene": "import",
+      "metrics": {
+        "root": {
+          "width": 390,
+          "scrollWidth": 390,
+          "height": 540
+        },
+        "controls": {
+          "dialog[open]": {
+            "x": 17,
+            "y": 32,
+            "w": 356,
+            "h": 475,
+            "clientWidth": 354,
+            "scrollWidth": 354,
+            "clientHeight": 473,
+            "scrollHeight": 473,
+            "overflow": "hidden"
+          },
+          ".ws-modal-content": {
+            "x": 18,
+            "y": 98,
+            "w": 354,
+            "h": 408,
+            "clientWidth": 354,
+            "scrollWidth": 354,
+            "clientHeight": 408,
+            "scrollHeight": 507,
+            "overflow": "auto"
+          },
+          ".ws-modal-footer": null,
+          "dialog[open] [role=alert]": {
+            "x": 34,
+            "y": 434,
+            "w": 322,
+            "h": 42,
+            "clientWidth": 322,
+            "scrollWidth": 322,
+            "clientHeight": 42,
+            "scrollHeight": 42,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 390,
+      "route": "prototype",
+      "scene": "status",
+      "metrics": {
+        "status": 200
+      }
+    },
+    {
+      "width": 390,
+      "route": "prototype",
+      "scene": "prototype-preview",
+      "metrics": {
+        "root": {
+          "width": 390,
+          "scrollWidth": 391,
+          "height": 900
+        },
+        "controls": {
+          ".lp-shell": {
+            "x": 0,
+            "y": 0,
+            "w": 390,
+            "h": 923,
+            "clientWidth": 390,
+            "scrollWidth": 391,
+            "clientHeight": 923,
+            "scrollHeight": 923,
+            "overflow": "visible"
+          },
+          ".le-workspace": {
+            "x": 142,
+            "y": 278,
+            "w": 248,
+            "h": 645,
+            "clientWidth": 248,
+            "scrollWidth": 747,
+            "clientHeight": 645,
+            "scrollHeight": 645,
+            "overflow": "auto"
+          },
+          ".le-inspector": {
+            "x": 170,
+            "y": 278,
+            "w": 235,
+            "h": 645,
+            "clientWidth": 234,
+            "scrollWidth": 234,
+            "clientHeight": 645,
+            "scrollHeight": 645,
+            "overflow": "visible"
+          },
+          ".le-canvas": {
+            "x": -190,
+            "y": 278,
+            "w": 360,
+            "h": 645,
+            "clientWidth": 360,
+            "scrollWidth": 360,
+            "clientHeight": 645,
+            "scrollHeight": 645,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 768,
+      "route": "editor",
+      "scene": "run-settings",
+      "metrics": {
+        "root": {
+          "width": 768,
+          "scrollWidth": 768,
+          "height": 900
+        },
+        "controls": {
+          ".ws-workbench": {
+            "x": 190,
+            "y": 194,
+            "w": 578,
+            "h": 676,
+            "clientWidth": 578,
+            "scrollWidth": 846,
+            "clientHeight": 676,
+            "scrollHeight": 676,
+            "overflow": "auto hidden"
+          },
+          ".ws-inspector": {
+            "x": 448,
+            "y": 194,
+            "w": 320,
+            "h": 676,
+            "clientWidth": 319,
+            "scrollWidth": 319,
+            "clientHeight": 676,
+            "scrollHeight": 676,
+            "overflow": "hidden"
+          },
+          "#ws-panel-results": {
+            "x": 449,
+            "y": 240,
+            "w": 319,
+            "h": 630,
+            "clientWidth": 319,
+            "scrollWidth": 319,
+            "clientHeight": 630,
+            "scrollHeight": 972,
+            "overflow": "auto"
+          },
+          ".run-bar": null,
+          ".run-compose textarea": {
+            "x": 463,
+            "y": 1016,
+            "w": 291,
+            "h": 124,
+            "clientWidth": 289,
+            "scrollWidth": 289,
+            "clientHeight": 122,
+            "scrollHeight": 122,
+            "overflow": "auto"
+          },
+          ".run-primary": {
+            "x": 647,
+            "y": 1148,
+            "w": 107,
+            "h": 44,
+            "clientWidth": 105,
+            "scrollWidth": 105,
+            "clientHeight": 42,
+            "scrollHeight": 42,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 768,
+      "route": "prototype",
+      "scene": "status",
+      "metrics": {
+        "status": 200
+      }
+    },
+    {
+      "width": 768,
+      "route": "prototype",
+      "scene": "prototype-preview",
+      "metrics": {
+        "root": {
+          "width": 768,
+          "scrollWidth": 768,
+          "height": 900
+        },
+        "controls": {
+          ".lp-shell": {
+            "x": 0,
+            "y": 0,
+            "w": 768,
+            "h": 900,
+            "clientWidth": 768,
+            "scrollWidth": 768,
+            "clientHeight": 900,
+            "scrollHeight": 900,
+            "overflow": "visible"
+          },
+          ".le-workspace": {
+            "x": 142,
+            "y": 151,
+            "w": 626,
+            "h": 749,
+            "clientWidth": 626,
+            "scrollWidth": 747,
+            "clientHeight": 749,
+            "scrollHeight": 749,
+            "overflow": "auto"
+          },
+          ".le-inspector": {
+            "x": 548,
+            "y": 151,
+            "w": 235,
+            "h": 749,
+            "clientWidth": 234,
+            "scrollWidth": 234,
+            "clientHeight": 749,
+            "scrollHeight": 749,
+            "overflow": "visible"
+          },
+          ".le-canvas": {
+            "x": 188,
+            "y": 151,
+            "w": 360,
+            "h": 749,
+            "clientWidth": 360,
+            "scrollWidth": 360,
+            "clientHeight": 749,
+            "scrollHeight": 749,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 1024,
+      "route": "editor",
+      "scene": "run-settings",
+      "metrics": {
+        "root": {
+          "width": 1024,
+          "scrollWidth": 1024,
+          "height": 900
+        },
+        "controls": {
+          ".ws-workbench": {
+            "x": 190,
+            "y": 152,
+            "w": 834,
+            "h": 718,
+            "clientWidth": 834,
+            "scrollWidth": 846,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "auto hidden"
+          },
+          ".ws-inspector": {
+            "x": 716,
+            "y": 152,
+            "w": 320,
+            "h": 718,
+            "clientWidth": 319,
+            "scrollWidth": 319,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "hidden"
+          },
+          "#ws-panel-results": {
+            "x": 717,
+            "y": 199,
+            "w": 319,
+            "h": 672,
+            "clientWidth": 319,
+            "scrollWidth": 319,
+            "clientHeight": 672,
+            "scrollHeight": 972,
+            "overflow": "auto"
+          },
+          ".run-bar": null,
+          ".run-compose textarea": {
+            "x": 731,
+            "y": 974,
+            "w": 291,
+            "h": 124,
+            "clientWidth": 289,
+            "scrollWidth": 289,
+            "clientHeight": 122,
+            "scrollHeight": 122,
+            "overflow": "auto"
+          },
+          ".run-primary": {
+            "x": 915,
+            "y": 1107,
+            "w": 107,
+            "h": 44,
+            "clientWidth": 105,
+            "scrollWidth": 105,
+            "clientHeight": 42,
+            "scrollHeight": 42,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 1024,
+      "route": "prototype",
+      "scene": "status",
+      "metrics": {
+        "status": 200
+      }
+    },
+    {
+      "width": 1024,
+      "route": "prototype",
+      "scene": "prototype-preview",
+      "metrics": {
+        "root": {
+          "width": 1024,
+          "scrollWidth": 1024,
+          "height": 900
+        },
+        "controls": {
+          ".lp-shell": {
+            "x": 0,
+            "y": 0,
+            "w": 1024,
+            "h": 900,
+            "clientWidth": 1024,
+            "scrollWidth": 1024,
+            "clientHeight": 900,
+            "scrollHeight": 900,
+            "overflow": "visible"
+          },
+          ".le-workspace": {
+            "x": 176,
+            "y": 151,
+            "w": 848,
+            "h": 749,
+            "clientWidth": 848,
+            "scrollWidth": 848,
+            "clientHeight": 749,
+            "scrollHeight": 749,
+            "overflow": "auto"
+          },
+          ".le-inspector": {
+            "x": 789,
+            "y": 151,
+            "w": 235,
+            "h": 749,
+            "clientWidth": 234,
+            "scrollWidth": 234,
+            "clientHeight": 749,
+            "scrollHeight": 749,
+            "overflow": "visible"
+          },
+          ".le-canvas": {
+            "x": 328,
+            "y": 151,
+            "w": 461,
+            "h": 749,
+            "clientWidth": 461,
+            "scrollWidth": 461,
+            "clientHeight": 749,
+            "scrollHeight": 749,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "route": "editor",
+      "scene": "run-settings",
+      "metrics": {
+        "root": {
+          "width": 1280,
+          "scrollWidth": 1280,
+          "height": 900
+        },
+        "controls": {
+          ".ws-workbench": {
+            "x": 190,
+            "y": 152,
+            "w": 1090,
+            "h": 718,
+            "clientWidth": 1090,
+            "scrollWidth": 1090,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "auto hidden"
+          },
+          ".ws-inspector": {
+            "x": 909,
+            "y": 152,
+            "w": 371,
+            "h": 718,
+            "clientWidth": 370,
+            "scrollWidth": 370,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "hidden"
+          },
+          "#ws-panel-results": {
+            "x": 910,
+            "y": 199,
+            "w": 370,
+            "h": 672,
+            "clientWidth": 370,
+            "scrollWidth": 370,
+            "clientHeight": 672,
+            "scrollHeight": 958,
+            "overflow": "auto"
+          },
+          ".run-bar": null,
+          ".run-compose textarea": {
+            "x": 924,
+            "y": 960,
+            "w": 342,
+            "h": 124,
+            "clientWidth": 340,
+            "scrollWidth": 340,
+            "clientHeight": 122,
+            "scrollHeight": 122,
+            "overflow": "auto"
+          },
+          ".run-primary": {
+            "x": 1159,
+            "y": 1093,
+            "w": 107,
+            "h": 44,
+            "clientWidth": 105,
+            "scrollWidth": 105,
+            "clientHeight": 42,
+            "scrollHeight": 42,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 1280,
+      "route": "prototype",
+      "scene": "status",
+      "metrics": {
+        "status": 200
+      }
+    },
+    {
+      "width": 1280,
+      "route": "prototype",
+      "scene": "prototype-preview",
+      "metrics": {
+        "root": {
+          "width": 1280,
+          "scrollWidth": 1280,
+          "height": 900
+        },
+        "controls": {
+          ".lp-shell": {
+            "x": 0,
+            "y": 0,
+            "w": 1280,
+            "h": 900,
+            "clientWidth": 1280,
+            "scrollWidth": 1280,
+            "clientHeight": 900,
+            "scrollHeight": 900,
+            "overflow": "visible"
+          },
+          ".le-workspace": {
+            "x": 176,
+            "y": 151,
+            "w": 1104,
+            "h": 749,
+            "clientWidth": 1104,
+            "scrollWidth": 1104,
+            "clientHeight": 749,
+            "scrollHeight": 749,
+            "overflow": "visible"
+          },
+          ".le-inspector": {
+            "x": 1037,
+            "y": 151,
+            "w": 243,
+            "h": 749,
+            "clientWidth": 242,
+            "scrollWidth": 242,
+            "clientHeight": 749,
+            "scrollHeight": 749,
+            "overflow": "visible"
+          },
+          ".le-canvas": {
+            "x": 333,
+            "y": 151,
+            "w": 703,
+            "h": 749,
+            "clientWidth": 703,
+            "scrollWidth": 703,
+            "clientHeight": 749,
+            "scrollHeight": 749,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "route": "editor",
+      "scene": "run-settings",
+      "metrics": {
+        "root": {
+          "width": 1440,
+          "scrollWidth": 1440,
+          "height": 900
+        },
+        "controls": {
+          ".ws-workbench": {
+            "x": 190,
+            "y": 152,
+            "w": 1250,
+            "h": 718,
+            "clientWidth": 1250,
+            "scrollWidth": 1250,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "auto hidden"
+          },
+          ".ws-inspector": {
+            "x": 1015,
+            "y": 152,
+            "w": 425,
+            "h": 718,
+            "clientWidth": 424,
+            "scrollWidth": 424,
+            "clientHeight": 718,
+            "scrollHeight": 718,
+            "overflow": "hidden"
+          },
+          "#ws-panel-results": {
+            "x": 1016,
+            "y": 199,
+            "w": 424,
+            "h": 672,
+            "clientWidth": 424,
+            "scrollWidth": 424,
+            "clientHeight": 672,
+            "scrollHeight": 958,
+            "overflow": "auto"
+          },
+          ".run-bar": null,
+          ".run-compose textarea": {
+            "x": 1030,
+            "y": 920,
+            "w": 396,
+            "h": 124,
+            "clientWidth": 394,
+            "scrollWidth": 394,
+            "clientHeight": 122,
+            "scrollHeight": 122,
+            "overflow": "auto"
+          },
+          ".run-primary": {
+            "x": 1319,
+            "y": 1053,
+            "w": 107,
+            "h": 44,
+            "clientWidth": 105,
+            "scrollWidth": 105,
+            "clientHeight": 42,
+            "scrollHeight": 42,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "route": "editor",
+      "scene": "import",
+      "metrics": {
+        "root": {
+          "width": 1440,
+          "scrollWidth": 1440,
+          "height": 900
+        },
+        "controls": {
+          "dialog[open]": {
+            "x": 400,
+            "y": 184,
+            "w": 640,
+            "h": 532,
+            "clientWidth": 638,
+            "scrollWidth": 638,
+            "clientHeight": 530,
+            "scrollHeight": 530,
+            "overflow": "hidden"
+          },
+          ".ws-modal-content": {
+            "x": 401,
+            "y": 250,
+            "w": 638,
+            "h": 465,
+            "clientWidth": 638,
+            "scrollWidth": 638,
+            "clientHeight": 465,
+            "scrollHeight": 465,
+            "overflow": "auto"
+          },
+          ".ws-modal-footer": null,
+          "dialog[open] [role=alert]": {
+            "x": 427,
+            "y": 604,
+            "w": 586,
+            "h": 21,
+            "clientWidth": 586,
+            "scrollWidth": 586,
+            "clientHeight": 21,
+            "scrollHeight": 21,
+            "overflow": "visible"
+          }
+        }
+      }
+    },
+    {
+      "width": 1440,
+      "route": "prototype",
+      "scene": "status",
+      "metrics": {
+        "status": 200
+      }
+    },
+    {
+      "width": 1440,
+      "route": "prototype",
+      "scene": "prototype-preview",
+      "metrics": {
+        "root": {
+          "width": 1440,
+          "scrollWidth": 1440,
+          "height": 900
+        },
+        "controls": {
+          ".lp-shell": {
+            "x": 0,
+            "y": 0,
+            "w": 1440,
+            "h": 900,
+            "clientWidth": 1440,
+            "scrollWidth": 1440,
+            "clientHeight": 900,
+            "scrollHeight": 900,
+            "overflow": "visible"
+          },
+          ".le-workspace": {
+            "x": 176,
+            "y": 155,
+            "w": 1264,
+            "h": 745,
+            "clientWidth": 1264,
+            "scrollWidth": 1264,
+            "clientHeight": 745,
+            "scrollHeight": 745,
+            "overflow": "visible"
+          },
+          ".le-inspector": {
+            "x": 1166,
+            "y": 155,
+            "w": 274,
+            "h": 745,
+            "clientWidth": 273,
+            "scrollWidth": 273,
+            "clientHeight": 745,
+            "scrollHeight": 745,
+            "overflow": "visible"
+          },
+          ".le-canvas": {
+            "x": 353,
+            "y": 155,
+            "w": 813,
+            "h": 745,
+            "clientWidth": 813,
+            "scrollWidth": 813,
+            "clientHeight": 745,
+            "scrollHeight": 745,
+            "overflow": "visible"
+          }
+        }
+      }
+    }
+  ],
+  "consoleErrors": [],
+  "pageErrors": []
+}

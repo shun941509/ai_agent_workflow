@@ -1,4 +1,11 @@
-export type ReplyField = {name:string; required:boolean; format?:'edition'};
+export type ReplyField = {name:string; required:boolean; multiline?:boolean; format?:'edition'};
+
+export function questionMarkdownName(value:unknown): string | undefined {
+  if (typeof value !== 'string') return;
+  const name = value.split(/[\\/]/).pop()?.trim();
+  if (!name) return;
+  return name.toLowerCase().endsWith('.md') ? name : name + '.md';
+}
 
 /** Published collection editions may be named, while asset editions are numbered. */
 export function editionIdentifier(value:unknown):string | undefined {
@@ -13,7 +20,8 @@ export function replyFields(config:unknown):ReplyField[] {
     const name = typeof entry === 'string' ? entry : entry?.name ?? entry?.key;
     if (typeof name !== 'string' || !name.trim()) continue;
     const required = entry?.required !== false || fields.get(name)?.required === true;
-    fields.set(name,{name,required});
+    const multiline = entry?.multiline === true || fields.get(name)?.multiline === true;
+    fields.set(name,{name,required,...(multiline && {multiline:true})});
   }
   return [...fields.values()];
 }

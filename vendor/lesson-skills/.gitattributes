@@ -1,0 +1,5 @@
+# Preserve upstream bytes, including on Windows checkouts with autocrlf.
+find-docs/** -text
+webhook-handler-patterns/** -text
+skill-creator/** -text
+licenses/** -text

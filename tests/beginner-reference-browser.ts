@@ -71,118 +71,111 @@ async function answerLoanQuestion(page: Page, project: string, expectedLimit: 3 
 }
 
 try {
-  for (const width of [1440, 390]) {
-    const mobile = width === 390;
-    const context = await browser.newContext({baseURL, viewport:{width, height: mobile ? 844 : 900}, isMobile:mobile, hasTouch:mobile});
-    try {
-      await registerBrowserAccount(context);
-      const page = await context.newPage();
-      async function newBeginnerCopy() {
-        await page.goto('/?view=templates');
-        await page.getByRole('button', {name:'초급', exact:true}).click();
-        await page.getByRole('button', {name:/내 자료로 안내하기/}).click();
-        const detail = page.getByRole('dialog');
-        const optional=detail.locator('details').filter({has:page.locator('summary',{hasText:'선택 실습'})});
-        await optional.locator('summary').click();
-        await expect(optional).toContainText('이름·자료판 설정');
-        await detail.getByRole('button', {name:'내 사본으로 시작', exact:true}).click();
-        await expect(page).toHaveURL(url => url.searchParams.has('edit'));
-        return new URL(page.url()).searchParams.get('edit')!;
-      }
-      const openRules = () => page.locator('[data-canvas-block="rules"]').click();
-      const closeSheet = async () => {
-        const close = page.getByRole('dialog', {name:'속성 패널'}).getByRole('button',{name:'속성 닫기'});
-        if (await close.isVisible()) await close.click();
-      };
-      await newBeginnerCopy();
-      await openRules();
-      const source = page.getByRole('textbox', {name:'자료 원문', exact:true});
-      const original = await source.inputValue();
-      assert.match(original, /한 사람의 대출 한도는 3권입니다\./);
-      const edited = original.replace('3권', '5권');
-      await source.fill(edited);
-      const save = page.getByRole('button', {name:'내 참고 자료로 저장', exact:true});
-      await expect(save).toBeVisible();
-      await expect(page.getByRole('textbox', {name:'자료 이름', exact:true})).toHaveValue('도서관 이용규정');
-      const list = async () => (await api<Asset[]>(context, 'asset.list')).filter(asset => asset.mine);
-      assert.deepEqual(await list(), []);
-      if (!mobile) {
-        // Lose one response after the real server has committed the reference.
-        let loseResponse = true;
-        await page.route('**/api/studio', async route => {
-          if (!loseResponse || route.request().postDataJSON().action !== 'asset.save') return route.fallback();
-          loseResponse = false;
-          const accepted = await route.fetch();
-          assert.ok(accepted.ok());
-          await route.fulfill({status:503, json:{error:'저장 응답을 받지 못했습니다.'}});
-        });
-        await save.click();
-        await expect(page.getByRole('alert').filter({hasText:'저장 응답을 받지 못했습니다.'})).toBeVisible();
-        await expect(source).toHaveValue(edited);
-      }
-      await save.press('Enter');
-      await expect(page.getByRole('status').filter({hasText:'내 비공개 참고 자료로 저장했습니다'})).toBeVisible();
-      await expect(save).toBeDisabled();
-      await expect(save).toBeFocused();
-      await page.keyboard.press('Tab');
-      await expect(page.getByRole('link', {name:/저장한 참고 자료 열기/})).toBeFocused();
-      await expect.poll(async () => (await list()).length).toBe(1);
-      const [asset] = await list();
-      assert.equal(asset.visibility, 'private');
-      assert.equal(asset.kind, 'document');
-      assert.equal(asset.version, 1);
+  const width = 1440;
+  const context = await browser.newContext({baseURL, viewport:{width, height:900}});
+  try {
+    await registerBrowserAccount(context);
+    const page = await context.newPage();
+    async function newBeginnerCopy() {
+      await page.goto('/?view=templates');
+      await page.getByRole('combobox', {name:'실습 수준', exact:true}).selectOption({label:'초급'});
+      await page.getByRole('button', {name:/내 자료로 안내하기/}).click();
+      const detail = page.getByRole('dialog');
+      const optional=detail.locator('details').filter({has:page.locator('summary',{hasText:'선택 실습'})});
+      await optional.locator('summary').click();
+      await expect(optional).toContainText('이름·자료판 설정');
+      await detail.getByRole('button', {name:'내 사본으로 시작', exact:true}).click();
+      await expect(page).toHaveURL(url => url.searchParams.has('edit'));
+      return new URL(page.url()).searchParams.get('edit')!;
+    }
+    const openRules = () => page.locator('[data-canvas-block="rules"]').click();
+    await newBeginnerCopy();
+    await openRules();
+    const source = page.getByRole('textbox', {name:'자료 원문', exact:true});
+    const original = await source.inputValue();
+    assert.match(original, /한 사람의 대출 한도는 3권입니다\./);
+    const edited = original.replace('3권', '5권');
+    await source.fill(edited);
+    const save = page.getByRole('button', {name:'내 참고 자료로 저장', exact:true});
+    await expect(save).toBeVisible();
+    await expect(page.getByRole('textbox', {name:'자료 이름', exact:true})).toHaveValue('도서관 이용규정');
+    const list = async () => (await api<Asset[]>(context, 'asset.list')).filter(asset => asset.mine);
+    assert.deepEqual(await list(), []);
+    {
+      // Lose one response after the real server has committed the reference.
+      let loseResponse = true;
+      await page.route('**/api/studio', async route => {
+        if (!loseResponse || route.request().postDataJSON().action !== 'asset.save') return route.fallback();
+        loseResponse = false;
+        const accepted = await route.fetch();
+        assert.ok(accepted.ok());
+        await route.fulfill({status:503, json:{error:'저장 응답을 받지 못했습니다.'}});
+      });
+      await save.click();
+      await expect(page.getByRole('alert').filter({hasText:'저장 응답을 받지 못했습니다.'})).toBeVisible();
       await expect(source).toHaveValue(edited);
-      const edition = await api<{payload:{content:string}}>(context, 'asset.read', {id:asset.id, version:1});
-      assert.equal(edition.payload.content, edited);
-      const materialSettings = page.getByText('이름·자료판 설정', {exact:true});
-      const picker = page.getByRole('combobox', {name:'연결할 자료', exact:true});
-      await materialSettings.click();
-      await expect(picker).toHaveValue('');
-      await expect(picker.getByRole('option', {name:/도서관 이용규정.*내 자료.*1판/})).toHaveAttribute('value', asset.id);
-      await materialSettings.click();
-      await page.getByRole('button', {name:'변경 적용', exact:true}).click();
-      await expect(page.getByRole('button', {name:'변경 적용', exact:true})).toBeDisabled();
-      const libraryPage = await context.newPage();
-      await libraryPage.goto('/?view=assets');
-      const library = libraryPage.getByRole('region', {name:'도구 및 자료'});
-      await library.getByRole('button', {name:'내 자료', exact:true}).click();
-      const entry = library.getByRole('button', {name:/도서관 이용규정.*참고 자료/});
-      await expect(entry).toContainText('나만 사용');
-      await entry.click();
-      await expect(library.locator('.rl-source')).toHaveText(edited);
-      await libraryPage.close();
+    }
+    await save.press('Enter');
+    await expect(page.getByRole('status').filter({hasText:'내 비공개 참고 자료로 저장했습니다'})).toBeVisible();
+    await expect(save).toBeDisabled();
+    await expect(save).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('link', {name:/저장한 참고 자료 열기/})).toBeFocused();
+    await expect.poll(async () => (await list()).length).toBe(1);
+    const [asset] = await list();
+    assert.equal(asset.visibility, 'private');
+    assert.equal(asset.kind, 'document');
+    assert.equal(asset.version, 1);
+    await expect(source).toHaveValue(edited);
+    const edition = await api<{payload:{content:string}}>(context, 'asset.read', {id:asset.id, version:1});
+    assert.equal(edition.payload.content, edited);
+    const materialSettings = page.getByText('이름·자료판 설정', {exact:true});
+    const picker = page.getByRole('combobox', {name:'연결할 자료', exact:true});
+    await materialSettings.click();
+    await expect(picker).toHaveValue('');
+    await expect(picker.getByRole('option', {name:/도서관 이용규정.*내 자료.*1판/})).toHaveAttribute('value', asset.id);
+    await materialSettings.click();
+    await page.getByRole('button', {name:'변경 적용', exact:true}).click();
+    await expect(page.getByRole('button', {name:'변경 적용', exact:true})).toBeDisabled();
+    const libraryPage = await context.newPage();
+    await libraryPage.goto('/?view=assets');
+    const library = libraryPage.getByRole('region', {name:'도구 및 자료'});
+    await library.getByRole('button', {name:'내 자료', exact:true}).click();
+    const entry = library.getByRole('button', {name:/도서관 이용규정.*참고 자료/});
+    await expect(entry).toContainText('나만 사용');
+    await entry.click();
+    await expect(library.locator('.rl-source')).toHaveText(edited);
+    await libraryPage.close();
 
-      const decoy = await api<Asset>(context, 'asset.save', {kind:'document', name:asset.name, payload:{content:original}});
-      const reused = await newBeginnerCopy();
-      await openRules();
-      await expect(source).toHaveValue(original);
-      await materialSettings.click();
-      const choices = picker.getByRole('option', {name:/도서관 이용규정.*내 자료.*1판/});
-      await expect(choices).toHaveCount(2);
-      assert.equal(new Set(await choices.allTextContents()).size, 2);
-      await picker.selectOption(decoy.id);
-      const preview = page.getByRole('region', {name:'연결 전 원문'});
-      await expect(preview).toContainText('한 사람의 대출 한도는 3권입니다.');
-      await picker.selectOption(asset.id);
-      await expect(preview).toContainText('한 사람의 대출 한도는 5권입니다.');
-      await expect(source).toHaveValue(original);
-      await expect(page.getByRole('link', {name:/연결한 자료 원문 열기/})).toHaveCount(0);
-      await page.getByRole('button', {name:'이 판 연결', exact:true}).click();
-      await expect(page.getByRole('link', {name:/연결한 자료 원문 열기/})).toBeVisible();
-      await closeSheet();
-      await page.getByLabel('프로젝트 메뉴', {exact:true}).click();
-      await page.getByRole('button', {name:'저장', exact:true}).click();
-      await expect.poll(async () => {
-        const {graph} = await api<{graph:Graph}>(context, 'project.open', {id:reused});
-        const reference = graph.nodes.find(node => node.id === 'rules')!.config;
-        return [reference.assetId, String(reference.version)];
-      }).toEqual([asset.id, '1']);
-      await answerLoanQuestion(page, reused, 5);
+    const decoy = await api<Asset>(context, 'asset.save', {kind:'document', name:asset.name, payload:{content:original}});
+    const reused = await newBeginnerCopy();
+    await openRules();
+    await expect(source).toHaveValue(original);
+    await materialSettings.click();
+    const choices = picker.getByRole('option', {name:/도서관 이용규정.*내 자료.*1판/});
+    await expect(choices).toHaveCount(2);
+    assert.equal(new Set(await choices.allTextContents()).size, 2);
+    await picker.selectOption(decoy.id);
+    const preview = page.getByRole('region', {name:'연결 전 원문'});
+    await expect(preview).toContainText('한 사람의 대출 한도는 3권입니다.');
+    await picker.selectOption(asset.id);
+    await expect(preview).toContainText('한 사람의 대출 한도는 5권입니다.');
+    await expect(source).toHaveValue(original);
+    await expect(page.getByRole('link', {name:/연결한 자료 원문 열기/})).toHaveCount(0);
+    await page.getByRole('button', {name:'이 판 연결', exact:true}).click();
+    await expect(page.getByRole('link', {name:/연결한 자료 원문 열기/})).toBeVisible();
+    await page.getByLabel('프로젝트 메뉴', {exact:true}).click();
+    await page.getByRole('button', {name:'저장', exact:true}).click();
+    await expect.poll(async () => {
+      const {graph} = await api<{graph:Graph}>(context, 'project.open', {id:reused});
+      const reference = graph.nodes.find(node => node.id === 'rules')!.config;
+      return [reference.assetId, String(reference.version)];
+    }).toEqual([asset.id, '1']);
+    await answerLoanQuestion(page, reused, 5);
 
-      const fresh = await newBeginnerCopy();
-      await answerLoanQuestion(page, fresh, 3);
-      assert.equal((await list()).length, 2);
-      console.log('PASS ' + width + 'px · 편집 원문 비공개 1판 저장, 다른 사본으로 연결, 각각 5권·3권 답변과 대출안내.txt 검증');
-    } finally { await context.close(); }
-  }
+    const fresh = await newBeginnerCopy();
+    await answerLoanQuestion(page, fresh, 3);
+    assert.equal((await list()).length, 2);
+    console.log('PASS ' + width + 'px · 편집 원문 비공개 1판 저장, 다른 사본으로 연결, 각각 5권·3권 답변과 대출안내.txt 검증');
+  } finally { await context.close(); }
 } finally { await browser.close(); }

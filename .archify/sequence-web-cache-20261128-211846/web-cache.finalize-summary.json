@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "sequence",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\.archify\\sequence-web-cache-20261128-211846\\candidate.json",
+    "sha256": "2bc5b039811d0da60c8cf8cd98773c42c1cb01070daa932ac3b2c5e75161e709",
+    "bytes": 2298
+  },
+  "artifact": {
+    "path": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\.archify\\sequence-web-cache-20261128-211846\\web-cache.html",
+    "sha256": "4c55fc92689f21713050dda7e1b0185082ce1878bb581674edc0bc6d489f79d4",
+    "bytes": 937409
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\.archify\\sequence-web-cache-20261128-211846\\web-cache.finalize.json",
+    "summaryReceipt": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\.archify\\sequence-web-cache-20261128-211846\\web-cache.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\ght11111\\Documents\\Codex\\ai_agent_workflow\\.archify\\sequence-web-cache-20261128-211846\\web-cache.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.3.2",
+    "availableVersion": "3.3.2",
+    "releaseNotes": null,
+    "checkedAt": "2026-11-28T12:19:36.165Z",
+    "source": "network",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 11391,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

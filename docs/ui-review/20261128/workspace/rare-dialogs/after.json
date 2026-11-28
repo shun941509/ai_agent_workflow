@@ -1,0 +1,450 @@
+{
+  "viewport": [
+    390,
+    540
+  ],
+  "rows": [
+    {
+      "theme": "light",
+      "type": "skill-stage",
+      "initial": {
+        "width": 358,
+        "height": 475,
+        "footerTop": 442,
+        "footerBottom": 507,
+        "panel": [
+          347,
+          868,
+          0
+        ],
+        "inner": [
+          [
+            173,
+            173,
+            "visible"
+          ],
+          [
+            516,
+            497,
+            "visible"
+          ]
+        ],
+        "declaredColorScheme": "light dark",
+        "background": "rgb(255, 255, 255)",
+        "focus": "현재 내용 유지"
+      },
+      "scrolled": {
+        "width": 358,
+        "height": 475,
+        "footerTop": 442,
+        "footerBottom": 507,
+        "panel": [
+          347,
+          868,
+          521
+        ],
+        "inner": [
+          [
+            173,
+            173,
+            "visible"
+          ],
+          [
+            516,
+            497,
+            "visible"
+          ]
+        ],
+        "declaredColorScheme": "light dark",
+        "background": "rgb(255, 255, 255)",
+        "focus": "현재 내용 유지"
+      },
+      "tabWrap": true,
+      "returnedFocus": "ZIP 파일",
+      "focusRestored": true
+    },
+    {
+      "theme": "light",
+      "type": "conflict",
+      "initial": {
+        "width": 358,
+        "height": 475,
+        "footerTop": 394,
+        "footerBottom": 507,
+        "panel": [
+          299,
+          824,
+          0
+        ],
+        "inner": [
+          [
+            238,
+            1044,
+            "auto"
+          ],
+          [
+            238,
+            1044,
+            "auto"
+          ]
+        ],
+        "declaredColorScheme": "light dark",
+        "background": "rgb(255, 255, 255)",
+        "focus": ""
+      },
+      "scrolled": {
+        "width": 358,
+        "height": 475,
+        "footerTop": 394,
+        "footerBottom": 507,
+        "panel": [
+          299,
+          824,
+          524
+        ],
+        "inner": [
+          [
+            238,
+            1044,
+            "auto"
+          ],
+          [
+            238,
+            1044,
+            "auto"
+          ]
+        ],
+        "declaredColorScheme": "light dark",
+        "background": "rgb(255, 255, 255)",
+        "focus": ""
+      },
+      "tabWrap": true,
+      "returnedFocus": "최신판과 비교",
+      "focusRestored": true
+    },
+    {
+      "theme": "light",
+      "type": "asset-purge",
+      "initial": {
+        "width": 358,
+        "height": 408,
+        "footerTop": 408,
+        "footerBottom": 473,
+        "panel": [
+          280,
+          280,
+          0
+        ],
+        "inner": [
+          [
+            189,
+            195,
+            "auto"
+          ]
+        ],
+        "declaredColorScheme": "light dark",
+        "background": "rgb(255, 255, 255)",
+        "focus": "취소"
+      },
+      "scrolled": {
+        "width": 358,
+        "height": 408,
+        "footerTop": 408,
+        "footerBottom": 473,
+        "panel": [
+          280,
+          280,
+          0
+        ],
+        "inner": [
+          [
+            189,
+            195,
+            "auto"
+          ]
+        ],
+        "declaredColorScheme": "light dark",
+        "background": "rgb(255, 255, 255)",
+        "focus": "취소"
+      },
+      "tabWrap": true,
+      "returnedFocus": "선택 항목 영구 삭제"
+    },
+    {
+      "theme": "light",
+      "type": "project-purge",
+      "initial": {
+        "width": 358,
+        "height": 408,
+        "footerTop": 408,
+        "footerBottom": 473,
+        "panel": [
+          280,
+          280,
+          0
+        ],
+        "inner": [
+          [
+            189,
+            195,
+            "auto"
+          ]
+        ],
+        "declaredColorScheme": "light dark",
+        "background": "rgb(255, 255, 255)",
+        "focus": "취소"
+      },
+      "scrolled": {
+        "width": 358,
+        "height": 408,
+        "footerTop": 408,
+        "footerBottom": 473,
+        "panel": [
+          280,
+          280,
+          0
+        ],
+        "inner": [
+          [
+            189,
+            195,
+            "auto"
+          ]
+        ],
+        "declaredColorScheme": "light dark",
+        "background": "rgb(255, 255, 255)",
+        "focus": "취소"
+      },
+      "tabWrap": true,
+      "returnedFocus": "선택 항목 영구 삭제"
+    },
+    {
+      "theme": "dark",
+      "type": "skill-stage",
+      "initial": {
+        "width": 358,
+        "height": 475,
+        "footerTop": 442,
+        "footerBottom": 507,
+        "panel": [
+          347,
+          868,
+          0
+        ],
+        "inner": [
+          [
+            173,
+            173,
+            "visible"
+          ],
+          [
+            516,
+            497,
+            "visible"
+          ]
+        ],
+        "declaredColorScheme": "light dark",
+        "background": "rgb(28, 41, 58)",
+        "focus": "현재 내용 유지"
+      },
+      "scrolled": {
+        "width": 358,
+        "height": 475,
+        "footerTop": 442,
+        "footerBottom": 507,
+        "panel": [
+          347,
+          868,
+          521
+        ],
+        "inner": [
+          [
+            173,
+            173,
+            "visible"
+          ],
+          [
+            516,
+            497,
+            "visible"
+          ]
+        ],
+        "declaredColorScheme": "light dark",
+        "background": "rgb(28, 41, 58)",
+        "focus": "현재 내용 유지"
+      },
+      "tabWrap": true,
+      "returnedFocus": "ZIP 파일",
+      "focusRestored": true
+    },
+    {
+      "theme": "dark",
+      "type": "conflict",
+      "initial": {
+        "width": 358,
+        "height": 475,
+        "footerTop": 394,
+        "footerBottom": 507,
+        "panel": [
+          299,
+          824,
+          0
+        ],
+        "inner": [
+          [
+            238,
+            1044,
+            "auto"
+          ],
+          [
+            238,
+            1044,
+            "auto"
+          ]
+        ],
+        "declaredColorScheme": "light dark",
+        "background": "rgb(28, 41, 58)",
+        "focus": ""
+      },
+      "scrolled": {
+        "width": 358,
+        "height": 475,
+        "footerTop": 394,
+        "footerBottom": 507,
+        "panel": [
+          299,
+          824,
+          524
+        ],
+        "inner": [
+          [
+            238,
+            1044,
+            "auto"
+          ],
+          [
+            238,
+            1044,
+            "auto"
+          ]
+        ],
+        "declaredColorScheme": "light dark",
+        "background": "rgb(28, 41, 58)",
+        "focus": ""
+      },
+      "tabWrap": true,
+      "returnedFocus": "최신판과 비교",
+      "focusRestored": true
+    },
+    {
+      "theme": "dark",
+      "type": "asset-purge",
+      "initial": {
+        "width": 358,
+        "height": 408,
+        "footerTop": 408,
+        "footerBottom": 473,
+        "panel": [
+          280,
+          280,
+          0
+        ],
+        "inner": [
+          [
+            189,
+            195,
+            "auto"
+          ]
+        ],
+        "declaredColorScheme": "light dark",
+        "background": "rgb(28, 41, 58)",
+        "focus": "취소"
+      },
+      "scrolled": {
+        "width": 358,
+        "height": 408,
+        "footerTop": 408,
+        "footerBottom": 473,
+        "panel": [
+          280,
+          280,
+          0
+        ],
+        "inner": [
+          [
+            189,
+            195,
+            "auto"
+          ]
+        ],
+        "declaredColorScheme": "light dark",
+        "background": "rgb(28, 41, 58)",
+        "focus": "취소"
+      },
+      "tabWrap": true,
+      "returnedFocus": "선택 항목 영구 삭제"
+    },
+    {
+      "theme": "dark",
+      "type": "project-purge",
+      "initial": {
+        "width": 358,
+        "height": 408,
+        "footerTop": 408,
+        "footerBottom": 473,
+        "panel": [
+          280,
+          280,
+          0
+        ],
+        "inner": [
+          [
+            189,
+            195,
+            "auto"
+          ]
+        ],
+        "declaredColorScheme": "light dark",
+        "background": "rgb(28, 41, 58)",
+        "focus": "취소"
+      },
+      "scrolled": {
+        "width": 358,
+        "height": 408,
+        "footerTop": 408,
+        "footerBottom": 473,
+        "panel": [
+          280,
+          280,
+          0
+        ],
+        "inner": [
+          [
+            189,
+            195,
+            "auto"
+          ]
+        ],
+        "declaredColorScheme": "light dark",
+        "background": "rgb(28, 41, 58)",
+        "focus": "취소"
+      },
+      "tabWrap": true,
+      "returnedFocus": "선택 항목 영구 삭제"
+    }
+  ],
+  "failed": [],
+  "unexpected": [],
+  "http": [
+    {
+      "theme": "light",
+      "action": "asset.save",
+      "status": 409
+    },
+    {
+      "theme": "dark",
+      "action": "asset.save",
+      "status": 409
+    }
+  ]
+}

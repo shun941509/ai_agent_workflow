@@ -1,4 +1,6 @@
 import {strToU8, zipSync} from 'fflate';
+import {readFileSync} from 'node:fs';
+import {join} from 'node:path';
 import {childAgentContext, childScopeInstructions, emptyAgentContext, isDelegatedRole, modelBlocks, skillsForAgent, type AgentContext} from '../domain/agent-context';
 import {activeExportPreparation, exportStepPaths, sharedEditionLabel, type ExportPackage, type ExportPreparation} from '../domain/agent-export';
 import {designPreparation} from '../domain/export-design-preparation';
@@ -6,6 +8,12 @@ import {resourcePreparation} from '../domain/export-resource-preparation';
 import {byType, canonicalSelectionConfig, changesKnowledgeRelease, portsFor, replyDeadlineDefaultMinutes, replyDeadlineMaxMinutes} from '../domain/catalog';
 import {nodeMcpScope, toolPin, type McpPin} from '../domain/mcp-scope';
 import type {Block, Graph} from '../domain/types';
+import {projectWorkFor} from '../domain/web-project-work';
+import {inspectionExampleHtml, inspectionReceiverModule} from '../domain/equipment-inspection-example';
+import {inspectionRecoveryHtml, inspectionRecoveryModule} from '../domain/equipment-inspection-recovery-example';
+import {inspectionStartersHtml} from '../domain/equipment-inspection-starters-example';
+import {inspectionStarterFile, inspectionStarterPage} from '../domain/inspection-starter-page';
+import {questionMarkdownName, replyFields} from '../domain/reply-form';
 import {integer} from '../engine/values';
 import {mcpConfigFiles} from './agent-mcp-export';
 import {prepareAgentSkills} from './agent-skill-export';
@@ -122,6 +130,11 @@ function agentInstructions({title, graph, resources}: ExportPackage, preparation
   const stages: Stage[] = [];
   const exampleFiles = new Set<string>();
   const roles = new Map<string,ExportRole>();
+  const hasProjectWork = graph.nodes.some(node => projectWorkFor(node));
+  if (hasProjectWork) common.push(
+    '대표 Agent는 사용자가 지정한 대상 프로젝트와 화면을 확인하세요. 실제 프로젝트를 다룰 때에는 실행 중인 단계에 지정된 프로젝트 작업만 코딩 도구의 권한 안에서 수행하세요. 담당자의 단일 모델 응답에는 실제 코드와 관찰을 전달하고 반환값에 수행한 작업과 검증 기록을 포함하세요. 예제의 관찰값은 예제 실습에서만 사용하세요.');
+  if (hasProjectWork && resources.some(resource => resource.kind === 'skill' && resource.included)) common.push(
+    '프로젝트 작업을 시작할 때 해당 단계 또는 위임 역할에 연결된 Skill 원문을 읽으세요. 담당자를 호출할 때 그 단계의 Skill 본문을 코드·관찰과 함께 전달하고, 반환된 변경을 적용하거나 검증할 때도 그 지침을 따르세요.');
   let ordinal = 0;
 
   // A shared definition can be visited before the caller that provides its selected connection.
@@ -181,9 +194,18 @@ function agentInstructions({title, graph, resources}: ExportPackage, preparation
       const definition = byType.get(node.type);
       lines.push((definition?.name ?? node.type) + ' · ' + node.id);
       if (definition) lines.push('', definition.description);
-      if (blockInstructions[node.type]) lines.push('', blockInstructions[node.type]);
+      if (node.type === 'data.transform' && config.operation === 'markdown-section') {
+        lines.push('', '원본 Markdown 본문에 새 절을 병합하세요. 새 절의 시작 마커, 제목, 본문과 끝 마커를 확인하세요. 기존 마커가 한 쌍이면 그 구간만 교체하고, 마커가 없으면 같은 제목의 절을 교체하거나 문서 끝에 추가하세요. 코드 울타리 안의 제목·마커는 건너뛰고 원래 줄바꿈과 앞뒤 내용을 보존하세요. 마커가 중복되거나 짝이 맞지 않으면 오류 경로를 따르세요.');
+      } else if (blockInstructions[node.type]) lines.push('', blockInstructions[node.type]);
+      const projectWork = !parent && projectWorkFor(node);
+      if (projectWork) lines.push('', '대표 Agent의 프로젝트 작업 · ' + projectWork.label, '', projectWork.instruction);
       if (node.type === 'control.wait' || node.type === 'input.form') {
         const event = node.type === 'control.wait';
+        const multiline = event ? [] : replyFields(config.fields).filter(field => field.multiline);
+        if (multiline.length) lines.push('', '여러 줄 입력을 받는 항목(' + multiline.map(field => field.name).join(', ') + ')은 문서의 줄바꿈과 표를 포함한 원문 그대로 전달하세요.');
+        if (!event && questionMarkdownName(config.questionFileName)) {
+          lines.push('', '회신을 기다리기 전에 사용자에게 표시한 질문 본문을 Markdown 파일로 함께 제공하세요. 같은 내용의 질문지 파일을 이미 만들었다면 그 파일을 전달하세요.');
+        }
         const configured = event ? config.timeoutMinutes : config.replyTimeoutMinutes;
         if (event || configured > 0) {
           const minutes = integer(configured, replyDeadlineDefaultMinutes, 1, replyDeadlineMaxMinutes);
@@ -207,6 +229,10 @@ function agentInstructions({title, graph, resources}: ExportPackage, preparation
       if (budget) lines.push('', budget);
       if (budget && delegated && !node.graph) work.push('',budget);
       if (node.type === 'file.create') lines.push('', ...outputInstructions(config));
+      if (node.type === 'data.validate' && config.inspectionRule === 'return-list')
+        lines.push('', '장비 번호가 중복되지 않고 검수 대기 장비가 있는지 확인하세요. 장비별 이름·검수·재대여 승인 값이 초기 목록과 같고 수신 기록과 처리 이력이 모두 0건이어야 다음 단계로 진행합니다.');
+      if (node.type === 'data.validate' && config.inspectionRule === 'first-receipt')
+        lines.push('', '검수 완료 알림의 수신 1건과 처리 이력 1건에서 장비 번호·알림 ID·종류를 대조하세요. 최초 반영이어야 하며 초기 처리 이력은 0건입니다. 장비 번호별로 대조해 대상만 검수 대기에서 검수 완료가 되고 다른 장비와 모든 재대여 승인이 유지된 경우, 장비별 전후 표와 이력 건수 및 알림 ID를 inspectionReport 출력으로 전달하세요. 불일치한 기록은 오류를 알리고 중단하세요.');
       if (node.type === 'agent.create_dynamic' && config.resultRequirement === 'evidence') {
         lines.push('', '각 담당 작업의 완료 조건은 하위 설계가 반환한 인용의 원문 대조입니다. 판 번호 또는 해당 판의 원문이 필요하면 그 대상의 완료를 보류하고 회신을 기다리세요. 판과 위치를 대조한 결과를 evidence에, 하위 설계의 반환값을 result에 담으세요. 위치가 다르면 근거 부족으로 처리하고 지정된 미완료 정책을 따르세요.');
         if (delegated) work.push('담당 작업을 마칠 때 반환하는 인용의 판 번호와 해당 위치의 원문을 확인하세요. 후보만 일치하면 대상·자료·인용 위치와 필요한 판 번호 또는 원문을 호출자에게 보내고 같은 작업에서 회신을 기다리세요.');
@@ -389,10 +415,10 @@ function agentInstructions({title, graph, resources}: ExportPackage, preparation
   const files = instructionFiles(common, graph.agentScope, stages, lines);
   const split = Object.hasOwn(files, 'workflow/index.md');
   return {files:{...files, ...roleDocuments(stages, split, checksPrivacy), ...roleRegistrationFiles([...roles.values()])}, split, shared:stages.some(stage=>stage.edition), roles:[...roles.values()],
-    createsFiles};
+    createsFiles, hasProjectWork};
 }
 
-function readme(pkg: ExportPackage, {split, shared, roles, createsFiles}: ReturnType<typeof agentInstructions>, preparation: Map<string, ExportPreparation[]>) {
+function readme(pkg: ExportPackage, {split, shared, roles, createsFiles, hasProjectWork}: ReturnType<typeof agentInstructions>, preparation: Map<string, ExportPreparation[]>) {
   const lines = [
     '# ' + oneLine(pkg.title) + ' 사용법', '',
     '1. ZIP 전체를 새 폴더에 푸세요.',
@@ -402,6 +428,20 @@ function readme(pkg: ExportPackage, {split, shared, roles, createsFiles}: Return
     split ? 'AGENTS.md에서 시작 단계를 찾아 여세요. 상세 지침은 workflow/ 안에 있으며 현재 단계에 연결된 파일을 따라 읽으면 됩니다.' :
       '단계·분기·승인 조건은 AGENTS.md에서 확인할 수 있습니다.',
   ];
+  const starterPage = inspectionStarterPage(pkg.lesson);
+  if (starterPage) lines.push('', '## 장비 반납 기초 실습', '',
+    '[이 수준의 실습 열기]('+starterPage+'). 압축을 푼 HTML을 브라우저에서 열면 외부 계정 없이 실습할 수 있습니다.',
+    '입문에서 만든 반납 목록을 초급의 입력으로 사용하고, 검수 알림 한 건을 반영한 기록을 중급에서 검증하세요. 같은 창에서는 다음 수준을 눌러 이어갈 수 있고, 새 창에서는 이전 수준에서 내려받은 JSON 파일을 불러오세요.');
+  else if (pkg.lesson === 'equipment-inspection-recovery') lines.push('', '## 검수 알림 복구 실습', '',
+    '외부 계정 없이 실습하려면 [검수 알림 복구 실습](equipment-inspection-recovery.html)을 브라우저로 여세요. 고급의 개발 보고서와 점검 SKILL.md 원문을 입력하고, 역순 도착과 저장 직전 실패·저장 후 응답 유실에 따른 재전송을 실행하세요.',
+    '각 시도 직후의 검수 상태, 재대여 승인, 처리 이력을 비교한 뒤 시도별-검증-보고서.md와 갱신된 SKILL.md를 내려받으세요.',
+    'Node.js 24 이상에서 `node --test inspection-recovery-webhook.test.mjs`를 실행하면 PC 내부의 HTTP 수신기로 세 상황을 재현합니다. 저장 전 실패는 503을 반환합니다. 저장 후 응답 유실은 상태와 이력을 반영한 뒤 응답을 보내기 전에 연결을 끊습니다.');
+  else if (pkg.lesson === 'equipment-inspection-web') lines.push('', '## 검수 알림 실습', '',
+    '이 폴더의 [장비 반납 목록](equipment-inspection.html)을 브라우저로 여세요. 기본 검수 알림을 그대로 두고 “알림 입력”을 두 번 누르세요. A-17의 검수 상태, 다른 장비와 재대여 승인 상태, 처리 이력 건수를 확인하세요.',
+    '“검증 기록 복사”로 받은 기록을 Workflow에 전달하세요. Node.js 24 이상이 있는 PC에서는 이 폴더에서 `node --test inspection-webhook.test.mjs`를 실행하세요. 임시 로컬 HTTP 서버가 같은 검수 알림을 두 번 받고, 테스트가 화면과 같은 처리 규칙으로 상태와 이력을 확인합니다.');
+  else if (hasProjectWork) lines.push('', '## 기존 웹 프로젝트에 적용하기', '',
+    '코딩 도구에서 대상 프로젝트 폴더에 접근할 수 있도록 열고 그 경로와 개선할 화면, 재현할 조작을 알려 주세요. 예제로 실습하려면 작업실에서 내려받은 order-management.html을 ZIP을 푼 폴더에 두고 그 파일을 지정하세요.',
+    '대표 Agent가 단계에 따라 실제 소스를 조사하거나 작업 사본을 수정하고 Windows PC 브라우저에서 확인합니다. 결과에서 바뀐 파일, 실제로 확인한 조작과 미검증 항목을 확인하세요.');
   if (shared) lines.push('같은 하위 저장판을 여러 번 쓰는 단계는 workflow/의 같은 저장판 문서로 연결됩니다. 호출한 단계에서 입력과 허용 범위를 전달하고 그 위치에서 결과를 이어받으세요.');
   if (createsFiles) lines.push('최상위 실행이 완료되면 최종 답변에 포함된 생성 파일만 민감정보 처리를 거친 이름과 본문으로 작업 폴더의 `outputs/`에 저장합니다. 최종 답변에서 실제 저장 경로를 확인하세요.');
   lines.push(...runBudgetReadme);
@@ -445,6 +485,21 @@ export function buildAgentZip(input: ExportPackage): Uint8Array<ArrayBuffer> {
   for (const [path, body] of Object.entries(instructions.files)) entries[path] = strToU8(body);
   entries['CLAUDE.md'] = strToU8('@AGENTS.md\n');
   entries['README.md'] = strToU8(readme(pkg, instructions, preparation));
+  if (inspectionStarterPage(pkg.lesson)) entries[inspectionStarterFile] = strToU8(inspectionStartersHtml);
+  if (pkg.lesson === 'equipment-inspection-web' || pkg.lesson === 'equipment-inspection-recovery') {
+    entries['inspection-receiver.mjs'] = strToU8(inspectionReceiverModule);
+    entries['inspection-webhook.mjs'] = readFileSync(join(process.cwd(),'src/domain/inspection-webhook.mjs'));
+    if (pkg.lesson === 'equipment-inspection-web') {
+      entries['equipment-inspection.html'] = strToU8(inspectionExampleHtml);
+      entries['inspection-webhook.test.mjs'] = readFileSync(join(process.cwd(),'src/domain/inspection-webhook.test.mjs'));
+    } else {
+      entries['equipment-inspection-recovery.html'] = strToU8(inspectionRecoveryHtml);
+      entries['inspection-recovery.mjs'] = strToU8(inspectionRecoveryModule);
+      entries['markdown-section.mjs'] = readFileSync(join(process.cwd(),'src/domain/markdown-section.mjs'));
+      entries['inspection-recovery-webhook.mjs'] = readFileSync(join(process.cwd(),'src/domain/inspection-recovery-webhook.mjs'));
+      entries['inspection-recovery-webhook.test.mjs'] = readFileSync(join(process.cwd(),'src/domain/inspection-recovery-webhook.test.mjs'));
+    }
+  }
   for (const [path, content] of Object.entries(mcpConfigFiles(pkg.resources))) entries[path] = strToU8(content);
   for (const file of pkg.files) {
     if (!/^(?:resources|\.(?:agents|claude)\/skills)\//.test(file.path) || Object.hasOwn(entries, file.path) ||

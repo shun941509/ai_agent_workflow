@@ -80,6 +80,7 @@ export const catalog: Definition[] = [
     [area('question','예시 질문')],[],outputs),
   entry('input.form','입력 양식·추가 질문','부족한 정보를 물어보고 같은 실행에서 회신을 받습니다. 필요하면 회신 기한을 정합니다.','input',2,
     [area('prompt','이용자에게 물어볼 내용',true),json('fields','입력 항목',[]),
+      {...text('questionFileName','질문지 내려받기 파일명 (.md)'),advanced:true},
       text('historyFields','다음 문답에 남길 회신 항목 (쉼표로 구분, *는 전체)'),
       count('replyTimeoutMinutes','회신 기한(분)',0,0,replyDeadlineMaxMinutes)],[incoming,{...input,required:false}],outputs),
   entry('control.trigger','시작 조건','선택한 시작 조건을 충족하는 실행의 입력을 전달합니다.','input',4,
@@ -118,7 +119,8 @@ export const catalog: Definition[] = [
   entry('instruction.skill','작업 지침·Skill','허용된 작업 방법과 부속 자료를 참조합니다.','resource',2,
     [...assetFields,area('content','SKILL.md 지침')],[],[reference('skill')], ''),
   entry('data.transform','값 변환','입력값에서 항목을 선택하거나 이름과 형식을 바꿉니다.','resource',3,
-    [choice('operation','변환 방식',[['select','항목 선택'],['rename','이름 바꾸기'],['text','문자열로 변환']]),text('path','가져올 항목'),text('target','새 항목 이름')]),
+    [choice('operation','변환 방식',[['select','항목 선택'],['rename','이름 바꾸기'],['text','문자열로 변환'],['markdown-section','Markdown 절 갱신']]),
+      text('path','가져올 항목'),text('target','새 항목 이름'),text('sectionHeading','Markdown 절 제목 (# 포함)'),text('sectionMarker','Markdown 절의 마커 이름')]),
   entry('memory.access','기억 읽기·쓰기','현재 이용자의 설계된 기억을 읽거나 저장합니다.','resource',4,
     [choice('operation','작업',[['read','읽기'],['write','쓰기']]),text('key','기억 이름',true)], [incoming,{...input,required:false}]),
   entry('connection.mcp','MCP 연결','서버에 등록된 도구 연결을 참조합니다.','resource',3,
@@ -169,7 +171,8 @@ export const catalog: Definition[] = [
   entry('error.compensate','보상 작업','이미 실행한 행동을 되돌릴 도구와 대상 인자를 지정합니다.','error',5,
     [text('tool','보상 작업',true),json('args','보상 인자',{})],[...inputs,mcp],outputs,'tool.invoke'),
   entry('data.validate','데이터 검증','입력의 필수 항목과 형식을 검사합니다.','quality',3,
-    [json('requiredFields','필수 항목',[],true),json('types','항목별 기대 형식',{})]),
+    [json('requiredFields','필수 항목',[],true),json('types','항목별 기대 형식',{}),
+      {...choice('inspectionRule','장비 반납 실습 검증',[['','적용 안 함'],['return-list','수신 전 장비 목록'],['first-receipt','검수 완료 알림 한 건의 전후 기록']]),advanced:true}]),
   entry('quality.evidence','근거·출처 확인','질문에 답하는 인용을 찾고 후보 문구와 일치했는지, 원문까지 대조했는지 표시합니다.','quality',3,
     [area('criterion','근거 충족 기준',false,'인용한 구절이 질문에 직접 답하는지 확인합니다.'),
       {key:'requireOriginal', label:'원문 대조 필수', type:'boolean', default:false},
@@ -198,6 +201,12 @@ export const byType = new Map(catalog.map(item => [item.type,item]));
 export function portsFor(node: Block): {inputs: Port[]; outputs: Port[]} {
   const item = byType.get(node.type);
   if (!item) return {inputs:[],outputs:[]};
+  if (node.type === 'data.validate' && node.config.inspectionRule === 'first-receipt') {
+    return {inputs:item.inputs,outputs:[...item.outputs,port('inspectionReport','검수 알림 전후 검증표','data','text')]};
+  }
+  if (node.type === 'data.transform' && node.config.operation === 'markdown-section') {
+    return {inputs:[incoming,{...input,label:'원본 Markdown 본문'},port('section','마커와 제목을 포함한 새 절','data','text',true)],outputs:item.outputs};
+  }
   if (node.type === 'data.transform' && node.config.operation === 'text' && !node.config.path) {
     return {inputs:item.inputs.map(p => p.id === 'input' ? {...p, multiple:true} : p), outputs:item.outputs};
   }

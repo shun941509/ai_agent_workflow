@@ -1,0 +1,53 @@
+<template>
+  <style>
+    #root { position:absolute; inset:0; overflow:hidden; background:var(--paper,#f6f2e7); color:var(--ink,#123c36); font-family:"Studio Sans",sans-serif; }
+    .ending-brand { position:absolute; left:192px; top:111px; display:flex; align-items:center; gap:18px; font-size:32px; font-weight:750; letter-spacing:-1.2px; }
+    .ending-brand img { width:55px; height:55px; }
+    .ending-rule { position:absolute; left:192px; right:192px; top:207px; height:2px; background:#9eada2; transform-origin:left center; }
+    .ending-left { position:absolute; left:192px; top:300px; width:865px; }
+    .ending-kicker { display:flex; align-items:center; gap:17px; font-size:32px; line-height:1.25; font-weight:650; color:var(--forest,#10493f); }
+    .ending-kicker::before { content:""; width:57px; height:7px; background:var(--red,#a43939); }
+    .ending-heading { font:740 104px/1.29 "Studio Serif",serif; letter-spacing:-7.6px; padding:27px 0 37px; }
+    .ending-heading span { display:block; white-space:nowrap; }
+    .ending-sub,.ending-path,.ending-action { font-size:32px; line-height:1.6; font-weight:500; letter-spacing:-1.3px; }
+    .ending-action { font-weight:720; }
+    .ending-arrow { color:var(--red,#a43939); display:inline-block; margin-right:15px; }
+    .ending-library { position:absolute; left:1097px; top:255px; width:633px; height:645px; }
+    .ending-field { position:absolute; inset:0; background:#e6e6cb; border-radius:316px 316px 0 0; }
+    .ending-shelf { position:absolute; left:-11px; right:-11px; bottom:0; height:12px; background:var(--forest,#10493f); border-bottom:3px solid #062d27; }
+    .ending-book { position:absolute; bottom:9px; transform-origin:50% 100%; }
+    .ending-book img { width:100%; height:100%; display:block; }
+  </style>
+  <section id="root" data-composition-id="ending" data-width="1920" data-height="1080">
+    <div class="ending-brand"><img src="assets/studio-icon.svg" alt=""><span data-var-text="brand">AI Agent Workflow Studio</span></div>
+    <div id="ending-rule" class="ending-rule"></div>
+    <div class="ending-left">
+      <p class="ending-kicker" data-var-text="endKicker">도서관 · 초급 실습</p>
+      <h2 id="ending-heading" class="ending-heading"><span data-var-text="endLineA">내 자료로 답하는</span><span data-var-text="endLineB">Agent 만들기</span></h2>
+      <div id="ending-detail"><p class="ending-path" data-var-text="endPath">예제 템플릿  ›  내 자료로 안내하기</p>
+      <p class="ending-action"><span class="ending-arrow" aria-hidden="true">↳</span><span data-var-text="endAction">내 사본으로 시작</span></p></div>
+    </div>
+    <figure class="ending-library" aria-label="책 다섯 권이 놓인 책장" data-layout-allow-overlap>
+      <div class="ending-field"></div>
+      <div id="ending-book-one" class="ending-book" style="left:53px;width:92px;height:411px"><img src="assets/book-one.svg" alt=""></div>
+      <div id="ending-book-two" class="ending-book" style="left:148px;width:82px;height:445px"><img src="assets/book-two.svg" alt=""></div>
+      <div id="ending-book-three" class="ending-book" style="left:238px;width:95px;height:505px"><img src="assets/book-three.svg" alt=""></div>
+      <div id="ending-book-four" class="ending-book" style="left:342px;width:109px;height:554px"><img src="assets/book-four.svg" alt=""></div>
+      <div id="ending-book-five" class="ending-book" style="left:460px;width:109px;height:600px"><img src="assets/book-five.svg" alt=""></div>
+      <div class="ending-shelf"></div>
+    </figure>
+  </section>
+  <script>
+    const tl = gsap.timeline({paused:true});
+    tl.fromTo("#ending-rule", {scaleX:0.34}, {scaleX:1,duration:0.75,ease:"power2.out"}, 0);
+    tl.fromTo("#ending-heading", {y:12}, {y:0,duration:0.65,ease:"power2.out"}, 0);
+    tl.fromTo("#ending-book-one", {y:-18,rotation:-9,opacity:1}, {y:0,rotation:-6,opacity:1,duration:0.68,ease:"power3.out"}, 0);
+    tl.fromTo("#ending-book-two", {y:-18,rotation:2,opacity:1}, {y:0,rotation:0,opacity:1,duration:0.68,ease:"power3.out"}, 0.09);
+    tl.fromTo("#ending-book-three", {y:-18,rotation:-3,opacity:1}, {y:0,rotation:0,opacity:1,duration:0.68,ease:"power3.out"}, 0.16);
+    tl.fromTo("#ending-book-four", {y:-111,rotation:2,opacity:0}, {y:0,rotation:0,opacity:1,duration:0.68,ease:"power3.out"}, 0.68);
+    tl.fromTo("#ending-book-five", {y:-122,rotation:-3,opacity:0}, {y:0,rotation:0,opacity:1,duration:0.68,ease:"power3.out"}, 1.05);
+    tl.fromTo("#ending-detail", {y:22,opacity:0}, {y:0,opacity:1,duration:0.48,ease:"power2.out"}, 1.12);
+    window.__timelines = window.__timelines || {};
+    window.__timelines["ending"] = tl;
+  </script>
+</template>

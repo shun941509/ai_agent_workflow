@@ -40,7 +40,7 @@
   padding: 5px 17px;
   border: 1px solid var(--field-border);
   border-radius: 5px;
-  background: white;
+  background: var(--surface);
   color: var(--ink);
   font-size: .93rem;
   font-weight: 600;
@@ -48,7 +48,7 @@
 .option input:checked + span {
   border-color: var(--accent);
   background: var(--accent);
-  color: white;
+  color: var(--on-accent);
   font-weight: 750;
 }
 .option input:focus-visible + span {

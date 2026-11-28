@@ -44,25 +44,9 @@ export function PromptTextarea({ expandLabel, label, value, ref, ...props }: Pro
     const field = expanded.current!;
     const source = inline.current!;
     panel.showModal();
-    // Some mobile browsers shrink only the visual viewport when the keyboard opens.
-    const viewport = window.visualViewport;
-    const fitViewport = () => {
-      if (!viewport || viewport.scale !== 1) {
-        panel.style.removeProperty('--prompt-visible-height');
-        panel.style.removeProperty('--prompt-visible-top');
-        return;
-      }
-      panel.style.setProperty('--prompt-visible-height', viewport.height + 'px');
-      panel.style.setProperty('--prompt-visible-top', viewport.offsetTop + 'px');
-    };
-    fitViewport();
-    viewport?.addEventListener('resize', fitViewport);
-    viewport?.addEventListener('scroll', fitViewport);
     field.focus({ preventScroll: true });
     field.setSelectionRange(source.selectionStart, source.selectionEnd, source.selectionDirection);
     return () => {
-      viewport?.removeEventListener('resize', fitViewport);
-      viewport?.removeEventListener('scroll', fitViewport);
       if (panel.open) panel.close();
     };
   }, [open]);

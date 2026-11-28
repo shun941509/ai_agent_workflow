@@ -99,6 +99,7 @@ export interface ExportMcp {
 
 export interface ExportPackage {
   title: string;
+  lesson?: string;
   graph: Graph;
   preparation?: ExportPreparation[];
   resources: (ExportResource & {included: boolean; files: string[]; mcp?: ExportMcp;

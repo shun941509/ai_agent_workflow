@@ -1,17 +1,17 @@
 .ws-canvas.ws-schematic {
-  --ws-canvas: #f9fafc;
+  --ws-canvas: light-dark(#f9fafc, var(--surface));
   background: var(--ws-canvas) radial-gradient(circle, #ced6e1 .8px, transparent 1px) 0 0 / 18px 18px;
 }
 
 .ws-schematic .ws-node {
-  color: #1d2a3d;
-  background: #fff;
-  border-color: #aab7c4;
+  color: light-dark(#1d2a3d, var(--night-blue));
+  background: var(--surface);
+  border-color: light-dark(#aab7c4, var(--night-line));
   border-radius: 8px;
   box-shadow: 0 1px 2px #1e30430b;
 }
 .ws-schematic .ws-node:hover {
-  border-color: #71839a;
+  border-color: light-dark(#71839a, var(--night-blue));
 }
 .ws-schematic .ws-node.ws-chosen {
   z-index: 1;
@@ -29,7 +29,7 @@
   pointer-events: none;
 }
 .ws-direction-overlay { z-index: 1; }
-.ws-route-leader-rim { stroke: white; stroke-width: 5px; }
+.ws-route-leader-rim { stroke: var(--surface); stroke-width: 5px; }
 .ws-route-callout-leader { stroke-width: 1.25px; }
 .ws-route-callout-leader[data-route-active] { stroke-width: 2.75px; }
 .ws-route-callout {
@@ -43,7 +43,7 @@
   padding: 0 5px 0 4px;
   border-radius: 3px;
   font-family: inherit;
-  background: white;
+  background: var(--surface);
   color: var(--ws-ink);
   font-size: 12px;
   font-weight: 600;
@@ -51,13 +51,11 @@
   box-shadow: inset 0 0 0 1px #d3dbe4;
   pointer-events: auto;
 }
-@media (hover: hover) {
-  .ws-route-callout:hover { box-shadow: inset 0 0 0 1px #66778f; }
-}
+.ws-route-callout:hover { box-shadow: inset 0 0 0 1px #66778f; }
 .ws-route-callout[aria-pressed='true'] {
-  color: #203147;
+  color: light-dark(#203147, var(--night-blue));
   font-weight: 700;
-  background: #e6edf6;
+  background: light-dark(#e6edf6, var(--night-soft-blue));
   box-shadow: inset 0 0 0 2px #485568;
 }
 .ws-editor .ws-route-callout:focus-visible {
@@ -70,8 +68,8 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   container-type: inline-size;
-  border-top: 1px solid #c4cedb;
-  background: white;
+  border-top: 1px solid light-dark(#c4cedb, var(--night-subtle));
+  background: var(--surface);
   color: var(--ws-ink);
   font-size: 13px;
   line-height: 1.45;
@@ -151,9 +149,9 @@
   max-width: 100%;
   min-height: 28px;
   padding: 3px 7px;
-  border: 1px solid #b9c6d6;
+  border: 1px solid light-dark(#b9c6d6, var(--night-subtle));
   border-radius: 4px;
-  background: #fff;
+  background: var(--surface);
   color: var(--ws-ink);
   font: inherit;
   line-height: 1.35;
@@ -165,10 +163,8 @@
   grid-row: 1; grid-column: 2;
   color: var(--ws-accent); border-color: transparent;
 }
-.ws-route-pane button[aria-current='location'] { border-color: #485568; background: #e6edf6; box-shadow: inset 0 0 0 1px #485568; }
-@media (hover: hover) {
-  .ws-route-pane button:hover { border-color: #66778f; background: #eef3f9; }
-}
+.ws-route-pane button[aria-current='location'] { border-color: light-dark(#485568, var(--night-blue)); background: light-dark(#e6edf6, var(--night-soft-blue)); box-shadow: inset 0 0 0 1px #485568; }
+.ws-route-pane button:hover { border-color: light-dark(#66778f, var(--night-blue)); background: light-dark(#eef3f9, var(--night-raised)); }
 .ws-editor .ws-route-pane button:focus-visible { outline: 2px solid var(--ws-accent); outline-offset: 1px; }
 .ws-route-announcement { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 @container (max-width: 550px) {
@@ -186,7 +182,7 @@
   pointer-events: none;
 }
 /* CSS scales the entire SVG with the world. Convert screen widths back into its local units. */
-.ws-route-traced-halo { stroke: white; stroke-width: calc(6 * var(--ws-screen-pixel, 1px)); }
+.ws-route-traced-halo { stroke: var(--surface); stroke-width: calc(6 * var(--ws-screen-pixel, 1px)); }
 .ws-route-traced-path { stroke-width: calc(3 * var(--ws-screen-pixel, 1px)); }
 .ws-wire[data-route-muted='true'] { opacity: .5; }
 .ws-schematic .ws-node[data-route-target='true'] {
@@ -196,7 +192,7 @@
   outline: calc(4 * var(--ws-screen-pixel, 1px)) double #354763;
 }
 .ws-route-output[data-route-active='true'] .ws-output-dot {
-  background: #485568;
+  background: light-dark(#485568, var(--night-blue));
   outline: var(--ws-trace-ring, 2px) solid #485568;
 }
 .ws-route-callout-label {
@@ -209,7 +205,7 @@
   z-index: 1;
   pointer-events: none;
   fill: currentColor;
-  stroke: white;
+  stroke: var(--surface);
   stroke-width: 2px;
   stroke-linejoin: round;
   paint-order: stroke fill;
@@ -240,7 +236,7 @@
     opacity: 0;
     animation: ws-trace-direction 1.4s linear 3;
   }
-  .ws-wire-trace-rim { stroke: white; stroke-width: 7.5px; }
+  .ws-wire-trace-rim { stroke: var(--surface); stroke-width: 7.5px; }
   .ws-wire-trace { stroke-width: 4.5px; }
   .ws-stage[inert] .ws-wire-trace-rim,
   .ws-stage[inert] .ws-wire-trace { animation-play-state: paused; }
@@ -273,10 +269,10 @@
   inset: auto auto 62px 10px;
   max-width: calc(100% - 20px);
   padding: 5px 9px;
-  border: 1px solid #aab7c4;
+  border: 1px solid light-dark(#aab7c4, var(--night-line));
   border-radius: 5px;
   color: var(--ws-ink);
-  background: white;
+  background: var(--surface);
   font-size: 12px;
   overflow-wrap: anywhere;
   pointer-events: none;
@@ -316,7 +312,7 @@
   display: block;
   grid-column: 1 / -1;
   overflow: hidden;
-  color: #4c5d70;
+  color: light-dark(#4c5d70, var(--night-blue));
   font-size: 12px;
   line-height: 1.45;
   white-space: nowrap;
@@ -325,7 +321,7 @@
 .ws-schematic .ws-port-out.ws-route-output {
   padding-inline: 12px;
   font-weight: 580;
-  color: #2e4056;
+  color: light-dark(#2e4056, var(--night-blue));
 }
 .ws-schematic .ws-wire-label {
   font-weight: 690;
@@ -334,12 +330,9 @@
 .ws-wire-choices { display: grid; gap: 6px; }
 .ws-wire-choices .ws-btn { display: grid; justify-items: start; gap: 3px; padding: 8px 10px; text-align: left; white-space: normal; }
 .ws-wire-choices small { color: var(--ws-muted); }
-.ws-schematic .ws-wire-label[data-kind='data'] {
-  fill: #286466;
-}
 .ws-schematic .ws-zoom,
 .ws-schematic .ws-minimap {
-  border-color: #d3dbe4;
+  border-color: light-dark(#d3dbe4, var(--night-soft-blue));
   border-radius: 7px;
 }
 .ws-schematic .ws-minimap {
@@ -371,7 +364,7 @@
 }
 .ws-canvas-jumps:focus-within { opacity: 1; pointer-events: auto; }
 .ws-canvas-jumps button {
-  background: white;
+  background: var(--surface);
   color: var(--ws-ink);
   border: 1px solid var(--ws-line);
   border-radius: 4px;

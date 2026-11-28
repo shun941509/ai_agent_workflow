@@ -2,9 +2,10 @@ import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import assert from 'node:assert/strict';
-import { test } from 'node:test';
+import { test, type TestContext } from 'node:test';
 import { createBlock, type Graph } from '../src/domain';
 import {encodeRunQuestion} from '../src/domain/run-input';
+import {designSource, engineeringSource} from './web-design-skill-fixture';
 
 // Each test file runs in its own Node process and never shares production SQLite data.
 process.env.STUDIO_DATA_DIR = mkdtempSync(
@@ -13,10 +14,105 @@ process.env.STUDIO_DATA_DIR = mkdtempSync(
 const { authenticate, usage } = await import('../src/server/auth');
 const { legacyGuestSession } = await import('./legacy-guest');
 const { one, set } = await import('../src/server/db');
-const { createProject, project, caseList, caseSave, snapshot, publish } =
+const { createProject, saveProject, project, caseList, caseSave, snapshot, publish } =
   await import('../src/server/projects');
 const { startRun, workOne, runGet, runList, replyRun, stopRun, inputFiles } =
   await import('../src/server/runs');
+
+function useTestModel(t: TestContext) {
+  const settings = {OPENAI_API_KEY:'local-test-only', OPENAI_MODEL:'request-inspection'};
+  const previous = Object.fromEntries(Object.keys(settings).map(key => [key, process.env[key]]));
+  t.after(() => {
+    for (const [key, value] of Object.entries(previous)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  });
+  Object.assign(process.env, settings);
+}
+
+test('웹 디자인 사본의 실제 작업 요청에는 담당자에게 연결한 설치본 Skill 전문이 들어간다', async t => {
+  const user = authenticate('signup', 'web-skill-requests', 'web-practice-password', '').user;
+  const project = createProject(user, {lesson:'web-design-shared-ui'});
+  const [sample] = caseList(user, project.id);
+  const calls: string[] = [];
+  useTestModel(t);
+  t.mock.method(globalThis, 'fetch', async (url: RequestInfo | URL, init?: RequestInit) => {
+    assert.equal(String(url), 'https://api.openai.com/v1/responses');
+    const {instructions} = JSON.parse(String(init?.body));
+    const scopeCheck = instructions.includes('업무 범위 판정');
+    if (!scopeCheck) calls.push(instructions);
+    const text = scopeCheck ? '{"status":"in_scope"}' : '주문·반품 화면의 선택 상태를 확인합니다.';
+    return Response.json({output:[{type:'message', content:[{type:'output_text', text}]}]});
+  });
+  const run = startRun(user, {id:project.id, mode:'test', caseId:sample.id, requestKey:'two-skill-roles'});
+  await workOne();
+  const result = runGet(user, run.id);
+  assert.equal(result.state, 'completed', result.error ?? result.state);
+  assert.equal(calls.length, 2);
+  const [developer, reviewer] = calls;
+  assert.ok(developer.includes(designSource) && developer.includes(engineeringSource), '공통 UI 개발 단계의 두 설치 원문');
+  assert.ok(reviewer.includes(engineeringSource) && !reviewer.includes(designSource), '화면 검증 단계의 엔지니어링 원문');
+  for (const call of calls) assert.doesNotMatch(call, /## 참고한 원본/);
+});
+
+test('한 화면 사본의 워커가 수정한 동작 설명과 역할별 Skill을 보내고 두 검토와 개발·검증 결과를 보존한다', async t => {
+  const user = authenticate('signup', 'single-screen-worker', 'web-practice-password', '').user;
+  const draft = createProject(user, {lesson:'web-design-single-screen'});
+  const behavior = draft.graph?.nodes.find(node => node.id === 'behavior' && node.type === 'resource.context');
+  assert.ok(behavior);
+  assert.match(behavior.config.content, /ORD-1002/);
+  const editedDescription = '배송 중을 선택한 뒤 Tab을 누르면 포커스가 배송 완료로 갑니다. 선택한 버튼에는 “목록에 적용 중”을 표시해 주세요.';
+  behavior.config.content = editedDescription;
+  saveProject(user, draft);
+  const [sample] = caseList(user, draft.id);
+  assert.ok(sample, '사본에 저장된 예시 질문');
+  const steps = [
+    {role:'시각 디자인 담당', design:true, engineering:false, reply:'선택한 버튼에 체크 표시를 붙입니다.'},
+    {role:'접근성 검토 담당', design:false, engineering:true, reply:'Tab 이동 시 포커스 테두리를 표시합니다.'},
+    {role:'UI 개발 담당', design:true, engineering:true, reply:'상태 버튼의 체크 표시와 포커스 스타일을 구현합니다.'},
+    {role:'화면 검증 담당', design:false, engineering:true, reply:'필터 해제 후 세 행이 돌아오는 것을 확인했습니다.'},
+  ];
+  const calls = new Map<string, {instructions:string; request:string; context:string}>();
+  useTestModel(t);
+  t.mock.method(globalThis, 'fetch', async (url: RequestInfo | URL, init?: RequestInit) => {
+    assert.equal(String(url), 'https://api.openai.com/v1/responses');
+    const {instructions, input} = JSON.parse(String(init?.body));
+    let text = '{"status":"in_scope"}';
+    if (!instructions.includes('업무 범위 판정')) {
+      const role = /^역할: (.+)$/m.exec(instructions)?.[1];
+      const step = steps.find(item => item.role === role);
+      assert.ok(step, '실제 요청의 역할 ' + role);
+      assert.ok(!calls.has(step.role), step.role + ' 중복 호출');
+      const {request, context} = JSON.parse(input.at(-1).content);
+      calls.set(step.role, {instructions, request, context});
+      text = step.reply;
+    }
+    return Response.json({output:[{type:'message', content:[{type:'output_text', text}]}]});
+  });
+
+  const run = startRun(user, {id:draft.id, mode:'test', caseId:sample.id, requestKey:'single-screen-role-handoffs'});
+  assert.equal(await workOne(), true);
+  const result = runGet(user, run.id);
+  assert.equal(result.state, 'completed', result.error ?? result.state);
+  for (const {role, design, engineering, reply} of steps) {
+    const call = calls.get(role);
+    assert.ok(call, role + '의 실제 요청');
+    assert.ok(call.context.includes(editedDescription), role + '에게 전달된 수정한 동작 설명');
+    assert.doesNotMatch(call.context, /ORD-1002/, role + '의 참고 자료에 남아 있는 예전 주문 번호');
+    assert.equal(call.instructions.includes(designSource), design, role + '의 frontend-design');
+    assert.equal(call.instructions.includes(engineeringSource), engineering, role + '의 frontend-ui-engineering');
+    assert.doesNotMatch(call.instructions, /## 참고한 원본/);
+    assert.ok(result.output.includes(role + '\n' + reply), role + '의 최종 답변');
+  }
+  const [visual, accessibility, developer, qa] = steps;
+  for (const review of [visual, accessibility]) {
+    assert.equal(calls.get(review.role)!.request, sample.input);
+    assert.ok(calls.get(developer.role)!.request.includes(review.reply), developer.role + '에게 전달된 ' + review.role + '의 결과');
+  }
+  assert.ok(calls.get(qa.role)!.request.includes(developer.reply), '화면 검증에 전달된 개발 결과');
+});
+
 function lessonGraph(): Graph {
   const nodes = [
     createBlock('input.user_request', { id: 'entry', title: '입력' }),

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="150" height="540" viewBox="0 0 150 540" preserveAspectRatio="none" role="img" aria-label="식물 표본 무늬의 양장본 책등">
+  <defs>
+    <linearGradient id="cloth" x1="0" x2="1" y1="0" y2="0" gradientUnits="objectBoundingBox">
+      <stop stop-color="#082c28"/>
+      <stop offset=".045" stop-color="#346355"/>
+      <stop offset=".085" stop-color="#082c28"/>
+      <stop offset=".15" stop-color="#10493f"/>
+      <stop offset=".50" stop-color="#10493f"/>
+      <stop offset=".90" stop-color="#10493f"/>
+      <stop offset=".965" stop-color="#346355"/>
+      <stop offset="1" stop-color="#082c28"/>
+    </linearGradient>
+    <pattern id="linen" width="5" height="6" patternUnits="userSpaceOnUse">
+      <path d="M.5 0v6m2.5-6v6" stroke="#1c2119" stroke-width=".4" opacity=".32"/>
+      <path d="M0 1.5h5M0 4.5h5" stroke="#f6f2e7" stroke-width=".45" opacity=".24"/>
+    </pattern>
+    <path id="volume" d="M8 4Q73-1 141 4q7 1 7 8v516q0 7-7 8-65 4-133 0-6 0-6-7V13q0-8 6-9Z"/>
+    <clipPath id="edge"><use href="#volume"/></clipPath>
+  </defs>
+  <use href="#volume" fill="url(#cloth)"/>
+  <g clip-path="url(#edge)">
+    <rect x="0" y="0" width="150" height="540" fill="url(#linen)"/>
+    <path d="M5 10q68-6 141 0m-141 519q68 5 141 0" fill="none" stroke="#082c28" stroke-width="2"/>
+    <path d="M6 13q67-6 139 0m-139 513q66 5 139 0" fill="none" stroke="#346355" stroke-width="1.2"/>
+    <path d="M13 8q-1 254 0 524m126-524q2 254 0 524" fill="none" stroke="#082c28" opacity=".73" stroke-width="1"/>
+    <g color="#ddc997" stroke="currentColor" fill="none">
+      <path d="M23 53h104m-104 5h104m-104 278h104m-104 5h104" stroke-width="1.7"/>
+      <path d="M32 114h86v200H32zm5 5h76v190H37z" fill="none" stroke="currentColor" stroke-width=".95"/>
+      <g stroke-linecap="round" stroke-linejoin="round">
+    <path d="M43 270c18-11 30-31 36-52 6-21 8-44 8-70" stroke-width="2.8"/>
+    <path d="M84 185c-14-5-24-22-25-36 15 7 24 20 25 36zm-7 31c-15-2-29-13-35-28 17 2 29 12 35 28zm-12 27c-12 0-25-6-33-17 16-2 27 6 33 17zm20-47c4-15 14-27 26-32-1 14-12 27-26 32zm-9 30c7-15 19-22 33-23-6 13-17 21-33 23z" fill="currentColor" fill-opacity=".88" stroke-width="1.2"/>
+    <path d="M88 161c-4-8-2-18 2-27 4 10 4 18-2 27z" fill="currentColor" stroke="none"/>
+    <path d="M40 284c16 4 43 4 61-2m-54 9c14 2 32 2 47-1" stroke-width="1.1"/>
+      </g>
+      <path d="M24 494h102m-102 5h102" stroke-width="1.3"/>
+    </g>
+    <path d="M42 422l68-1 1 45-69 1z" fill="#082c28" opacity=".45"/>
+    <path d="m41 420 68-1 1 45-69 1z" fill="#e8dfc1"/>
+    <g stroke="#615e4d" fill="none" stroke-linecap="round">
+      <path d="m46 429 58-1m-58 9 58-1m-57 22 14-.2" stroke-width=".85"/>
+      <path d="m48 432 14-.2m4-.1 13-.2m4-.1 10-.2m4-.1 5-.1" stroke-width="1.35"/>
+      <path d="M66 449q0-3 3-3t3 3v5q0 3-3 3t-3-3zm0 6 5-8" stroke-width="1.3"/>
+      <path d="M78 448l3-2v11m-3 0h6" stroke-width="1.45" stroke-linejoin="round"/>
+    </g>
+  </g>
+</svg>

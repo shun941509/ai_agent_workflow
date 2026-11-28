@@ -1,0 +1,2921 @@
+{
+  "buildId": "--f0fEroMpSeXCpgp_L6h",
+  "snapshot": "ship",
+  "method": "Exact equality on 8-bit sRGB RGBA decoded from each captured PNG. A pixel differs when any channel differs. Bounds describe the smallest differing rectangle.",
+  "pairCount": 160,
+  "identicalPairs": 159,
+  "mismatchPairs": 1,
+  "groups": [
+    {
+      "theme": "light",
+      "rounds": [
+        "signoff-1",
+        "signoff-2"
+      ],
+      "pairCount": 120,
+      "identicalPairs": 119,
+      "mismatchPairs": 1,
+      "pairs": [
+        {
+          "width": 1440,
+          "state": "login",
+          "file": "1440-login.png",
+          "pngSha256": [
+            "71f75715c60d584600ee714979f1e779b3eb0a56227235936c75c82f72fcd9ed",
+            "71f75715c60d584600ee714979f1e779b3eb0a56227235936c75c82f72fcd9ed"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "signup",
+          "file": "1440-signup.png",
+          "pngSha256": [
+            "18dd730361f88f34f3cc9907de44d3c40e5bb585a84e9304cf6f14c94d66f00d",
+            "18dd730361f88f34f3cc9907de44d3c40e5bb585a84e9304cf6f14c94d66f00d"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "home-first",
+          "file": "1440-home-first.png",
+          "pngSha256": [
+            "b3e5c6a019bbde9ec06831f554e0b8d280ed0cd3eb8662fd2fc740a4547639a5",
+            "b3e5c6a019bbde9ec06831f554e0b8d280ed0cd3eb8662fd2fc740a4547639a5"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "chooser",
+          "file": "1440-chooser.png",
+          "pngSha256": [
+            "52867ece22ce33f620f8544f6d2d6806e72439ddcf45c34a74567a5c5872fe73",
+            "52867ece22ce33f620f8544f6d2d6806e72439ddcf45c34a74567a5c5872fe73"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "home-return",
+          "file": "1440-home-return.png",
+          "pngSha256": [
+            "3cab3006071a2fae11f8790b969a6cee34376a7cabb4447229bad9cd6a36ce87",
+            "3cab3006071a2fae11f8790b969a6cee34376a7cabb4447229bad9cd6a36ce87"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "projects",
+          "file": "1440-projects.png",
+          "pngSha256": [
+            "b6123a960d06afd096a4c0fd9f82ba890a2cc1a8c278240a7f92175bfd7271b4",
+            "b6123a960d06afd096a4c0fd9f82ba890a2cc1a8c278240a7f92175bfd7271b4"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "templates",
+          "file": "1440-templates.png",
+          "pngSha256": [
+            "6aac2436681d1cacb0564acb712ad4492bfa1e31ea33b18a31b4f43f88d1e593",
+            "6aac2436681d1cacb0564acb712ad4492bfa1e31ea33b18a31b4f43f88d1e593"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "lesson",
+          "file": "1440-lesson.png",
+          "pngSha256": [
+            "d3c75acbfe4cb87f3dad0d5331715598e29ac2836ab6cfa4232517e1b8d591b7",
+            "d3c75acbfe4cb87f3dad0d5331715598e29ac2836ab6cfa4232517e1b8d591b7"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "assets",
+          "file": "1440-assets.png",
+          "pngSha256": [
+            "c4542f830b26f9dd2e1709f6f895889d07418eae27149f3d9360edef10142fee",
+            "c4542f830b26f9dd2e1709f6f895889d07418eae27149f3d9360edef10142fee"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "shared",
+          "file": "1440-shared.png",
+          "pngSha256": [
+            "88673f26f1dd45e3dcf03147026f297afb6393fc7937c2df5b542bf465ebdeb4",
+            "88673f26f1dd45e3dcf03147026f297afb6393fc7937c2df5b542bf465ebdeb4"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "shared-assets",
+          "file": "1440-shared-assets.png",
+          "pngSha256": [
+            "557b1966e9fda3f5a14d42d2350e4fc86ed0f43d123fdd8c69abd9cb936cf7c8",
+            "557b1966e9fda3f5a14d42d2350e4fc86ed0f43d123fdd8c69abd9cb936cf7c8"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "guide",
+          "file": "1440-guide.png",
+          "pngSha256": [
+            "6a0cb5ff66b0eb4efe17da2be14f152be2da9032436caf1a5892b7287e79b5c1",
+            "6a0cb5ff66b0eb4efe17da2be14f152be2da9032436caf1a5892b7287e79b5c1"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "public-project",
+          "file": "1440-public-project.png",
+          "pngSha256": [
+            "d1667aaba4f52e3469475492ab74d153ec1ec0da3041d3244b987b4fd867f641",
+            "d1667aaba4f52e3469475492ab74d153ec1ec0da3041d3244b987b4fd867f641"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "project-trash",
+          "file": "1440-project-trash.png",
+          "pngSha256": [
+            "a18ca5128c323215cb593d857b32884dcac5c3521ca58161457cd118c5ca14b4",
+            "a18ca5128c323215cb593d857b32884dcac5c3521ca58161457cd118c5ca14b4"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "resource-trash",
+          "file": "1440-resource-trash.png",
+          "pngSha256": [
+            "ea95bd2f963bf5da66cf1ab482ce9376e53bb0a8cdb3605f01e60b7b37051a7b",
+            "ea95bd2f963bf5da66cf1ab482ce9376e53bb0a8cdb3605f01e60b7b37051a7b"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "resource",
+          "file": "1440-resource.png",
+          "pngSha256": [
+            "613596ffb97feab136c06c6300ce482a9c0d47de2ad07b5659270bd9b56d9f2b",
+            "613596ffb97feab136c06c6300ce482a9c0d47de2ad07b5659270bd9b56d9f2b"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "editor",
+          "file": "1440-editor.png",
+          "pngSha256": [
+            "a9618e7ea89c0b286f2bb72daa71e3ca6beb1961c406883ee40a98d6403036fd",
+            "a9618e7ea89c0b286f2bb72daa71e3ca6beb1961c406883ee40a98d6403036fd"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "editor-fit",
+          "file": "1440-editor-fit.png",
+          "pngSha256": [
+            "97d640035eb12237b6fbc4de3bdedd9970a64a13f119378937fd9c68d9461219",
+            "97d640035eb12237b6fbc4de3bdedd9970a64a13f119378937fd9c68d9461219"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "run",
+          "file": "1440-run.png",
+          "pngSha256": [
+            "91cd8cdb62064064ebcbb03388175189dae50cfe4791007672097615e853ca8e",
+            "91cd8cdb62064064ebcbb03388175189dae50cfe4791007672097615e853ca8e"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "run-result",
+          "file": "1440-run-result.png",
+          "pngSha256": [
+            "29ed11b7364eacc5c5d9baed80730ecc9f2277aa07ee1a677ba5e8091179a8bf",
+            "29ed11b7364eacc5c5d9baed80730ecc9f2277aa07ee1a677ba5e8091179a8bf"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1280,
+          "state": "login",
+          "file": "1280-login.png",
+          "pngSha256": [
+            "2868afe5103478079c17d9bc62c8db81c5064debdad42f5ce2d558991fcb88d1",
+            "2868afe5103478079c17d9bc62c8db81c5064debdad42f5ce2d558991fcb88d1"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1280,
+            900
+          ],
+          "totalPixels": 1152000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1280,
+          "state": "signup",
+          "file": "1280-signup.png",
+          "pngSha256": [
+            "a70b08dae81fbf1716d8544680c8d8832efbb67f0e36702f13f67b466ba3d7d0",
+            "a70b08dae81fbf1716d8544680c8d8832efbb67f0e36702f13f67b466ba3d7d0"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1280,
+            900
+          ],
+          "totalPixels": 1152000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1280,
+          "state": "home-first",
+          "file": "1280-home-first.png",
+          "pngSha256": [
+            "3813c369fa0ed26eb1988e222d17b87f53566878313ccf9ff6606d08d78c6d42",
+            "3813c369fa0ed26eb1988e222d17b87f53566878313ccf9ff6606d08d78c6d42"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1280,
+            900
+          ],
+          "totalPixels": 1152000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1280,
+          "state": "chooser",
+          "file": "1280-chooser.png",
+          "pngSha256": [
+            "d29089753ec5b9964f6996f33a270f7fbd8c84e31260e3c2441589c004633f03",
+            "d29089753ec5b9964f6996f33a270f7fbd8c84e31260e3c2441589c004633f03"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1280,
+            900
+          ],
+          "totalPixels": 1152000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1280,
+          "state": "home-return",
+          "file": "1280-home-return.png",
+          "pngSha256": [
+            "354b64c801c62530ff9c9beb8c3f3483e929d48205da53cf8a4fcc63d734a7e5",
+            "354b64c801c62530ff9c9beb8c3f3483e929d48205da53cf8a4fcc63d734a7e5"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1280,
+            900
+          ],
+          "totalPixels": 1152000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1280,
+          "state": "projects",
+          "file": "1280-projects.png",
+          "pngSha256": [
+            "4c8e9d0a31622e3946e918817e1d3c3eb24e877f0569275b3f5c662ccf35078e",
+            "4c8e9d0a31622e3946e918817e1d3c3eb24e877f0569275b3f5c662ccf35078e"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1280,
+            900
+          ],
+          "totalPixels": 1152000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1280,
+          "state": "templates",
+          "file": "1280-templates.png",
+          "pngSha256": [
+            "ea9e5c40e48ef34a67824cf8125f4817d8fc3868fd60e3d60c44a11aa99eb938",
+            "ea9e5c40e48ef34a67824cf8125f4817d8fc3868fd60e3d60c44a11aa99eb938"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1280,
+            900
+          ],
+          "totalPixels": 1152000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1280,
+          "state": "lesson",
+          "file": "1280-lesson.png",
+          "pngSha256": [
+            "a08456a5718ee02c9185bfceb507008498af322f69deced76811eb1d146a74ee",
+            "a08456a5718ee02c9185bfceb507008498af322f69deced76811eb1d146a74ee"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1280,
+            900
+          ],
+          "totalPixels": 1152000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1280,
+          "state": "assets",
+          "file": "1280-assets.png",
+          "pngSha256": [
+            "1e6a29e2f581bb6ff9ed3dad2fb379b88d9b07b6ec75920b7225e255d2bf1747",
+            "1e6a29e2f581bb6ff9ed3dad2fb379b88d9b07b6ec75920b7225e255d2bf1747"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1280,
+            900
+          ],
+          "totalPixels": 1152000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1280,
+          "state": "shared",
+          "file": "1280-shared.png",
+          "pngSha256": [
+            "6752181c81b48e34af80a62cf92eeeafbf5d65e3a8a7a2612b935ad5dbf25aac",
+            "6752181c81b48e34af80a62cf92eeeafbf5d65e3a8a7a2612b935ad5dbf25aac"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1280,
+            900
+          ],
+          "totalPixels": 1152000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1280,
+          "state": "shared-assets",
+          "file": "1280-shared-assets.png",
+          "pngSha256": [
+            "5c34ed63d9c9e0b91bb58593db7cb8a1628a6aff7d5d72cf970c5a5a07ce28bf",
+            "5c34ed63d9c9e0b91bb58593db7cb8a1628a6aff7d5d72cf970c5a5a07ce28bf"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1280,
+            900
+          ],
+          "totalPixels": 1152000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1280,
+          "state": "guide",
+          "file": "1280-guide.png",
+          "pngSha256": [
+            "c092400194b0e928ffed15bcbae41c7e937e8e24fa1f037abf005b90a5959481",
+            "c092400194b0e928ffed15bcbae41c7e937e8e24fa1f037abf005b90a5959481"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1280,
+            900
+          ],
+          "totalPixels": 1152000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1280,
+          "state": "public-project",
+          "file": "1280-public-project.png",
+          "pngSha256": [
+            "7c395333ff85cce328461773d503ca4cbbe04b9d2309749b80c7c7e7ce440896",
+            "7c395333ff85cce328461773d503ca4cbbe04b9d2309749b80c7c7e7ce440896"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1280,
+            900
+          ],
+          "totalPixels": 1152000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1280,
+          "state": "project-trash",
+          "file": "1280-project-trash.png",
+          "pngSha256": [
+            "c9067250d95311af9bd92e202d5399c6ee190792f198df03a7d0a8794893ee1f",
+            "c9067250d95311af9bd92e202d5399c6ee190792f198df03a7d0a8794893ee1f"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1280,
+            900
+          ],
+          "totalPixels": 1152000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1280,
+          "state": "resource-trash",
+          "file": "1280-resource-trash.png",
+          "pngSha256": [
+            "1f40d07ab5e33b522aefeb90e0ce057bd580ee7bb0aefc12440450914513fcc7",
+            "1f40d07ab5e33b522aefeb90e0ce057bd580ee7bb0aefc12440450914513fcc7"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1280,
+            900
+          ],
+          "totalPixels": 1152000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1280,
+          "state": "resource",
+          "file": "1280-resource.png",
+          "pngSha256": [
+            "1437166c1c14265c49a770e35aa2715eec155ed90b5929a60782f1317c88a6d1",
+            "1437166c1c14265c49a770e35aa2715eec155ed90b5929a60782f1317c88a6d1"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1280,
+            900
+          ],
+          "totalPixels": 1152000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1280,
+          "state": "editor",
+          "file": "1280-editor.png",
+          "pngSha256": [
+            "7734db0db3ea5ee3ce7e7ad9e579680dadf58f3cef2a032f68cd291f1f65493f",
+            "7734db0db3ea5ee3ce7e7ad9e579680dadf58f3cef2a032f68cd291f1f65493f"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1280,
+            900
+          ],
+          "totalPixels": 1152000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1280,
+          "state": "editor-fit",
+          "file": "1280-editor-fit.png",
+          "pngSha256": [
+            "d84403d9e9b435b05b2fd19ec0b10ba18100b87d057662fd37b845be5fe977d0",
+            "d84403d9e9b435b05b2fd19ec0b10ba18100b87d057662fd37b845be5fe977d0"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1280,
+            900
+          ],
+          "totalPixels": 1152000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1280,
+          "state": "run",
+          "file": "1280-run.png",
+          "pngSha256": [
+            "f467bc1b6ae346e1dda44aa8f3af096d7c79e99ca31505b030d437b3bb624cba",
+            "f467bc1b6ae346e1dda44aa8f3af096d7c79e99ca31505b030d437b3bb624cba"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1280,
+            900
+          ],
+          "totalPixels": 1152000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1280,
+          "state": "run-result",
+          "file": "1280-run-result.png",
+          "pngSha256": [
+            "ff002f47deab9b2954ff16b74ff1b423c6c531251c8c1dc9d2de42f0155e10c5",
+            "ff002f47deab9b2954ff16b74ff1b423c6c531251c8c1dc9d2de42f0155e10c5"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1280,
+            900
+          ],
+          "totalPixels": 1152000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1024,
+          "state": "login",
+          "file": "1024-login.png",
+          "pngSha256": [
+            "62550c17735033a7f8e1677bb6c7391763b6db49a67a707b97dd98398c101f6c",
+            "62550c17735033a7f8e1677bb6c7391763b6db49a67a707b97dd98398c101f6c"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "totalPixels": 786432,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1024,
+          "state": "signup",
+          "file": "1024-signup.png",
+          "pngSha256": [
+            "7d541d54065e795ec1624fc72fc83fa1774a0a4b69aaba52336c50fe247c2164",
+            "7d541d54065e795ec1624fc72fc83fa1774a0a4b69aaba52336c50fe247c2164"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "totalPixels": 786432,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1024,
+          "state": "home-first",
+          "file": "1024-home-first.png",
+          "pngSha256": [
+            "f4eb03403980fe71a6fd5156b2e4efe7e9232479ead5af114b1acda4a1403df9",
+            "f4eb03403980fe71a6fd5156b2e4efe7e9232479ead5af114b1acda4a1403df9"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "totalPixels": 786432,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1024,
+          "state": "chooser",
+          "file": "1024-chooser.png",
+          "pngSha256": [
+            "7e6eaac2223380284199b56574b87a374a5d5ff4fc4e494657681f8ef465c01a",
+            "7e6eaac2223380284199b56574b87a374a5d5ff4fc4e494657681f8ef465c01a"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "totalPixels": 786432,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1024,
+          "state": "home-return",
+          "file": "1024-home-return.png",
+          "pngSha256": [
+            "1e7d2c77359da2eff447187da990cccca72ce3dcaf016e443752328928601326",
+            "1e7d2c77359da2eff447187da990cccca72ce3dcaf016e443752328928601326"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "totalPixels": 786432,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1024,
+          "state": "projects",
+          "file": "1024-projects.png",
+          "pngSha256": [
+            "a9a730ae5f1ba3b3cd812d64a1e3d6b297cc2c0b6850c7dbef29973997237079",
+            "a9a730ae5f1ba3b3cd812d64a1e3d6b297cc2c0b6850c7dbef29973997237079"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "totalPixels": 786432,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1024,
+          "state": "templates",
+          "file": "1024-templates.png",
+          "pngSha256": [
+            "45361e5c9142178c9bf025056f01d8632aa34b9da0b78fae63ce605c645d0c93",
+            "45361e5c9142178c9bf025056f01d8632aa34b9da0b78fae63ce605c645d0c93"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "totalPixels": 786432,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1024,
+          "state": "lesson",
+          "file": "1024-lesson.png",
+          "pngSha256": [
+            "8586646c1153344c2ee837094c13b9a873a2d1b53fcc8b9d125df46bca932991",
+            "8586646c1153344c2ee837094c13b9a873a2d1b53fcc8b9d125df46bca932991"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "totalPixels": 786432,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1024,
+          "state": "assets",
+          "file": "1024-assets.png",
+          "pngSha256": [
+            "aff634f5b896b81d73cc05cfdaacfabd87451c158bd5b8c885c1b464eb870c94",
+            "aff634f5b896b81d73cc05cfdaacfabd87451c158bd5b8c885c1b464eb870c94"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "totalPixels": 786432,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1024,
+          "state": "shared",
+          "file": "1024-shared.png",
+          "pngSha256": [
+            "4b2804afa283ec5256a499de8b32b1b36e5e1d26026fd2b92b3bb56f12d209ec",
+            "4b2804afa283ec5256a499de8b32b1b36e5e1d26026fd2b92b3bb56f12d209ec"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "totalPixels": 786432,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1024,
+          "state": "shared-assets",
+          "file": "1024-shared-assets.png",
+          "pngSha256": [
+            "ef115a11f3d4fa59d97560fe500c910f386efee308ada07321442821d0e87744",
+            "ef115a11f3d4fa59d97560fe500c910f386efee308ada07321442821d0e87744"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "totalPixels": 786432,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1024,
+          "state": "guide",
+          "file": "1024-guide.png",
+          "pngSha256": [
+            "327a9fb4a46dd185b5d4d78d661282b2a749f958ebbb9e7f192aa5cb548730ef",
+            "854ab609e8aad48f279c11b607242422193b8fb04e21eefcae24523650a35559"
+          ],
+          "pngBytesIdentical": false,
+          "identical": false,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "totalPixels": 786432,
+          "differingPixels": 2749,
+          "differingPercent": 0.34955342610677087,
+          "maxChannelDelta": 35,
+          "bounds": {
+            "x": 226,
+            "y": 656,
+            "width": 208,
+            "height": 44
+          }
+        },
+        {
+          "width": 1024,
+          "state": "public-project",
+          "file": "1024-public-project.png",
+          "pngSha256": [
+            "59bfdbe5e818e0a31c6b9f890b95624034ac666ded855f47f056457b9bf53cc0",
+            "59bfdbe5e818e0a31c6b9f890b95624034ac666ded855f47f056457b9bf53cc0"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "totalPixels": 786432,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1024,
+          "state": "project-trash",
+          "file": "1024-project-trash.png",
+          "pngSha256": [
+            "b90961ddf9cdba8449a453b31a6988b2253792096e93d7e4a455523844431f66",
+            "b90961ddf9cdba8449a453b31a6988b2253792096e93d7e4a455523844431f66"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "totalPixels": 786432,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1024,
+          "state": "resource-trash",
+          "file": "1024-resource-trash.png",
+          "pngSha256": [
+            "b20613e8e8a8e3ae9cdf8fe54537f74797521027697a64fd501a01655ecdea13",
+            "b20613e8e8a8e3ae9cdf8fe54537f74797521027697a64fd501a01655ecdea13"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "totalPixels": 786432,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1024,
+          "state": "resource",
+          "file": "1024-resource.png",
+          "pngSha256": [
+            "3646394905f9a0a5a461427a9fa8a64508e0d9a78eca2ca8685ce693ab11d0d2",
+            "3646394905f9a0a5a461427a9fa8a64508e0d9a78eca2ca8685ce693ab11d0d2"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "totalPixels": 786432,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1024,
+          "state": "editor",
+          "file": "1024-editor.png",
+          "pngSha256": [
+            "f6e7bfa8b19a6d56fd34c6ee3b404fb15c4658159843d0f24bbc0361f407928e",
+            "f6e7bfa8b19a6d56fd34c6ee3b404fb15c4658159843d0f24bbc0361f407928e"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "totalPixels": 786432,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1024,
+          "state": "editor-fit",
+          "file": "1024-editor-fit.png",
+          "pngSha256": [
+            "bbd7a00f78f4b605190c46292b8c9798922a2571c8c05c828ef055b8e3475bd2",
+            "bbd7a00f78f4b605190c46292b8c9798922a2571c8c05c828ef055b8e3475bd2"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "totalPixels": 786432,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1024,
+          "state": "run",
+          "file": "1024-run.png",
+          "pngSha256": [
+            "dddc0041b4d30eaeacf56112b44ebcc4622bedd9ef60b3cfda4451bd8fda5449",
+            "dddc0041b4d30eaeacf56112b44ebcc4622bedd9ef60b3cfda4451bd8fda5449"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "totalPixels": 786432,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1024,
+          "state": "run-result",
+          "file": "1024-run-result.png",
+          "pngSha256": [
+            "8c95fb6d1434b5876fd73d285737dce1eae9ae08cf6b52104ee32a4694d012e3",
+            "8c95fb6d1434b5876fd73d285737dce1eae9ae08cf6b52104ee32a4694d012e3"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1024,
+            768
+          ],
+          "totalPixels": 786432,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 768,
+          "state": "login",
+          "file": "768-login.png",
+          "pngSha256": [
+            "99f98a0d653d4a149ad5bd3a4404e3c1f6a88e6e7c7ccfbd6a856982f8aa704e",
+            "99f98a0d653d4a149ad5bd3a4404e3c1f6a88e6e7c7ccfbd6a856982f8aa704e"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            768,
+            900
+          ],
+          "totalPixels": 691200,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 768,
+          "state": "signup",
+          "file": "768-signup.png",
+          "pngSha256": [
+            "f103f960ef1a3d330b425053c52a0df51d3a5e0354488310734faba31fb6a0cf",
+            "f103f960ef1a3d330b425053c52a0df51d3a5e0354488310734faba31fb6a0cf"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            768,
+            900
+          ],
+          "totalPixels": 691200,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 768,
+          "state": "home-first",
+          "file": "768-home-first.png",
+          "pngSha256": [
+            "5a64b60c8f6b5cd579abdca9a0d0cd344bab7a40a804a4b748cd2eb433ab3560",
+            "5a64b60c8f6b5cd579abdca9a0d0cd344bab7a40a804a4b748cd2eb433ab3560"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            768,
+            900
+          ],
+          "totalPixels": 691200,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 768,
+          "state": "chooser",
+          "file": "768-chooser.png",
+          "pngSha256": [
+            "99fb9c87adc6080207f6367eb685d1e55c289c37a8b11624ab9e94b1c5dd0e14",
+            "99fb9c87adc6080207f6367eb685d1e55c289c37a8b11624ab9e94b1c5dd0e14"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            768,
+            900
+          ],
+          "totalPixels": 691200,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 768,
+          "state": "home-return",
+          "file": "768-home-return.png",
+          "pngSha256": [
+            "b61445d3f73d8edf9fee22bf23675355f5e9c4e9566b31c0e194b42761b03b93",
+            "b61445d3f73d8edf9fee22bf23675355f5e9c4e9566b31c0e194b42761b03b93"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            768,
+            900
+          ],
+          "totalPixels": 691200,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 768,
+          "state": "projects",
+          "file": "768-projects.png",
+          "pngSha256": [
+            "af5b00f773d2e0eedfd4e1a8004e70f3b738185d920ae90c681fc6c36ed3e613",
+            "af5b00f773d2e0eedfd4e1a8004e70f3b738185d920ae90c681fc6c36ed3e613"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            768,
+            900
+          ],
+          "totalPixels": 691200,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 768,
+          "state": "templates",
+          "file": "768-templates.png",
+          "pngSha256": [
+            "9ad0fe128a055529b573c6126c7c55d1d1eaaeacdf8e3c984836d7938fbda8a9",
+            "9ad0fe128a055529b573c6126c7c55d1d1eaaeacdf8e3c984836d7938fbda8a9"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            768,
+            900
+          ],
+          "totalPixels": 691200,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 768,
+          "state": "lesson",
+          "file": "768-lesson.png",
+          "pngSha256": [
+            "2bc5b15859e497a983f76e9f7c2158f4f6dac8c84357a70870af70fcae34eac0",
+            "2bc5b15859e497a983f76e9f7c2158f4f6dac8c84357a70870af70fcae34eac0"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            768,
+            900
+          ],
+          "totalPixels": 691200,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 768,
+          "state": "assets",
+          "file": "768-assets.png",
+          "pngSha256": [
+            "ffe7de4d7775e69ae7a3418b2ec6b02dae50c10aa8893da772b2d8ee5d29cf65",
+            "ffe7de4d7775e69ae7a3418b2ec6b02dae50c10aa8893da772b2d8ee5d29cf65"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            768,
+            900
+          ],
+          "totalPixels": 691200,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 768,
+          "state": "shared",
+          "file": "768-shared.png",
+          "pngSha256": [
+            "8d7e2a41b696b1977d02c210984091dc41a39022e33bbc2e3a647661405f4c6d",
+            "8d7e2a41b696b1977d02c210984091dc41a39022e33bbc2e3a647661405f4c6d"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            768,
+            900
+          ],
+          "totalPixels": 691200,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 768,
+          "state": "shared-assets",
+          "file": "768-shared-assets.png",
+          "pngSha256": [
+            "6860430c47b33489e7cd938559545f09428a289750da4809e4289ccdb0f0be24",
+            "6860430c47b33489e7cd938559545f09428a289750da4809e4289ccdb0f0be24"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            768,
+            900
+          ],
+          "totalPixels": 691200,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 768,
+          "state": "guide",
+          "file": "768-guide.png",
+          "pngSha256": [
+            "fde5578d33533b072884f823e9091c8792568cb4b657bb44eb19ba2a40dd038d",
+            "fde5578d33533b072884f823e9091c8792568cb4b657bb44eb19ba2a40dd038d"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            768,
+            900
+          ],
+          "totalPixels": 691200,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 768,
+          "state": "public-project",
+          "file": "768-public-project.png",
+          "pngSha256": [
+            "229c853cbeaaf6866d43919a7b30345416a8a09d93113463be54626a89199c5d",
+            "229c853cbeaaf6866d43919a7b30345416a8a09d93113463be54626a89199c5d"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            768,
+            900
+          ],
+          "totalPixels": 691200,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 768,
+          "state": "project-trash",
+          "file": "768-project-trash.png",
+          "pngSha256": [
+            "3fbb0d1f6d91b349c46464c01972fdf875ebf8a3438d23083e87baa577ee492d",
+            "3fbb0d1f6d91b349c46464c01972fdf875ebf8a3438d23083e87baa577ee492d"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            768,
+            900
+          ],
+          "totalPixels": 691200,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 768,
+          "state": "resource-trash",
+          "file": "768-resource-trash.png",
+          "pngSha256": [
+            "1db897a2821f8d8745d4579bc7b6bc2d26deb2a809761f8585686d785d54d3eb",
+            "1db897a2821f8d8745d4579bc7b6bc2d26deb2a809761f8585686d785d54d3eb"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            768,
+            900
+          ],
+          "totalPixels": 691200,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 768,
+          "state": "resource",
+          "file": "768-resource.png",
+          "pngSha256": [
+            "cd5ee07aed600e7e3a57b08149ca6747c4057aada7ac4d1e8d50dbed9c06592d",
+            "cd5ee07aed600e7e3a57b08149ca6747c4057aada7ac4d1e8d50dbed9c06592d"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            768,
+            900
+          ],
+          "totalPixels": 691200,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 768,
+          "state": "editor",
+          "file": "768-editor.png",
+          "pngSha256": [
+            "b1b5176f18bb78d394a2415239561ef2efd64be62049a01e57f88d7e65f20106",
+            "b1b5176f18bb78d394a2415239561ef2efd64be62049a01e57f88d7e65f20106"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            768,
+            900
+          ],
+          "totalPixels": 691200,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 768,
+          "state": "editor-fit",
+          "file": "768-editor-fit.png",
+          "pngSha256": [
+            "497abfd276e52112ca2be35230ab9c295a96ae165ffd182a26b90d79c32b3029",
+            "497abfd276e52112ca2be35230ab9c295a96ae165ffd182a26b90d79c32b3029"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            768,
+            900
+          ],
+          "totalPixels": 691200,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 768,
+          "state": "run",
+          "file": "768-run.png",
+          "pngSha256": [
+            "10189a1f889fb5381ec052db9ace1ac6f3456cae1f36b25496c1688a0db28f06",
+            "10189a1f889fb5381ec052db9ace1ac6f3456cae1f36b25496c1688a0db28f06"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            768,
+            900
+          ],
+          "totalPixels": 691200,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 768,
+          "state": "run-result",
+          "file": "768-run-result.png",
+          "pngSha256": [
+            "c6d82382fdd20b176b90806fc6b9d1d5420e59a6c7ebcb865c959602385db258",
+            "c6d82382fdd20b176b90806fc6b9d1d5420e59a6c7ebcb865c959602385db258"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            768,
+            900
+          ],
+          "totalPixels": 691200,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "login",
+          "file": "390-login.png",
+          "pngSha256": [
+            "47671428d7442966dab43640aa8067969c5787adfe54c7e51f7c0f94376f9a8d",
+            "47671428d7442966dab43640aa8067969c5787adfe54c7e51f7c0f94376f9a8d"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "signup",
+          "file": "390-signup.png",
+          "pngSha256": [
+            "167580c057632ca58600e9c3f418ba287840a3545af10c9dd7792bd147eac4ad",
+            "167580c057632ca58600e9c3f418ba287840a3545af10c9dd7792bd147eac4ad"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "home-first",
+          "file": "390-home-first.png",
+          "pngSha256": [
+            "b4bc92302e38e92f424f76d43a69bdd1c80b87e8a5d4dd40fa8009b19bbb9e34",
+            "b4bc92302e38e92f424f76d43a69bdd1c80b87e8a5d4dd40fa8009b19bbb9e34"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "chooser",
+          "file": "390-chooser.png",
+          "pngSha256": [
+            "444c90c90aaabe7c9d10a0dd16d7c1999b83d9092355c247c25926b1a03ddb3c",
+            "444c90c90aaabe7c9d10a0dd16d7c1999b83d9092355c247c25926b1a03ddb3c"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "home-return",
+          "file": "390-home-return.png",
+          "pngSha256": [
+            "e2855421e00e11267c3638d715a71bb3aafcc23e543f387fec85b0d50baa441a",
+            "e2855421e00e11267c3638d715a71bb3aafcc23e543f387fec85b0d50baa441a"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "projects",
+          "file": "390-projects.png",
+          "pngSha256": [
+            "6fcd1672e8664217388118be03c91d29781e574f1987f0d3717a32d718dff2c6",
+            "6fcd1672e8664217388118be03c91d29781e574f1987f0d3717a32d718dff2c6"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "templates",
+          "file": "390-templates.png",
+          "pngSha256": [
+            "3b0e5653e70a1dfaf46ffcb6153aa6a72f88c04e3587a5544e2dd612c408e4ce",
+            "3b0e5653e70a1dfaf46ffcb6153aa6a72f88c04e3587a5544e2dd612c408e4ce"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "lesson",
+          "file": "390-lesson.png",
+          "pngSha256": [
+            "14ad976f6a5044f529e873e53fc715a4c9d7d5f780f032d6e76f5649aaef1126",
+            "14ad976f6a5044f529e873e53fc715a4c9d7d5f780f032d6e76f5649aaef1126"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "assets",
+          "file": "390-assets.png",
+          "pngSha256": [
+            "76588aa7b3c6c7cc0767b744c79ad30e011393a693f78968117e7e8d5fc247ad",
+            "76588aa7b3c6c7cc0767b744c79ad30e011393a693f78968117e7e8d5fc247ad"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "shared",
+          "file": "390-shared.png",
+          "pngSha256": [
+            "679da75625bc0b9d26046a504d652e6f64baeb3b853d1a00e4da33d03b806250",
+            "679da75625bc0b9d26046a504d652e6f64baeb3b853d1a00e4da33d03b806250"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "shared-assets",
+          "file": "390-shared-assets.png",
+          "pngSha256": [
+            "b7058dce7f24c1e1aea5042bf7b1cd7a28fad5f00b2212c9f563434e65f2eeb0",
+            "b7058dce7f24c1e1aea5042bf7b1cd7a28fad5f00b2212c9f563434e65f2eeb0"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "guide",
+          "file": "390-guide.png",
+          "pngSha256": [
+            "aa64f64dbf3caa4fb632e149177c0a66447f0c429fb1edcc2dfa0376cb53623c",
+            "aa64f64dbf3caa4fb632e149177c0a66447f0c429fb1edcc2dfa0376cb53623c"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "public-project",
+          "file": "390-public-project.png",
+          "pngSha256": [
+            "929c3aee35ac4a877164c8208ac7780e172e1b6a6048f8891ed9d1c9990e457d",
+            "929c3aee35ac4a877164c8208ac7780e172e1b6a6048f8891ed9d1c9990e457d"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "project-trash",
+          "file": "390-project-trash.png",
+          "pngSha256": [
+            "c88f3c04dab7b90592cfed70ac2ac84da70bd2da7995362f23eea1291c1c99cc",
+            "c88f3c04dab7b90592cfed70ac2ac84da70bd2da7995362f23eea1291c1c99cc"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "resource-trash",
+          "file": "390-resource-trash.png",
+          "pngSha256": [
+            "1f7ed84e7d8961dfcd0a644f42f59d71ca70d5ca956d4a1bfe2ff0e928f8a488",
+            "1f7ed84e7d8961dfcd0a644f42f59d71ca70d5ca956d4a1bfe2ff0e928f8a488"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "resource",
+          "file": "390-resource.png",
+          "pngSha256": [
+            "15b980213c1f88b8548dd88d8eedaae5d1bdbd1f00f472fe5ead2825ab69d04f",
+            "15b980213c1f88b8548dd88d8eedaae5d1bdbd1f00f472fe5ead2825ab69d04f"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "editor",
+          "file": "390-editor.png",
+          "pngSha256": [
+            "475d0e69ce52b02627d41aae45eece6d8775dd5636f291166acd2287ff24a7d9",
+            "475d0e69ce52b02627d41aae45eece6d8775dd5636f291166acd2287ff24a7d9"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "editor-fit",
+          "file": "390-editor-fit.png",
+          "pngSha256": [
+            "0f78f4e95c93ced4ebd5269bccb35f8a17de5922dedfac55db0f60370e26afc2",
+            "0f78f4e95c93ced4ebd5269bccb35f8a17de5922dedfac55db0f60370e26afc2"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "run",
+          "file": "390-run.png",
+          "pngSha256": [
+            "becb90b834809decd211c61b750eecf583d73627206964d02ff4e5eefbbb54cf",
+            "becb90b834809decd211c61b750eecf583d73627206964d02ff4e5eefbbb54cf"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "run-result",
+          "file": "390-run-result.png",
+          "pngSha256": [
+            "85e28e75f90deb14e3a07a603852b33647ca2089a4f6d36f28362bc10b7a6d9c",
+            "85e28e75f90deb14e3a07a603852b33647ca2089a4f6d36f28362bc10b7a6d9c"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 360,
+          "state": "login",
+          "file": "360-login.png",
+          "pngSha256": [
+            "c590925e58d512654a22bfa15b0858dbee077a1b5f84c432baab4f8c613858e7",
+            "c590925e58d512654a22bfa15b0858dbee077a1b5f84c432baab4f8c613858e7"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            360,
+            800
+          ],
+          "totalPixels": 288000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 360,
+          "state": "signup",
+          "file": "360-signup.png",
+          "pngSha256": [
+            "2f40b22255b216ed7936a9af73405cd56c8a7b1e6441c0429f107c25ee841cbf",
+            "2f40b22255b216ed7936a9af73405cd56c8a7b1e6441c0429f107c25ee841cbf"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            360,
+            800
+          ],
+          "totalPixels": 288000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 360,
+          "state": "home-first",
+          "file": "360-home-first.png",
+          "pngSha256": [
+            "34b7ca0ef7752bea86d77e5cb2e18c67dbb0a9649bd516d239ad5ab8a72d6b27",
+            "34b7ca0ef7752bea86d77e5cb2e18c67dbb0a9649bd516d239ad5ab8a72d6b27"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            360,
+            800
+          ],
+          "totalPixels": 288000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 360,
+          "state": "chooser",
+          "file": "360-chooser.png",
+          "pngSha256": [
+            "f068b43a3900befdef1cd85203504b433aa064c1f870482919793e2d661f67e6",
+            "f068b43a3900befdef1cd85203504b433aa064c1f870482919793e2d661f67e6"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            360,
+            800
+          ],
+          "totalPixels": 288000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 360,
+          "state": "home-return",
+          "file": "360-home-return.png",
+          "pngSha256": [
+            "647ff9e2cda9e0d76945be57782301d4bd326ec1fdf7b8fa9322a6fe48a58ff1",
+            "647ff9e2cda9e0d76945be57782301d4bd326ec1fdf7b8fa9322a6fe48a58ff1"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            360,
+            800
+          ],
+          "totalPixels": 288000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 360,
+          "state": "projects",
+          "file": "360-projects.png",
+          "pngSha256": [
+            "2b9461fecb63843cc16121bf62ee3b9564fb16af78091b48936a66deaa683a30",
+            "2b9461fecb63843cc16121bf62ee3b9564fb16af78091b48936a66deaa683a30"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            360,
+            800
+          ],
+          "totalPixels": 288000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 360,
+          "state": "templates",
+          "file": "360-templates.png",
+          "pngSha256": [
+            "dce358727df3096b1b9dd6ec7f446ac9a5a11ee35a4ca9c32b5293dceb05d617",
+            "dce358727df3096b1b9dd6ec7f446ac9a5a11ee35a4ca9c32b5293dceb05d617"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            360,
+            800
+          ],
+          "totalPixels": 288000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 360,
+          "state": "lesson",
+          "file": "360-lesson.png",
+          "pngSha256": [
+            "0534c3086b72f3462243369b3dd259e37e1d85b73085cf9cb412b7a1c5f184e7",
+            "0534c3086b72f3462243369b3dd259e37e1d85b73085cf9cb412b7a1c5f184e7"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            360,
+            800
+          ],
+          "totalPixels": 288000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 360,
+          "state": "assets",
+          "file": "360-assets.png",
+          "pngSha256": [
+            "d324eb25176fababf1914044427f94d99824fdf15ddd307e762aeac02bb8541a",
+            "d324eb25176fababf1914044427f94d99824fdf15ddd307e762aeac02bb8541a"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            360,
+            800
+          ],
+          "totalPixels": 288000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 360,
+          "state": "shared",
+          "file": "360-shared.png",
+          "pngSha256": [
+            "fad2cc6628e56e057a2dc73cabc4e413109488b6be1256dd4e573ecc69f2895b",
+            "fad2cc6628e56e057a2dc73cabc4e413109488b6be1256dd4e573ecc69f2895b"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            360,
+            800
+          ],
+          "totalPixels": 288000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 360,
+          "state": "shared-assets",
+          "file": "360-shared-assets.png",
+          "pngSha256": [
+            "4b9a3cb655af2e98453b7a6053edf2ce04975fdd45d3a95d5ea218270562dd99",
+            "4b9a3cb655af2e98453b7a6053edf2ce04975fdd45d3a95d5ea218270562dd99"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            360,
+            800
+          ],
+          "totalPixels": 288000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 360,
+          "state": "guide",
+          "file": "360-guide.png",
+          "pngSha256": [
+            "1ff07400634d1e25a99b91a12fdfb6d9b19a2cd1cb17a7122abc4a23d2c70674",
+            "1ff07400634d1e25a99b91a12fdfb6d9b19a2cd1cb17a7122abc4a23d2c70674"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            360,
+            800
+          ],
+          "totalPixels": 288000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 360,
+          "state": "public-project",
+          "file": "360-public-project.png",
+          "pngSha256": [
+            "5238170c98924547bb52c548d65a6567e5c62deb828405b911eb491702315180",
+            "5238170c98924547bb52c548d65a6567e5c62deb828405b911eb491702315180"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            360,
+            800
+          ],
+          "totalPixels": 288000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 360,
+          "state": "project-trash",
+          "file": "360-project-trash.png",
+          "pngSha256": [
+            "839aecf2066b4020e731bc4c6ec9acf914e4cea9eff37b27dc7201e4c1cb700e",
+            "839aecf2066b4020e731bc4c6ec9acf914e4cea9eff37b27dc7201e4c1cb700e"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            360,
+            800
+          ],
+          "totalPixels": 288000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 360,
+          "state": "resource-trash",
+          "file": "360-resource-trash.png",
+          "pngSha256": [
+            "6be8496afdf1ade7408fc983af9e3c6a4d27c29c8533d4bdc43aedb297dc230d",
+            "6be8496afdf1ade7408fc983af9e3c6a4d27c29c8533d4bdc43aedb297dc230d"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            360,
+            800
+          ],
+          "totalPixels": 288000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 360,
+          "state": "resource",
+          "file": "360-resource.png",
+          "pngSha256": [
+            "ac7270739c718574ad3416876e65f4b7089526f25fbadb7c6f472fa6988ee938",
+            "ac7270739c718574ad3416876e65f4b7089526f25fbadb7c6f472fa6988ee938"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            360,
+            800
+          ],
+          "totalPixels": 288000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 360,
+          "state": "editor",
+          "file": "360-editor.png",
+          "pngSha256": [
+            "76c56abd6b613e6031b0b83701eba07a820b1f166cc05cc368696b241922538f",
+            "76c56abd6b613e6031b0b83701eba07a820b1f166cc05cc368696b241922538f"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            360,
+            800
+          ],
+          "totalPixels": 288000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 360,
+          "state": "editor-fit",
+          "file": "360-editor-fit.png",
+          "pngSha256": [
+            "03ab0fd6fe5279c4c9650255b56313b6c744397325adcd3d2d45a29b71b00a6e",
+            "03ab0fd6fe5279c4c9650255b56313b6c744397325adcd3d2d45a29b71b00a6e"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            360,
+            800
+          ],
+          "totalPixels": 288000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 360,
+          "state": "run",
+          "file": "360-run.png",
+          "pngSha256": [
+            "152e35970a98b66ae17f8fed6e146ac02cf71ed6660fbb215cf21acd157b8003",
+            "152e35970a98b66ae17f8fed6e146ac02cf71ed6660fbb215cf21acd157b8003"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            360,
+            800
+          ],
+          "totalPixels": 288000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 360,
+          "state": "run-result",
+          "file": "360-run-result.png",
+          "pngSha256": [
+            "5d06db97a49972d86d15d2d13c3565a7310d143932554410525956610f4906b1",
+            "5d06db97a49972d86d15d2d13c3565a7310d143932554410525956610f4906b1"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            360,
+            800
+          ],
+          "totalPixels": 288000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        }
+      ]
+    },
+    {
+      "theme": "dark",
+      "rounds": [
+        "signoff-dark-1",
+        "signoff-dark-2"
+      ],
+      "pairCount": 40,
+      "identicalPairs": 40,
+      "mismatchPairs": 0,
+      "pairs": [
+        {
+          "width": 1440,
+          "state": "login",
+          "file": "1440-login.png",
+          "pngSha256": [
+            "5159dcec61839df6a7dac5ea7a8d5c14dbc51a4da6169ea51db156022d38ff62",
+            "5159dcec61839df6a7dac5ea7a8d5c14dbc51a4da6169ea51db156022d38ff62"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "signup",
+          "file": "1440-signup.png",
+          "pngSha256": [
+            "eb952211bf975bddd52b57a0676013e980713bd3f52d6351f9d2c7b0f840704c",
+            "eb952211bf975bddd52b57a0676013e980713bd3f52d6351f9d2c7b0f840704c"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "home-first",
+          "file": "1440-home-first.png",
+          "pngSha256": [
+            "281cdddd9d58c92710de6deeea0231dbfcf8d77a911af16dfb5e96af71e6c810",
+            "281cdddd9d58c92710de6deeea0231dbfcf8d77a911af16dfb5e96af71e6c810"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "chooser",
+          "file": "1440-chooser.png",
+          "pngSha256": [
+            "49d18cc94f7ba0b39c3d9456e724e3428ecb232579c752f86c2dafaa1a678f08",
+            "49d18cc94f7ba0b39c3d9456e724e3428ecb232579c752f86c2dafaa1a678f08"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "home-return",
+          "file": "1440-home-return.png",
+          "pngSha256": [
+            "84e5b859d95fc6147e060618edb49405837eee781354eebd49a77c737d02fa59",
+            "84e5b859d95fc6147e060618edb49405837eee781354eebd49a77c737d02fa59"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "projects",
+          "file": "1440-projects.png",
+          "pngSha256": [
+            "78566cdd63f1632a473eaa788dd174a13c3ebd16345c069fcf69e34935ae4de6",
+            "78566cdd63f1632a473eaa788dd174a13c3ebd16345c069fcf69e34935ae4de6"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "templates",
+          "file": "1440-templates.png",
+          "pngSha256": [
+            "47c162085af18a14b46e386ad3405b20210bb4baf1c3deb373c18f169e3f857d",
+            "47c162085af18a14b46e386ad3405b20210bb4baf1c3deb373c18f169e3f857d"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "lesson",
+          "file": "1440-lesson.png",
+          "pngSha256": [
+            "920b1427daa4ce0ee11d35f9cb07202e7f0a92026ce934e003de85ac7fa5ac5d",
+            "920b1427daa4ce0ee11d35f9cb07202e7f0a92026ce934e003de85ac7fa5ac5d"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "assets",
+          "file": "1440-assets.png",
+          "pngSha256": [
+            "595c85b269ca6d20d96dddc2ece4b770b1b11f624c4dfc3b49f58f4e91efd867",
+            "595c85b269ca6d20d96dddc2ece4b770b1b11f624c4dfc3b49f58f4e91efd867"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "shared",
+          "file": "1440-shared.png",
+          "pngSha256": [
+            "4ae6724865500d92180567ac9a6f7815dd08e208a8ea1b077d343184de717893",
+            "4ae6724865500d92180567ac9a6f7815dd08e208a8ea1b077d343184de717893"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "shared-assets",
+          "file": "1440-shared-assets.png",
+          "pngSha256": [
+            "b5f51eefe20777ab2778bd310ffcfbcaf03ed206b4cfebc7f3548f7eff4ec64a",
+            "b5f51eefe20777ab2778bd310ffcfbcaf03ed206b4cfebc7f3548f7eff4ec64a"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "guide",
+          "file": "1440-guide.png",
+          "pngSha256": [
+            "0f00533b7d0566a740b4ce9fb318849f8fc1a1bc2d1b48f2d16c022f310fdf50",
+            "0f00533b7d0566a740b4ce9fb318849f8fc1a1bc2d1b48f2d16c022f310fdf50"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "public-project",
+          "file": "1440-public-project.png",
+          "pngSha256": [
+            "c6fdb3c81db54143e7f150e8d70ef76035611a97abdb711f78fbbe33628335f9",
+            "c6fdb3c81db54143e7f150e8d70ef76035611a97abdb711f78fbbe33628335f9"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "project-trash",
+          "file": "1440-project-trash.png",
+          "pngSha256": [
+            "5a670e85fd8ce0146e9ee788d0ec2e84a07895b552708cea52dd0d541c5b2d81",
+            "5a670e85fd8ce0146e9ee788d0ec2e84a07895b552708cea52dd0d541c5b2d81"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "resource-trash",
+          "file": "1440-resource-trash.png",
+          "pngSha256": [
+            "6c6ca3a2e4a6a9036b5ce370c9a9b3d66b221dc8feedca619cf9d4cbff1bf348",
+            "6c6ca3a2e4a6a9036b5ce370c9a9b3d66b221dc8feedca619cf9d4cbff1bf348"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "resource",
+          "file": "1440-resource.png",
+          "pngSha256": [
+            "94f937261ed19642759431db4b921f9879783eb52fd856f114d8357e090449e7",
+            "94f937261ed19642759431db4b921f9879783eb52fd856f114d8357e090449e7"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "editor",
+          "file": "1440-editor.png",
+          "pngSha256": [
+            "1454b6c7c0503af4ff4841b4c6ac86608f9cba55f477cd381e6f2b11936ebecd",
+            "1454b6c7c0503af4ff4841b4c6ac86608f9cba55f477cd381e6f2b11936ebecd"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "editor-fit",
+          "file": "1440-editor-fit.png",
+          "pngSha256": [
+            "d380ac15e4ed81810ebda053c6ba59743ae78b919ffad1f125f3ff9e74183858",
+            "d380ac15e4ed81810ebda053c6ba59743ae78b919ffad1f125f3ff9e74183858"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "run",
+          "file": "1440-run.png",
+          "pngSha256": [
+            "3fad4694a7ef018ed0a2f69eebe1c67773acb85c4033bbca28f15026190fec13",
+            "3fad4694a7ef018ed0a2f69eebe1c67773acb85c4033bbca28f15026190fec13"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 1440,
+          "state": "run-result",
+          "file": "1440-run-result.png",
+          "pngSha256": [
+            "dd3744c6de1159dba1718a424829b73301f7775e74f13629a8918366e813b105",
+            "dd3744c6de1159dba1718a424829b73301f7775e74f13629a8918366e813b105"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            1440,
+            900
+          ],
+          "totalPixels": 1296000,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "login",
+          "file": "390-login.png",
+          "pngSha256": [
+            "42091aa0ffd093d8ca394bd20059d068580c5031eff498603702eabd3a778eb0",
+            "42091aa0ffd093d8ca394bd20059d068580c5031eff498603702eabd3a778eb0"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "signup",
+          "file": "390-signup.png",
+          "pngSha256": [
+            "dbb8bfadb7de73598bd06d1c072a91b287f7d130d0d5dc0c2dcebb261df8ded3",
+            "dbb8bfadb7de73598bd06d1c072a91b287f7d130d0d5dc0c2dcebb261df8ded3"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "home-first",
+          "file": "390-home-first.png",
+          "pngSha256": [
+            "a1529951d1642d91dee00a995d5a4d0f344c593b1f7f53c9494c46b5f85ff53b",
+            "a1529951d1642d91dee00a995d5a4d0f344c593b1f7f53c9494c46b5f85ff53b"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "chooser",
+          "file": "390-chooser.png",
+          "pngSha256": [
+            "e2076da5ac3594f10d0c26075b8ba80fb0d59bf9f28444528285f1ecc5f2af6e",
+            "e2076da5ac3594f10d0c26075b8ba80fb0d59bf9f28444528285f1ecc5f2af6e"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "home-return",
+          "file": "390-home-return.png",
+          "pngSha256": [
+            "4e0e09efe93c0e994481c9a6c05d4074fe53d83f3e0c61c42fbcc87ed7173789",
+            "4e0e09efe93c0e994481c9a6c05d4074fe53d83f3e0c61c42fbcc87ed7173789"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "projects",
+          "file": "390-projects.png",
+          "pngSha256": [
+            "8b3d7743fee7145b9bddb9c71e475ada75fee254b7b7ca7fdd9847b7dbb3fabf",
+            "8b3d7743fee7145b9bddb9c71e475ada75fee254b7b7ca7fdd9847b7dbb3fabf"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "templates",
+          "file": "390-templates.png",
+          "pngSha256": [
+            "2627e39d9f8eb3d15b954cf02dc434d22ca7d8765405a36e663503ad58da2954",
+            "2627e39d9f8eb3d15b954cf02dc434d22ca7d8765405a36e663503ad58da2954"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "lesson",
+          "file": "390-lesson.png",
+          "pngSha256": [
+            "8b0652d9f06b331d17b6ef0ac620db88074507a82a1d9f64f2a6be88679872c4",
+            "8b0652d9f06b331d17b6ef0ac620db88074507a82a1d9f64f2a6be88679872c4"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "assets",
+          "file": "390-assets.png",
+          "pngSha256": [
+            "fc7d70f32693fef0ba1198fc23cc768ac9b73872f9816c571b0bd325e2b6aa89",
+            "fc7d70f32693fef0ba1198fc23cc768ac9b73872f9816c571b0bd325e2b6aa89"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "shared",
+          "file": "390-shared.png",
+          "pngSha256": [
+            "d3caef8fcb68f3e84cf1aff923b8aba68fa71af8c94ed90d7cb1ec9a8b040296",
+            "d3caef8fcb68f3e84cf1aff923b8aba68fa71af8c94ed90d7cb1ec9a8b040296"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "shared-assets",
+          "file": "390-shared-assets.png",
+          "pngSha256": [
+            "d6967d18b6e6f614aa7eb2391daef2a938863c2bade01fa77156c8d88c8586fb",
+            "d6967d18b6e6f614aa7eb2391daef2a938863c2bade01fa77156c8d88c8586fb"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "guide",
+          "file": "390-guide.png",
+          "pngSha256": [
+            "af0cfd57b67509510ad1d748bb0a9c939bd090abbd2c7487d0cfe8a778b4c123",
+            "af0cfd57b67509510ad1d748bb0a9c939bd090abbd2c7487d0cfe8a778b4c123"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "public-project",
+          "file": "390-public-project.png",
+          "pngSha256": [
+            "5d2f59431bc74de4ee946b6f7392e5feca99299e6395c0686b950269c8802c47",
+            "5d2f59431bc74de4ee946b6f7392e5feca99299e6395c0686b950269c8802c47"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "project-trash",
+          "file": "390-project-trash.png",
+          "pngSha256": [
+            "e1420fe645538bf5e021f2f251d3b121b0c5ba93ac2780616800384bfe0a8a7d",
+            "e1420fe645538bf5e021f2f251d3b121b0c5ba93ac2780616800384bfe0a8a7d"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "resource-trash",
+          "file": "390-resource-trash.png",
+          "pngSha256": [
+            "cdfeb09f25966de9c36bb0201dd7124135aed5d3d86bab73ee5c9187a19b35bc",
+            "cdfeb09f25966de9c36bb0201dd7124135aed5d3d86bab73ee5c9187a19b35bc"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "resource",
+          "file": "390-resource.png",
+          "pngSha256": [
+            "3fe3f9bfdd845d47704d6f94bfda23d194bd4e0168ac48dc67dc5c7203065bef",
+            "3fe3f9bfdd845d47704d6f94bfda23d194bd4e0168ac48dc67dc5c7203065bef"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "editor",
+          "file": "390-editor.png",
+          "pngSha256": [
+            "a87f16e2d8802c955fd11ab5ef73ee218dede904565c1322fb517f457f024759",
+            "a87f16e2d8802c955fd11ab5ef73ee218dede904565c1322fb517f457f024759"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "editor-fit",
+          "file": "390-editor-fit.png",
+          "pngSha256": [
+            "d3a9777ba7849922bb560c40f28bd5792295524108ba316fbc5800c4b6e840b3",
+            "d3a9777ba7849922bb560c40f28bd5792295524108ba316fbc5800c4b6e840b3"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "run",
+          "file": "390-run.png",
+          "pngSha256": [
+            "9ad16f36fdb80f9b183def6b4b14bc9464863f7e40717e33c83f29aba74cafe3",
+            "9ad16f36fdb80f9b183def6b4b14bc9464863f7e40717e33c83f29aba74cafe3"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        },
+        {
+          "width": 390,
+          "state": "run-result",
+          "file": "390-run-result.png",
+          "pngSha256": [
+            "e2e9bc2e73712ff9e1bbfa8ab9d24d2edd35f736f9bfa0c5b4298261fce52c88",
+            "e2e9bc2e73712ff9e1bbfa8ab9d24d2edd35f736f9bfa0c5b4298261fce52c88"
+          ],
+          "pngBytesIdentical": true,
+          "identical": true,
+          "dimensions": [
+            390,
+            844
+          ],
+          "totalPixels": 329160,
+          "differingPixels": 0,
+          "differingPercent": 0
+        }
+      ]
+    }
+  ]
+}

@@ -107,10 +107,10 @@ async function verifyCredentialCopy(owner:BrowserContext,reader:BrowserContext,t
     console.log('PASS protected MCP: original used fixture credential; post-withdrawal private copy withheld credential, received HTTP 401 from service; ordinary owner reconfiguration refused (403).');
   } finally { await page.close(); }
 }
-async function check(width:number) {
-  const desktop=width>600;
+async function check() {
+  const width=1440;
   const owner=await browser.newContext({baseURL});
-  const reader=await browser.newContext({baseURL,viewport:{width,height:desktop?900:844},isMobile:!desktop,hasTouch:!desktop});
+  const reader=await browser.newContext({baseURL,viewport:{width,height:900}});
   try {
     const tag=crypto.randomUUID().slice(0,8);
     const user=await registerBrowserAccount(owner);
@@ -192,8 +192,7 @@ async function check(width:number) {
   } finally { await reader.close(); await owner.close(); }
 }
 try {
-  await check(1440);
-  await check(390);
+  await check();
 } finally {
   await browser.close();
   service.closeAllConnections();

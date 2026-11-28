@@ -214,13 +214,13 @@ test('실행 번호와 읽은 자료판은 본인의 프로젝트 기록에 고�
   await execute(author,id,'author-run');
   const cancelled=startRun(reader,{id,input:'대출 규정',mode:'live',requestKey:'cancelled'});
   stopRun(reader,cancelled.id);
-  writeAsset(author,{id:asset.id,baseVersion:1,name:'수령 규정',payload:{content:'모바일 회원증도 가능합니다.'}});
+  writeAsset(author,{id:asset.id,baseVersion:1,name:'수령 규정',payload:{content:'등록된 학생증도 가능합니다.'}});
   graph.nodes[1].config.version=2;
   const saved=saveProject(author,{id,revision:project.revision,title:project.title,graph});
   release(2,saved.revision);
   const last=await execute(reader,id,'second-edition');
   assert.deepEqual(runList(reader,id).map(run=>[run.runNumber,run.output,run.usedEditions]),[
-    [3,'모바일 회원증도 가능합니다.',[{title:'수령 규정',version:2}]],
+    [3,'등록된 학생증도 가능합니다.',[{title:'수령 규정',version:2}]],
     [2,'',[]],
     [1,'회원증이 필요합니다.',[{title:'수령 규정',version:1}]],
   ]);

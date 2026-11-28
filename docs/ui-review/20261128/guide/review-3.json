@@ -1,0 +1,956 @@
+{
+  "phase": "review-3",
+  "chrome": "157.0.8103.79",
+  "results": [
+    {
+      "width": 360,
+      "height": 740,
+      "errors": [],
+      "pages": {
+        "처음 시작하기": 0,
+        "목적별로 만들기": 0,
+        "기능·용어": 0,
+        "문제 해결": 0,
+        "블록·자료 찾아보기": 0,
+        "메뉴별 사용법": 0,
+        "compactPicker": {
+          "x": 18,
+          "y": 392,
+          "width": 324,
+          "height": 44,
+          "yScroll": 0,
+          "xScroll": 0
+        }
+      },
+      "dialogs": {
+        "illustration": {
+          "dialog": {
+            "x": 16,
+            "y": 169,
+            "width": 328,
+            "height": 403,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "description": {
+            "x": 27,
+            "y": 241,
+            "width": 306,
+            "height": 63,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "viewport": {
+            "x": 27,
+            "y": 361,
+            "width": 306,
+            "height": 199,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "enlarged": {
+            "x": 27,
+            "y": 289,
+            "width": 306,
+            "height": 345,
+            "yScroll": 0,
+            "xScroll": 236
+          }
+        },
+        "lesson": {
+          "dialog": {
+            "x": 16,
+            "y": 30,
+            "width": 328,
+            "height": 681,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "cover": {
+            "x": 17,
+            "y": 92,
+            "width": 326,
+            "height": 176,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "steps": {
+            "x": 33,
+            "y": 283,
+            "width": 294,
+            "height": 35,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "start": {
+            "x": 169,
+            "y": 655,
+            "width": 158,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "axe": []
+        },
+        "dynamic": {
+          "dialog": {
+            "x": 16,
+            "y": 30,
+            "width": 328,
+            "height": 681,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "start": {
+            "x": 169,
+            "y": 655,
+            "width": 158,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "total": {
+            "x": 50,
+            "y": 400,
+            "width": 260,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "concurrent": {
+            "x": 50,
+            "y": 485,
+            "width": 260,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "axe": [],
+          "startAfterScroll": {
+            "x": 169,
+            "y": 655,
+            "width": 158,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          }
+        }
+      },
+      "passed": true
+    },
+    {
+      "width": 390,
+      "height": 780,
+      "errors": [],
+      "pages": {
+        "처음 시작하기": 0,
+        "목적별로 만들기": 0,
+        "기능·용어": 0,
+        "문제 해결": 0,
+        "블록·자료 찾아보기": 0,
+        "메뉴별 사용법": 0,
+        "compactPicker": {
+          "x": 18,
+          "y": 392,
+          "width": 354,
+          "height": 44,
+          "yScroll": 0,
+          "xScroll": 0
+        }
+      },
+      "dialogs": {
+        "illustration": {
+          "dialog": {
+            "x": 16,
+            "y": 194,
+            "width": 358,
+            "height": 393,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "description": {
+            "x": 27,
+            "y": 266,
+            "width": 230,
+            "height": 84,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "viewport": {
+            "x": 27,
+            "y": 359,
+            "width": 336,
+            "height": 216,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "enlarged": {
+            "x": 27,
+            "y": 295,
+            "width": 336,
+            "height": 345,
+            "yScroll": 0,
+            "xScroll": 206
+          }
+        },
+        "lesson": {
+          "dialog": {
+            "x": 16,
+            "y": 31,
+            "width": 358,
+            "height": 718,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "cover": {
+            "x": 17,
+            "y": 93,
+            "width": 356,
+            "height": 176,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "steps": {
+            "x": 33,
+            "y": 285,
+            "width": 324,
+            "height": 35,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "start": {
+            "x": 199,
+            "y": 694,
+            "width": 158,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "axe": []
+        },
+        "dynamic": {
+          "dialog": {
+            "x": 16,
+            "y": 31,
+            "width": 358,
+            "height": 718,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "start": {
+            "x": 199,
+            "y": 694,
+            "width": 158,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "total": {
+            "x": 50,
+            "y": 401,
+            "width": 139,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "concurrent": {
+            "x": 201,
+            "y": 401,
+            "width": 139,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "axe": [],
+          "startAfterScroll": {
+            "x": 199,
+            "y": 694,
+            "width": 158,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          }
+        }
+      },
+      "passed": true
+    },
+    {
+      "width": 768,
+      "height": 800,
+      "errors": [],
+      "pages": {
+        "처음 시작하기": 0,
+        "목적별로 만들기": 0,
+        "기능·용어": 0,
+        "문제 해결": 0,
+        "블록·자료 찾아보기": 0,
+        "메뉴별 사용법": 0,
+        "compactPicker": {
+          "x": 216,
+          "y": 316,
+          "width": 526,
+          "height": 44,
+          "yScroll": 0,
+          "xScroll": 0
+        }
+      },
+      "dialogs": {
+        "illustration": {
+          "dialog": {
+            "x": 64,
+            "y": 141,
+            "width": 640,
+            "height": 518,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "description": {
+            "x": 80,
+            "y": 218,
+            "width": 501,
+            "height": 42,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "viewport": {
+            "x": 80,
+            "y": 272,
+            "width": 607,
+            "height": 370,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "enlarged": {
+            "x": 80,
+            "y": 267,
+            "width": 607,
+            "height": 382,
+            "yScroll": 0,
+            "xScroll": 0
+          }
+        },
+        "lesson": {
+          "dialog": {
+            "x": 19,
+            "y": 53,
+            "width": 730,
+            "height": 694,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "cover": {
+            "x": 20,
+            "y": 115,
+            "width": 248,
+            "height": 562,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "steps": {
+            "x": 289,
+            "y": 136,
+            "width": 438,
+            "height": 35,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "start": {
+            "x": 570,
+            "y": 690,
+            "width": 158,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "axe": []
+        },
+        "dynamic": {
+          "dialog": {
+            "x": 19,
+            "y": 32,
+            "width": 730,
+            "height": 736,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "start": {
+            "x": 570,
+            "y": 711,
+            "width": 158,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "total": {
+            "x": 306,
+            "y": 179,
+            "width": 196,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "concurrent": {
+            "x": 514,
+            "y": 179,
+            "width": 196,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "axe": [],
+          "startAfterScroll": {
+            "x": 570,
+            "y": 711,
+            "width": 158,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          }
+        }
+      },
+      "passed": true
+    },
+    {
+      "width": 1024,
+      "height": 800,
+      "errors": [],
+      "pages": {
+        "처음 시작하기": 0,
+        "목적별로 만들기": 0,
+        "기능·용어": 0,
+        "문제 해결": 0,
+        "블록·자료 찾아보기": 0,
+        "메뉴별 사용법": 0
+      },
+      "dialogs": {
+        "illustration": {
+          "dialog": {
+            "x": 192,
+            "y": 139,
+            "width": 640,
+            "height": 523,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "description": {
+            "x": 213,
+            "y": 221,
+            "width": 491,
+            "height": 42,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "viewport": {
+            "x": 213,
+            "y": 275,
+            "width": 597,
+            "height": 365,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "enlarged": {
+            "x": 213,
+            "y": 269,
+            "width": 597,
+            "height": 376,
+            "yScroll": 0,
+            "xScroll": 0
+          }
+        },
+        "lesson": {
+          "dialog": {
+            "x": 24,
+            "y": 80,
+            "width": 976,
+            "height": 640,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "cover": {
+            "x": 25,
+            "y": 142,
+            "width": 332,
+            "height": 508,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "steps": {
+            "x": 384,
+            "y": 170,
+            "width": 587,
+            "height": 35,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "start": {
+            "x": 821,
+            "y": 663,
+            "width": 158,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "axe": []
+        },
+        "dynamic": {
+          "dialog": {
+            "x": 24,
+            "y": 32,
+            "width": 976,
+            "height": 736,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "start": {
+            "x": 821,
+            "y": 711,
+            "width": 158,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "total": {
+            "x": 401,
+            "y": 186,
+            "width": 271,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "concurrent": {
+            "x": 684,
+            "y": 186,
+            "width": 271,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "axe": [],
+          "startAfterScroll": {
+            "x": 821,
+            "y": 711,
+            "width": 158,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          }
+        }
+      },
+      "passed": true
+    },
+    {
+      "width": 1280,
+      "height": 800,
+      "errors": [],
+      "pages": {
+        "처음 시작하기": 0,
+        "목적별로 만들기": 0,
+        "기능·용어": 0,
+        "문제 해결": 0,
+        "블록·자료 찾아보기": 0,
+        "메뉴별 사용법": 0
+      },
+      "dialogs": {
+        "illustration": {
+          "dialog": {
+            "x": 320,
+            "y": 138,
+            "width": 640,
+            "height": 524,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "description": {
+            "x": 343,
+            "y": 222,
+            "width": 488,
+            "height": 42,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "viewport": {
+            "x": 343,
+            "y": 276,
+            "width": 594,
+            "height": 363,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "enlarged": {
+            "x": 343,
+            "y": 270,
+            "width": 594,
+            "height": 374,
+            "yScroll": 0,
+            "xScroll": 0
+          }
+        },
+        "lesson": {
+          "dialog": {
+            "x": 80,
+            "y": 73,
+            "width": 1120,
+            "height": 654,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "cover": {
+            "x": 81,
+            "y": 135,
+            "width": 381,
+            "height": 522,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "steps": {
+            "x": 496,
+            "y": 170,
+            "width": 668,
+            "height": 35,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "start": {
+            "x": 1021,
+            "y": 670,
+            "width": 158,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "axe": []
+        },
+        "dynamic": {
+          "dialog": {
+            "x": 80,
+            "y": 32,
+            "width": 1120,
+            "height": 736,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "start": {
+            "x": 1021,
+            "y": 711,
+            "width": 158,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "total": {
+            "x": 513,
+            "y": 193,
+            "width": 311,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "concurrent": {
+            "x": 836,
+            "y": 193,
+            "width": 311,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "axe": [],
+          "startAfterScroll": {
+            "x": 1021,
+            "y": 711,
+            "width": 158,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          }
+        }
+      },
+      "passed": true
+    },
+    {
+      "width": 1440,
+      "height": 900,
+      "errors": [],
+      "pages": {
+        "처음 시작하기": 0,
+        "목적별로 만들기": 0,
+        "기능·용어": 0,
+        "문제 해결": 0,
+        "블록·자료 찾아보기": 0,
+        "메뉴별 사용법": 0
+      },
+      "dialogs": {
+        "illustration": {
+          "dialog": {
+            "x": 400,
+            "y": 188,
+            "width": 640,
+            "height": 524,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "description": {
+            "x": 423,
+            "y": 272,
+            "width": 488,
+            "height": 42,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "viewport": {
+            "x": 423,
+            "y": 326,
+            "width": 594,
+            "height": 363,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "enlarged": {
+            "x": 423,
+            "y": 320,
+            "width": 594,
+            "height": 374,
+            "yScroll": 0,
+            "xScroll": 0
+          }
+        },
+        "lesson": {
+          "dialog": {
+            "x": 160,
+            "y": 122,
+            "width": 1120,
+            "height": 657,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "cover": {
+            "x": 161,
+            "y": 184,
+            "width": 381,
+            "height": 525,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "steps": {
+            "x": 578,
+            "y": 220,
+            "width": 665,
+            "height": 35,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "start": {
+            "x": 1101,
+            "y": 721,
+            "width": 158,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "axe": []
+        },
+        "dynamic": {
+          "dialog": {
+            "x": 160,
+            "y": 50,
+            "width": 1120,
+            "height": 801,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "start": {
+            "x": 1101,
+            "y": 793,
+            "width": 158,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "total": {
+            "x": 595,
+            "y": 212,
+            "width": 310,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "concurrent": {
+            "x": 916,
+            "y": 212,
+            "width": 310,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "axe": [],
+          "startAfterScroll": {
+            "x": 1101,
+            "y": 793,
+            "width": 158,
+            "height": 44,
+            "yScroll": 0,
+            "xScroll": 0
+          }
+        }
+      },
+      "lessonContents": {
+        "intro": {
+          "size": {
+            "x": 160,
+            "y": 127,
+            "width": 1120,
+            "height": 646,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "expandedDisclosures": 1,
+          "title": "질문에서 답변까지"
+        },
+        "sw-requirements": {
+          "size": {
+            "x": 160,
+            "y": 112,
+            "width": 1120,
+            "height": 677,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "expandedDisclosures": 1,
+          "title": "사용자 요청을 기능 요구사항으로 바꾸기"
+        },
+        "beginner": {
+          "size": {
+            "x": 160,
+            "y": 36,
+            "width": 1120,
+            "height": 828,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "expandedDisclosures": 2,
+          "title": "내 자료로 안내하기"
+        },
+        "sw-release-notes": {
+          "size": {
+            "x": 160,
+            "y": 36,
+            "width": 1120,
+            "height": 828,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "expandedDisclosures": 1,
+          "title": "변경 기록으로 업데이트 안내 만들기"
+        },
+        "intermediate": {
+          "size": {
+            "x": 160,
+            "y": 43,
+            "width": 1120,
+            "height": 814,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "expandedDisclosures": 1,
+          "title": "근거 찾기와 추가 질문"
+        },
+        "library-visit": {
+          "size": {
+            "x": 160,
+            "y": 56,
+            "width": 1120,
+            "height": 787,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "expandedDisclosures": 1,
+          "title": "도서관 방문 준비하기"
+        },
+        "sw-bug-triage": {
+          "size": {
+            "x": 160,
+            "y": 57,
+            "width": 1120,
+            "height": 786,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "expandedDisclosures": 1,
+          "title": "오류 제보에서 빠진 정보 되묻기"
+        },
+        "parallel": {
+          "size": {
+            "x": 160,
+            "y": 125,
+            "width": 1120,
+            "height": 651,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "expandedDisclosures": 1,
+          "title": "두 담당자에게 병렬로 맡기기"
+        },
+        "peer-review": {
+          "size": {
+            "x": 160,
+            "y": 36,
+            "width": 1120,
+            "height": 828,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "expandedDisclosures": 2,
+          "title": "동료 Agent와 초안 검토하기"
+        },
+        "sw-code-review": {
+          "size": {
+            "x": 160,
+            "y": 58,
+            "width": 1120,
+            "height": 784,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "expandedDisclosures": 1,
+          "title": "개발자와 QA가 코드 변경 함께 검토하기"
+        },
+        "dynamic": {
+          "size": {
+            "x": 160,
+            "y": 36,
+            "width": 1120,
+            "height": 828,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "expandedDisclosures": 3,
+          "title": "지점 조사팀의 생성 한도와 실패 처리 설계"
+        },
+        "release": {
+          "size": {
+            "x": 160,
+            "y": 36,
+            "width": 1120,
+            "height": 828,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "expandedDisclosures": 2,
+          "title": "규정 변경 검증·게시·복구"
+        },
+        "sw-release-impact": {
+          "size": {
+            "x": 160,
+            "y": 36,
+            "width": 1120,
+            "height": 828,
+            "yScroll": 0,
+            "xScroll": 0
+          },
+          "expandedDisclosures": 2,
+          "title": "변경 영향 조사팀을 구성해 출시 판단하기"
+        }
+      },
+      "passed": true
+    }
+  ]
+}

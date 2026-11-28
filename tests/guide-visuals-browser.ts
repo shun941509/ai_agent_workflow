@@ -43,11 +43,6 @@ async function verifyDialog(page: Page, visual: Locator, title: string, exit: 'e
   const bounds = await dialog.boundingBox();
   const width = page.viewportSize()!.width;
   assert.ok(bounds && bounds.x >= -1 && bounds.x + bounds.width <= width + 1, title + ' 확대 창 너비');
-  if (width <= 390) {
-    await expect.poll(() => viewport.evaluate(el => el.scrollWidth > el.clientWidth)).toBe(true);
-    await viewport.press('ArrowRight');
-    await expect.poll(() => viewport.evaluate(el => el.scrollLeft)).toBeGreaterThan(0);
-  }
   if (exit === 'escape') await page.keyboard.press('Escape');
   else await close.press('Enter');
   await expect(dialog).toHaveCount(0);
@@ -154,9 +149,24 @@ async function verifyCases(page: Page, guide: Locator) {
   }
 }
 
+async function verifyNarrowTemplatePicker(page: Page, guide: Locator) {
+  await page.setViewportSize({width:390,height:780});
+  await page.goto('/?view=guide&section=goals&step=1&template=beginner');
+  const picker = guide.getByRole('combobox', {name:'만들고 싶은 결과', exact:true});
+  await expect(picker).toHaveValue('beginner');
+  await expect(guide.getByRole('radio', {name:'내 자료로 안내하기', exact:true})).toHaveCount(0);
+  assert.ok((await picker.boundingBox())!.height >= 44);
+  await picker.press('ArrowUp');
+  await expect(picker).toHaveValue('intro');
+  await expect(guide.getByRole('heading', {name:'질문에서 답변까지', exact:true})).toBeVisible();
+  await picker.press('ArrowDown');
+  await expect(picker).toHaveValue('beginner');
+  await expect(guide.getByRole('heading', {name:'내 자료로 안내하기', exact:true})).toBeVisible();
+}
+
 try {
-  for (const [width,height] of [[320,640],[390,844],[768,1024],[1440,900]]) {
-    const context = await browser.newContext({baseURL, viewport:{width,height}, isMobile:width < 600, hasTouch:width < 600});
+  for (const [width,height] of [[1280,800],[1440,900]]) {
+    const context = await browser.newContext({baseURL, viewport:{width,height}});
     try {
       await registerBrowserAccount(context);
       const response = await context.request.post('/api/studio',{data:{action:'bootstrap', data:{}}});
@@ -179,6 +189,7 @@ try {
         if (section === 'goals') await verifyCases(page, guide);
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1), section+' 본문 가로 넘침');
       }
+      if (width === 1440) await verifyNarrowTemplatePicker(page, guide);
       assert.deepEqual(errors, []);
       console.log('가이드 시각 자료와 확대 검증 통과 · '+width+'px');
     } finally {

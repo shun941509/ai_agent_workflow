@@ -1,0 +1,191 @@
+{
+  "rows": [
+    {
+      "width": 360,
+      "duplicate": {
+        "invalid": "true",
+        "focus": "account-login",
+        "error": "이미 사용 중인 아이디입니다.",
+        "errorDistance": 34,
+        "overflow": 0
+      },
+      "afterOtherEdit": {
+        "invalid": "true",
+        "focus": "account-password",
+        "error": "이미 사용 중인 아이디입니다.",
+        "errorDistance": 34,
+        "overflow": 0
+      },
+      "format": {
+        "invalid": "true",
+        "focus": "account-login",
+        "error": "아이디는 3~40자의 글자·숫자·점·밑줄·붙임표를 사용하세요.",
+        "errorDistance": 34,
+        "overflow": 0
+      },
+      "mismatch": {
+        "invalid": "true",
+        "focus": "",
+        "error": "아이디 또는 비밀번호를 확인하세요.",
+        "errorDistance": 118,
+        "overflow": 0
+      }
+    },
+    {
+      "width": 390,
+      "duplicate": {
+        "invalid": "true",
+        "focus": "account-login",
+        "error": "이미 사용 중인 아이디입니다.",
+        "errorDistance": 34,
+        "overflow": 0
+      },
+      "afterOtherEdit": {
+        "invalid": "true",
+        "focus": "account-password",
+        "error": "이미 사용 중인 아이디입니다.",
+        "errorDistance": 34,
+        "overflow": 0
+      },
+      "format": {
+        "invalid": "true",
+        "focus": "account-login",
+        "error": "아이디는 3~40자의 글자·숫자·점·밑줄·붙임표를 사용하세요.",
+        "errorDistance": 34,
+        "overflow": 0
+      },
+      "mismatch": {
+        "invalid": "true",
+        "focus": "",
+        "error": "아이디 또는 비밀번호를 확인하세요.",
+        "errorDistance": 118,
+        "overflow": 0
+      }
+    },
+    {
+      "width": 768,
+      "duplicate": {
+        "invalid": "true",
+        "focus": "account-login",
+        "error": "이미 사용 중인 아이디입니다.",
+        "errorDistance": 34,
+        "overflow": 0
+      },
+      "afterOtherEdit": {
+        "invalid": "true",
+        "focus": "account-password",
+        "error": "이미 사용 중인 아이디입니다.",
+        "errorDistance": 34,
+        "overflow": 0
+      },
+      "format": {
+        "invalid": "true",
+        "focus": "account-login",
+        "error": "아이디는 3~40자의 글자·숫자·점·밑줄·붙임표를 사용하세요.",
+        "errorDistance": 34,
+        "overflow": 0
+      },
+      "mismatch": {
+        "invalid": "true",
+        "focus": "",
+        "error": "아이디 또는 비밀번호를 확인하세요.",
+        "errorDistance": 118,
+        "overflow": 0
+      }
+    },
+    {
+      "width": 1024,
+      "duplicate": {
+        "invalid": "true",
+        "focus": "account-login",
+        "error": "이미 사용 중인 아이디입니다.",
+        "errorDistance": 34,
+        "overflow": 0
+      },
+      "afterOtherEdit": {
+        "invalid": "true",
+        "focus": "account-password",
+        "error": "이미 사용 중인 아이디입니다.",
+        "errorDistance": 34,
+        "overflow": 0
+      },
+      "format": {
+        "invalid": "true",
+        "focus": "account-login",
+        "error": "아이디는 3~40자의 글자·숫자·점·밑줄·붙임표를 사용하세요.",
+        "errorDistance": 34,
+        "overflow": 0
+      },
+      "mismatch": {
+        "invalid": "true",
+        "focus": "",
+        "error": "아이디 또는 비밀번호를 확인하세요.",
+        "errorDistance": 118,
+        "overflow": 0
+      }
+    },
+    {
+      "width": 1280,
+      "duplicate": {
+        "invalid": "true",
+        "focus": "account-login",
+        "error": "이미 사용 중인 아이디입니다.",
+        "errorDistance": 34,
+        "overflow": 0
+      },
+      "afterOtherEdit": {
+        "invalid": "true",
+        "focus": "account-password",
+        "error": "이미 사용 중인 아이디입니다.",
+        "errorDistance": 34,
+        "overflow": 0
+      },
+      "format": {
+        "invalid": "true",
+        "focus": "account-login",
+        "error": "아이디는 3~40자의 글자·숫자·점·밑줄·붙임표를 사용하세요.",
+        "errorDistance": 34,
+        "overflow": 0
+      },
+      "mismatch": {
+        "invalid": "true",
+        "focus": "",
+        "error": "아이디 또는 비밀번호를 확인하세요.",
+        "errorDistance": 118,
+        "overflow": 0
+      }
+    },
+    {
+      "width": 1440,
+      "duplicate": {
+        "invalid": "true",
+        "focus": "account-login",
+        "error": "이미 사용 중인 아이디입니다.",
+        "errorDistance": 34,
+        "overflow": 0
+      },
+      "afterOtherEdit": {
+        "invalid": "true",
+        "focus": "account-password",
+        "error": "이미 사용 중인 아이디입니다.",
+        "errorDistance": 34,
+        "overflow": 0
+      },
+      "format": {
+        "invalid": "true",
+        "focus": "account-login",
+        "error": "아이디는 3~40자의 글자·숫자·점·밑줄·붙임표를 사용하세요.",
+        "errorDistance": 34,
+        "overflow": 0
+      },
+      "mismatch": {
+        "invalid": "true",
+        "focus": "",
+        "error": "아이디 또는 비밀번호를 확인하세요.",
+        "errorDistance": 118,
+        "overflow": 0
+      }
+    }
+  ],
+  "errors": []
+}

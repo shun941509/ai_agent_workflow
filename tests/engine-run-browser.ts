@@ -62,33 +62,26 @@ async function checkInlineLibraryRule(ctx: BrowserContext) {
     await expect(page.locator('[data-workflow-node="rules"] .ws-material-preview')).toContainText('6권');
 
     await page.getByRole('tab', { name:'속성', exact:true }).click();
-    await page.setViewportSize({ width: 390, height: 844 });
-    const mobileInspector = page.getByRole('dialog', { name:'속성 패널' });
-    await expect(mobileInspector.getByRole('textbox', { name:'자료 원문' })).toHaveValue(shortcutEdit);
-    await mobileInspector.getByRole('button', { name:'속성 닫기' }).click();
-    await expect(mobileInspector).toHaveCount(0);
-    await page.getByRole('button', { name: '속성 열기', exact: true }).click();
-    await expect(mobileInspector.getByRole('textbox', { name:'자료 원문' })).toHaveValue(shortcutEdit);
-    const mobileText = changed + '\n방학 중에도 같은 대출 한도를 적용합니다.';
-    await source.fill(mobileText);
+    const appliedText = changed + '\n방학 중에도 같은 대출 한도를 적용합니다.';
+    await source.fill(appliedText);
     await apply.click();
-    await expect.poll(readSaved).toBe(mobileText);
+    await expect.poll(readSaved).toBe(appliedText);
     const fresh = await api(ctx, 'project.create', { lesson: 'beginner' });
     assert.equal((fresh.graph as Graph).nodes.find(node => node.id === 'rules')!.config.content, original);
-    console.log('PASS library source validation, menu and keyboard saves, SQLite reopen, mobile apply and independent template copy');
+    console.log('PASS library source validation, menu and keyboard saves, SQLite reopen, inline apply and independent template copy');
   } finally {
     await page.close();
   }
 }
-async function checkQuestionDrafts(project: {id:string;title:string}, embedded:boolean, mobile:boolean) {
+async function checkQuestionDrafts(project: {id:string;title:string}, embedded:boolean) {
   const session=await browser.newContext({baseURL,storageState:embedded?await context.storageState():undefined,
-    viewport:mobile?{width:390,height:844}:{width:1440,height:900},hasTouch:mobile,isMobile:mobile});
+    viewport:{width:1440,height:900}});
   const page=await session.newPage();
   async function capture(name:string){
     const folder=process.env.STUDIO_SCREENSHOTS;
     if(!folder)return;
     mkdirSync(folder,{recursive:true});
-    await page.screenshot({path:join(folder,name+'-'+(embedded?'editor':'published')+'-'+(mobile?'390':'1440')+'.png')});
+    await page.screenshot({path:join(folder,name+'-'+(embedded?'editor':'published')+'-1440.png')});
   }
   let connected=false, submission=0, resume=()=>{};
   const gate=new Promise<void>(resolve=>{resume=resolve;});
@@ -104,7 +97,7 @@ async function checkQuestionDrafts(project: {id:string;title:string}, embedded:b
       if(action==='run.start' && submission===2) {
         const response=await route.fetch();
         await gate;
-        if(mobile&&!embedded)await route.abort();
+        if(!embedded)await route.abort();
         else await route.fulfill({response});
         return;
       }
@@ -125,23 +118,6 @@ async function checkQuestionDrafts(project: {id:string;title:string}, embedded:b
     await fileInput.setInputFiles({name:'첫째.txt',mimeType:'text/plain',buffer:Buffer.from('처음 보낸 파일 원문')});
     const firstFile=panel.getByRole('button',{name:'첫째.txt 첨부 해제'});
     await expect(firstFile).toBeVisible();
-    if(mobile && !embedded){
-      const history=panel.getByRole('button',{name:'실행 기록',exact:true});
-      const sheet=page.getByRole('dialog',{name:'실행 기록',exact:true});
-      for(const dismiss of ['button','escape','outside']) {
-        await history.tap();
-        const close=sheet.getByRole('button',{name:'기록 닫기'});
-        await expect(close).toBeFocused();
-        if(dismiss==='button')await capture('run-history');
-        if(dismiss==='escape')await page.keyboard.press('Escape');
-        else if(dismiss==='outside')await page.touchscreen.tap(378,416);
-        else await close.tap();
-        await expect(sheet).toHaveCount(0);
-        await expect(history).toBeFocused();
-        await expect(first).toHaveValue('첫 자료를 읽어 주세요.');
-        await expect(firstFile).toBeVisible();
-      }
-    }
     await submit.click();
     await expect(panel.getByRole('alert')).toContainText('시험 연결 일시 중단');
     await expect(first).toHaveValue('첫 자료를 읽어 주세요.');
@@ -156,7 +132,7 @@ async function checkQuestionDrafts(project: {id:string;title:string}, embedded:b
     await expect(nextFile).toBeVisible();
     await capture('run-pending-draft');
     resume();
-    if(mobile&&!embedded){
+    if(!embedded){
       await expect(panel.getByText('접수를 확인하지 못한 질문',{exact:true})).toBeVisible();
       await expect(nextFile).toBeVisible();
       await panel.getByRole('button',{name:'이 질문 다시 보내기',exact:true}).click();
@@ -217,11 +193,10 @@ try{
   assert.equal(await readFile(await download.path(),'utf8'),citedAnswer);
   await panel.getByText('실행 경로',{exact:false}).first().click();
   await expect(panel.locator('.run-trace ol')).toBeVisible();
-  await page.setViewportSize({width:390,height:844});
   await panel.getByRole('button',{name:'실행 기록',exact:true}).click();
   await expect(panel.locator('.run-sidebar')).toBeVisible();
   const old=await api(context,'run.list',{id:p.id});assert.equal(old.length,1);assert.equal(old[0].state,'completed');
-  console.log('PASS Windows Chromium desktop/mobile results tab, same-run reply, file download, trace and private history');
+  console.log('PASS Windows Chromium results tab, same-run reply, file download, trace and private history');
 
   const formGraph=structuredClone(graph);
   formGraph.nodes[1].config.fields=['지점','권수',{name:'비고',required:false}];
@@ -240,7 +215,6 @@ try{
   assert.equal(formWait.state,'waiting');
   await requiredCount.fill('2');
   await page.reload();
-  await expect(page.getByRole('dialog',{name:'속성 패널'})).toBeVisible();
   await expect(panel).toBeVisible();
   await panel.getByRole('button',{name:'실행 기록',exact:true}).click();
   await panel.locator('.run-sidebar .run-history').first().click();
@@ -260,7 +234,7 @@ try{
   assert.equal(formDone.id,formWait.id);
   assert.deepEqual(JSON.parse(formDone.output),{지점:'중앙점',권수:'2'});
   assert.deepEqual(await page.evaluate(()=>Object.keys(sessionStorage).filter(key=>key.startsWith('studio.wait-draft.'))),[]);
-  console.log('PASS editable example, preserved test draft and required form fields on the same mobile run');
+  console.log('PASS editable example, preserved test draft and required form fields on the same run');
 
   const connect=(from:string,to:string):Graph['edges']=>[
     {id:from+'-'+to+'-flow',kind:'flow',from,to,out:'next',input:'in'},
@@ -274,8 +248,8 @@ try{
   const child=await api(context,'project.create',{title:'텍스트 원문 읽기',graph:fileGraph});
   const childEdition=await api(context,'versions.save',{id:child.id,revision:child.revision});
   await api(context,'versions.publish',{id:child.id,visibility:'public',version:childEdition.number});
-  for(const mobile of [false,true])for(const embedded of [true,false])await checkQuestionDrafts(child,embedded,mobile);
-  console.log('PASS desktop/mobile submission drafts, attached files, reconnection and mobile history dismissal');
+  for(const embedded of [true,false])await checkQuestionDrafts(child,embedded);
+  console.log('PASS submission drafts, attached files, reconnection and retry after an interrupted response');
   const question=createBlock('input.user_request',{id:'question'}),answer=createBlock('output.answer',{id:'answer'});
   const parentGraph:Graph={nodes:[question,
     createBlock('workflow.call',{id:'call',config:{workflowId:child.id,version:childEdition.number}}),

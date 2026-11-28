@@ -18,7 +18,7 @@ export function installVisitMaterials(user: User, graph: Graph) {
   }
 
   const pickup = add('pickup', 'document', '회원증이 필요합니다.');
-  writeAsset(user, {id:pickup.id, baseVersion:1, name:pickup.name, payload:{content:'모바일 회원증도 가능합니다.'}});
+  writeAsset(user, {id:pickup.id, baseVersion:1, name:pickup.name, payload:{content:'등록된 학생증도 가능합니다.'}});
   add('hours', 'knowledge', '중앙도서관은 토요일 오전 10시부터 오후 4시까지 엽니다.');
   add('format', 'skill', [
     '# 방문 안내 작성',

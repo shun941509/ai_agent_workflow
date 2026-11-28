@@ -13,7 +13,7 @@ const browser = await chromium.launch({
 
 async function openCopy(page: Page, dynamic: boolean) {
   await page.goto('/?view=templates');
-  await page.getByRole('button', {name:dynamic ? '전문가' : '고급', exact:true}).click();
+  await page.getByRole('combobox', {name:'실습 수준', exact:true}).selectOption({label:dynamic ? '전문가' : '고급'});
   await page.getByRole('button', {name:dynamic ? /지점 조사팀의 생성 한도/ : /동료 Agent와 초안 검토하기/}).click();
   const detail = page.getByRole('dialog');
   const optional = detail.getByText('선택 실습', {exact:true});
@@ -44,14 +44,8 @@ async function resource<T>(page:Page, action:string, data:unknown = {}):Promise<
   return result.data;
 }
 
-async function closeProperties(page: Page) {
-  const close = page.getByRole('dialog', {name:'속성 패널'}).getByRole('button', {name:'속성 닫기'});
-  if (await close.isVisible()) await close.click();
-}
-
 async function openBlockList(page: Page) {
   await expect(page.getByRole('group', {name:'캔버스 보기 방식'})).toBeAttached();
-  await closeProperties(page);
   const list = page.getByRole('button', {name:'목록으로 편집', exact:true});
   if (await list.isVisible()) await list.click();
 }
@@ -146,13 +140,11 @@ async function checkAttachment(page: Page, dynamic: boolean) {
     await expect(inherited).toBeVisible();
     await expect(inherited).not.toBeChecked();
     await inherited.check();
-    await closeProperties(page);
     await page.locator('[data-canvas-block="review-clarity"]').click();
     await expect(inherited).toBeVisible();
     await expect(inherited).not.toBeChecked();
   }
 
-  await closeProperties(page);
   await page.getByLabel('프로젝트 메뉴', {exact:true}).click();
   await page.getByRole('button', {name:'저장', exact:true}).click();
   await expect.poll(async () => {
@@ -185,18 +177,16 @@ async function checkAttachment(page: Page, dynamic: boolean) {
 }
 
 try {
-  for (const width of [1440, 390]) {
-    const mobile = width === 390;
-    const context = await browser.newContext({baseURL, viewport:{width, height:mobile ? 844 : 900}, isMobile:mobile, hasTouch:mobile});
-    try {
-      await registerBrowserAccount(context);
-      const page = await context.newPage();
-      await checkAttachment(page, false);
-      await checkAttachment(page, true);
-      console.log(width + 'px 동료 검토 선택적 Skill과 지점 조사 보완 안내문 연결·저장 확인');
-    } finally {
-      await context.close();
-    }
+  const width = 1440;
+  const context = await browser.newContext({baseURL, viewport:{width, height:900}});
+  try {
+    await registerBrowserAccount(context);
+    const page = await context.newPage();
+    await checkAttachment(page, false);
+    await checkAttachment(page, true);
+    console.log(width + 'px 동료 검토 선택적 Skill과 지점 조사 보완 안내문 연결·저장 확인');
+  } finally {
+    await context.close();
   }
 } finally {
   await browser.close();

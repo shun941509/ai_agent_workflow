@@ -1,0 +1,10 @@
+{
+  "setting": "200%",
+  "inner": 712,
+  "outer": 1440,
+  "dpr": 2,
+  "scroll": 712,
+  "menuEscape": true,
+  "openRun": true,
+  "sendScrolledIntoView": true
+}

@@ -1,0 +1,20 @@
+{
+  "rows": [
+    {
+      "width": 1280,
+      "scenes": 20,
+      "screenPairs": 160,
+      "decodedImages": 320,
+      "overflow": 0
+    },
+    {
+      "width": 1440,
+      "scenes": 20,
+      "screenPairs": 160,
+      "decodedImages": 320,
+      "overflow": 0
+    }
+  ],
+  "errors": [],
+  "failures": []
+}

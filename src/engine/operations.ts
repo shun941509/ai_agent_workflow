@@ -4,8 +4,10 @@ import { childAgentContext, emptyAgentContext, isDelegatedRole, skillsForAgent }
 import { changesKnowledgeRelease, portsFor, replyDeadlineDefaultMinutes, replyDeadlineMaxMinutes, selectionSettings } from '../domain/catalog';
 import {attachmentError, attachmentFrom, fileExtensions, literalRunQuestion} from '../domain/run-input';
 import {checkRequiredOriginals,citationPosition,compareCitations,originalDetails,originalRows} from './evidence';
-import {editionIdentifier,replyFields} from '../domain/reply-form';
+import {editionIdentifier,questionMarkdownName,replyFields} from '../domain/reply-form';
 import {structuredInput} from './values';
+import {updateMarkdownSection} from '../domain/markdown-section.mjs';
+import {checkStarterInspection,readStarterList} from '../domain/inspection-starters.mjs';
 import { mcpScope, toolPin } from '../domain/mcp-scope';
 import { LimitReached, RunAborted, Session, Stopped, Suspended, allowed, message, token, type Scope } from './session';
 import { asText, at, buildIndex, distinctPassages, flattened, integer, isPassage, list, object, originalPassageLines, readable, record, resolve, searchIndex, strings, type IndexedPassage } from './values';
@@ -454,9 +456,10 @@ export async function evaluate(node:Block,scope:Scope,bindings:Values,s:Session,
         s.state.memo[key]=expiresAt;
       }
       const formFields=node.type==='input.form'?replyFields(c.fields):undefined;
+      const questionFileName = kind==='question' ? questionMarkdownName(c.questionFileName) : undefined;
       const display=kind==='review'
         ? {reviewDraft:/\{\{\s*input\s*\}\}/.test(asText(c.prompt))?null:asText(input)}
-        : formFields?{fields:formFields}:{};
+        : {fields:formFields, ...(questionFileName ? {questionFileName} : {})};
       const response=await s.ask(node,path,{kind,prompt,...(expiresAt?{expiresAt}:{})},display);
       retainFields(s,path,node.title,c.historyFields,response.value);
       return finished(formFields?.length?record(response.value):response.value);
@@ -480,6 +483,7 @@ export async function evaluate(node:Block,scope:Scope,bindings:Values,s:Session,
       return finished(await s.runTool(node,scope,path,'explicit',name,args,ref));
     }
     case 'data.transform':{
+      if(c.operation==='markdown-section')return finished(updateMarkdownSection(input as string,bindings.section as string,asText(c.sectionHeading),asText(c.sectionMarker)));
       const v=c.path?at(structuredInput(input),asText(c.path)):input;
       if(c.path && v===undefined)throw new Error('‘'+node.title+'’에서 가져올 항목 ‘'+c.path+'’을 찾을 수 없습니다.');
       if(bindings.attachmentInput&&c.operation==='select'&&c.path)retainFields(s,path,node.title,[c.path],input);
@@ -494,6 +498,8 @@ export async function evaluate(node:Block,scope:Scope,bindings:Values,s:Session,
       });
       const wrong=Object.entries(object(c.types)).filter(([k,t])=>{const val=at(v,k);return val!==undefined&&(val===null?'null':Array.isArray(val)?'array':typeof val)!==t;}).map(([k])=>k);
       if(missing.length||wrong.length)throw new Error('입력 검증 실패: '+[...new Set([...missing,...wrong])].join(', '));
+      if(c.inspectionRule==='return-list')readStarterList(v);
+      if(c.inspectionRule==='first-receipt')return finished(v,undefined,{inspectionReport:checkStarterInspection(v).report});
       return finished(v);
     }
     case 'control.branch':{

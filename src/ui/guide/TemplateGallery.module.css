@@ -5,14 +5,14 @@
   gap: clamp(20px, 3%, 38px);
 }
 .catalog, .preview, .layout, .results { min-inline-size: 0; }
+.compactPicker { display: none; }
 .catalog {
   margin: 0;
   padding: 0 16px 0 0;
   border: 0;
   border-inline-end: 1px solid var(--border);
 }
-.catalog legend, .compactPicker { font-weight: 700; }
-.catalog legend { padding: 0; }
+.catalog legend { padding: 0; font-weight: 700; }
 .purpose { margin-top: 16px; }
 .purpose > p {
   margin: 0 0 4px;
@@ -51,7 +51,6 @@
 @media (forced-colors: active) {
   .option input:checked + span::after { content: '✓' / ''; margin-inline-start: auto; font-weight: 700; }
 }
-.compactPicker { display: none; }
 .previewHeader {
   display: flex;
   flex-wrap: wrap;
@@ -82,6 +81,7 @@
 .results {
   padding: 14px 16px 16px;
   align-self: start;
+  overflow-x: auto;
   border-inline-start: 3px solid var(--accent);
   background: var(--tint);
 }
@@ -93,20 +93,13 @@
 @container guide (max-width: 1040px) {
   .previewBody { grid-template-columns: minmax(0,1fr); }
 }
-@container guide (max-width: 800px) {
-  .gallery { grid-template-columns: minmax(0,1fr); gap: 18px; }
+@container guide (max-width: 540px) {
+  .gallery { grid-template-columns: minmax(0,1fr); }
   .catalog { display: none; }
-  .compactPicker { display: grid; gap: 6px; }
+  .compactPicker { display: grid; gap: 6px; font-weight: 650; min-inline-size: 0; }
   .compactPicker select {
-    width: 100%;
-    min-width: 0;
-    min-height: 44px;
-    padding: 7px 9px;
-    border: 1px solid var(--field-border);
-    border-radius: 4px;
-    background: white;
-    color: var(--ink);
-    font: inherit;
-    font-weight: 500;
+    width: 100%; min-width: 0; min-height: 44px;
+    padding: 8px 10px; border: 1px solid var(--field-border); border-radius: var(--control-radius);
+    background: var(--surface); color: var(--ink); font: inherit; font-weight: 500;
   }
 }

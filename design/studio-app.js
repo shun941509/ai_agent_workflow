@@ -56,7 +56,6 @@
   function element(tag,text,css) {const item=document.createElement(tag);if(text!==undefined)item.textContent=text;if(css)item.className=css;return item;}
   function button(text,callback,css) {const el=element('button',text,css);el.type='button';el.onclick=callback;return el;}
   function glyph(name) {const span=element('span');span.setAttribute('aria-hidden','true');span.innerHTML=icon(name);return span;}
-  function pane(name) {$('app-shell').dataset.pane=name;}
   function closeDialog(){if($('studio-dialog').open)$('studio-dialog').close();}
   function dialog(title,...children) {
     $('dialog-title').textContent=title;$('dialog-body').replaceChildren(...children);
@@ -78,12 +77,12 @@
     if(!selectedNode()&&!selectedEdge())selected=null;
     render();status('편집 기록을 적용했습니다.');
   }
-  function showSelection(kind,id,open=true){
+  function showSelection(kind,id,focusProperties=true){
     selected=id ? {kind,id}:null;inspectMode='properties';render();
-    if(open&&id)pane('props');
+    if(focusProperties&&id)$('props-panel').focus();
   }
   const canvas=window.StudioCanvas.mount($('graph-root'),{
-    onSelect:showSelection,
+    onSelect:(kind,id)=>showSelection(kind,id,false),
     onLayoutChange:(mode,positions)=>{
       if(!['a','b'].includes(mode)||!positions)return;
       if(JSON.stringify(design.layout?.[mode]||{})===JSON.stringify(positions))return;
@@ -100,7 +99,7 @@
     if(node.kind==='input')node.question='';
     if(node.kind==='resource')node.content='';
     change(()=>{design.nodes.push(node);selected={kind:'node',id:node.id};inspectMode='properties';},entry.name+' 블록을 추가했습니다.');
-    pane('props');
+    $('props-panel').focus();
   }
   function displayPalette(){
     const list=$('palette-list'),query=$('palette-search').value.trim().toLocaleLowerCase(), group=$('palette-category').value;
@@ -172,7 +171,7 @@
   }
   function showInspectorCheck(panel){
     const issues=validate();panel.append(panelTitle('설계 검사'),hint(issues.length?'수정할 항목을 누르면 해당 블록으로 이동합니다.':'현재 블록의 이름과 기본 연결을 확인했습니다.'));
-    for(const [node,msg] of issues)panel.append(button(msg,()=>node?showSelection('node',node.id):pane('palette')));
+    for(const [node,msg] of issues)panel.append(button(msg,()=>node?showSelection('node',node.id):$('palette-search').focus()));
   }
   function inspector(){
     const panel=$('inspector');panel.replaceChildren();
@@ -227,7 +226,7 @@
   function exportDesign(){const file=new Blob([JSON.stringify(design,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(file),a=document.createElement('a');a.href=url;a.download='도서관-안내-Agent.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),2000);}
   function guide(){dialog('만들며 배우기',group(hint('질문 입력 블록에서 예제 질문을 고르고 예시 답변을 확인하세요. 안내 Agent의 지시를 ‘근거 문장도 붙이기’로 바꾼 뒤 같은 질문으로 비교할 수 있습니다.'),
-    button('질문 입력 열기',()=>{closeDialog();const input=design.nodes.find(n=>n.kind==='input');if(input)showSelection('node',input.id);else pane('palette');}),button('수준별 과제 보기',templates)));}
+    button('질문 입력 열기',()=>{closeDialog();const input=design.nodes.find(n=>n.kind==='input');if(input)showSelection('node',input.id);else $('palette-search').focus();}),button('수준별 과제 보기',templates)));}
   function preview(){
     const input=design.nodes.find(n=>n.id==='input'),agent=design.nodes.find(n=>n.id==='agent'),resource=design.nodes.find(n=>n.id==='resource');
     const graphMatches=design.edges.some(e=>e.from==='input'&&e.to==='agent'&&e.kind==='flow')&&design.edges.some(e=>e.from==='agent'&&e.to==='output'&&e.kind==='data')&&design.edges.some(e=>e.from==='resource'&&e.to==='agent'&&e.kind==='reference');
@@ -251,17 +250,17 @@
     if(!content.children.length)content.append(hint('아직 연결할 자료가 없습니다.'));dialog('도구 및 자료',content);}
   function sharedList(){const isPrivate=design.visibility==='private';
     dialog('공유 Agent',group(hint(isPrivate?'현재 설계의 공개 범위는 나만 사용입니다.':'현재 초안의 공개 범위는 '+(design.visibility==='link'?'비밀 링크':'모두에게 공개')+'입니다.'),button('공유 설정 열기',share)));}
-  function projectList(){dialog('내 프로젝트',group(button('도서관 안내 Agent 열기',()=>{closeDialog();pane('canvas');}),hint('현재 브라우저에서 편집하는 설계입니다.')));}
-  const actions={edit:()=>{closeDialog();pane('canvas');},templates,projects:projectList,resources:resourceList,shared:sharedList,guide,
+  function openCanvas(){closeDialog();$('canvas-panel').focus();}
+  function projectList(){dialog('내 프로젝트',group(button('도서관 안내 Agent 열기',openCanvas),hint('현재 브라우저에서 편집하는 설계입니다.')));}
+  const actions={edit:openCanvas,templates,projects:projectList,resources:resourceList,shared:sharedList,guide,
     share,undo:()=>popHistory(undoStack,redoStack),redo:()=>popHistory(redoStack,undoStack),export:exportDesign,
-    'close-pane':()=>pane('canvas'),'close-dialog':closeDialog};
+    'close-dialog':closeDialog};
   for(const mode of ['basic','all','favorites'])actions['palette-'+mode]=()=>{paletteMode=mode;$('palette-search').value='';$('palette-category').value='';displayPalette();};
   document.addEventListener('click',event=>{const target=event.target.closest('[data-action]');if(target){const fn=actions[target.dataset.action];if(fn)fn();}});
-  const commands={arrange:()=>canvas.arrange(),'list-mode':()=>{const list=canvas.toggleList();$('list-mode').setAttribute('aria-pressed',String(list));},guide,validate:()=>{inspectMode='check';inspector();pane('props');},run:preview,save,versions:versionsView,share,template:templates,'sidebar-open':()=>pane('nav'),'palette-open':()=>pane('palette'),'props-open':()=>pane('props')};
+  const commands={arrange:()=>canvas.arrange(),'list-mode':()=>{const list=canvas.toggleList();$('list-mode').setAttribute('aria-pressed',String(list));},guide,validate:()=>{inspectMode='check';inspector();$('props-panel').focus();},run:preview,save,versions:versionsView,share,template:templates};
   for(const [id,fn] of Object.entries(commands))$(id)?.addEventListener('click',fn);
   for(const [id,name] of Object.entries(groups))$('palette-category').add(new Option(name,id));
   $('palette-category').onchange=displayPalette;$('palette-search').oninput=()=>{if($('palette-search').value.trim()&&paletteMode==='basic')paletteMode='all';displayPalette();};
   $('studio-dialog').addEventListener('click',event=>{if(event.target===$('studio-dialog')){const r=event.target.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)closeDialog();}});
-  document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!$('studio-dialog').open)pane('canvas');});
   displayPalette();render();
 })();

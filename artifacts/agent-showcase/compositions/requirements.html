@@ -1,0 +1,166 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      background: var(--reqBlue, #284cba);
+      color: var(--reqPaper, #f6f2e8);
+      font-family: "Studio Sans", sans-serif;
+    }
+    #req-layout { position: absolute; inset: 0; }
+    #req-copy {
+      position: absolute; left: 200px; top: 150px; width: 650px;
+    }
+    .req-kicker {
+      margin: 0; font-size: 31px; font-weight: 680; letter-spacing: -.035em;
+    }
+    #req-title {
+      margin: 65px 0 74px; width: 530px; font: 680 100px/1.13 "Studio Serif", serif;
+      letter-spacing: -.075em; word-break: keep-all;
+    }
+    #req-rule {
+      width: 545px; height: 2px; margin-bottom: 33px;
+      background: var(--reqPaper, #f6f2e8); transform-origin: 0 50%;
+    }
+    #req-input-label { color: var(--reqLime, #d9ec85); }
+    #req-request {
+      width: 555px; margin: 18px 0 0; font-size: 47px; font-weight: 510;
+      letter-spacing: -.055em; line-height: 1.5; word-break: keep-all;
+    }
+    #req-sheet {
+      position: absolute; left: 901px; top: 120px; width: 811px; height: 834px;
+      background: var(--reqPaper, #f6f2e8); color: var(--reqInk, #17274b);
+      box-shadow: 13px 14px 0 rgba(13,31,97,.35);
+    }
+    #req-sheet-header, #req-controls, #req-list, #req-result {
+      position: absolute; left: 58px; right: 58px;
+    }
+    #req-sheet-header { top: 54px; }
+    #req-demo-label { color: var(--reqBlue, #284cba); }
+    #req-demo-title {
+      margin: 17px 0 0; font: 680 69px/1.14 "Studio Serif", serif;
+      letter-spacing: -.065em;
+    }
+    #req-controls {
+      top: 224px; height: 100px; display: flex; align-items: center;
+      justify-content: space-between; border-top: 3px solid var(--reqInk, #17274b);
+      border-bottom: 1px solid var(--reqInk, #17274b);
+      font-size: 37px; font-weight: 650; letter-spacing: -.045em;
+    }
+    #req-switch {
+      position: relative; display: block; flex: none; width: 158px; height: 55px;
+      border: 2px solid var(--reqInk, #17274b); border-radius: 32px;
+      background: #e2e0d7; box-sizing: border-box; overflow: hidden;
+    }
+    #req-switch-on-color {
+      position: absolute; inset: 0; background: var(--reqLime, #d9ec85); opacity: 0;
+    }
+    #req-switch-dot {
+      position: absolute; left: 5px; top: 5px; width: 41px; height: 41px;
+      border-radius: 50%; background: var(--reqInk, #17274b);
+    }
+    .req-switch-word {
+      position: absolute; top: 0; line-height: 50px; font-size: 30px; font-weight: 700;
+    }
+    #req-switch-off { right: 22px; }
+    #req-switch-on { left: 22px; opacity: 0; }
+    #req-list { top: 344px; }
+    .req-row {
+      height: 83px; display: flex; align-items: center; gap: 24px;
+      border-bottom: 1px solid #a9adb3;
+      font-size: 40px; letter-spacing: -.05em; font-weight: 540;
+    }
+    .req-box {
+      position: relative; flex: none; width: 34px; height: 34px;
+      border: 2px solid var(--reqInk, #17274b); box-sizing: border-box;
+    }
+    #req-complete .req-box { background: var(--reqInk, #17274b); }
+    #req-complete .req-box::after {
+      content: ""; position: absolute; left: 9px; top: 3px; width: 8px; height: 17px;
+      border-right: 3px solid var(--reqPaper, #f6f2e8); border-bottom: 3px solid var(--reqPaper, #f6f2e8);
+      transform: rotate(40deg);
+    }
+    #req-complete .req-task { text-decoration: line-through; text-decoration-thickness: 2px; }
+    #req-result {
+      top: 569px; height: 204px; border-top: 3px solid var(--reqInk, #17274b);
+    }
+    #req-result-label { margin-top: 23px; color: var(--reqBlue, #284cba); }
+    .req-result-copy {
+      position: absolute; top: 85px; margin: 0; width: 100%;
+      font-size: 45px; line-height: 1.27; font-weight: 680; letter-spacing: -.06em;
+      word-break: keep-all;
+    }
+    #req-result-on { opacity: 0; }
+  </style>
+  <div id="root" data-composition-id="requirements" data-width="1920" data-height="1080" data-start="0" data-duration="8"
+    data-composition-variables='[
+      {"id":"reqPaper","type":"color","label":"종이","default":"#f6f2e8"},
+      {"id":"reqInk","type":"color","label":"잉크","default":"#17274b"},
+      {"id":"reqBlue","type":"color","label":"청색","default":"#284cba"},
+      {"id":"reqLime","type":"color","label":"선택 강조","default":"#d9ec85"},
+      {"id":"reqTopic","type":"string","label":"문서 유형","default":"할 일 앱 요구사항"},
+      {"id":"reqTitle","type":"string","label":"Agent 이름","default":"요구사항 작성 Agent"},
+      {"id":"reqInputLabel","type":"string","label":"입력 표제","default":"사용자 요청"},
+      {"id":"reqRequest","type":"string","label":"사용자 요청","default":"“끝낸 할 일을 잠깐 숨겼다가 다시 보고 싶어요.”"},
+      {"id":"reqDemoLabel","type":"string","label":"예시 표제","default":"동작 예시"},
+      {"id":"reqListTitle","type":"string","label":"예시 이름","default":"할 일 목록"},
+      {"id":"reqToggle","type":"string","label":"설정 이름","default":"완료 항목 숨기기"},
+      {"id":"reqOff","type":"string","label":"비활성 표시","default":"꺼짐"},
+      {"id":"reqOn","type":"string","label":"활성 표시","default":"켜짐"},
+      {"id":"reqPending","type":"string","label":"미완료 예시","default":"회의 자료 읽기"},
+      {"id":"reqDone","type":"string","label":"완료 예시","default":"회의실 예약하기"},
+      {"id":"reqResultLabel","type":"string","label":"결과 표제","default":"표시 조건"},
+      {"id":"reqWhenOff","type":"string","label":"끌 때의 요구사항","default":"끄면 완료 항목도 다시 표시"},
+      {"id":"reqWhenOn","type":"string","label":"켤 때의 요구사항","default":"켜면 미완료 항목만 표시"}
+    ]'>
+    <div id="req-layout" class="clip" data-start="0" data-duration="8" data-track-index="1" data-track-kind="graphics">
+      <section id="req-copy">
+        <p class="req-kicker" data-var-text="reqTopic">할 일 앱 요구사항</p>
+        <h2 id="req-title" data-var-text="reqTitle">요구사항 작성 Agent</h2>
+        <div id="req-rule"></div>
+        <p id="req-input-label" class="req-kicker" data-var-text="reqInputLabel">사용자 요청</p>
+        <p id="req-request" data-var-text="reqRequest">“끝낸 할 일을 잠깐 숨겼다가 다시 보고 싶어요.”</p>
+      </section>
+      <article id="req-sheet">
+        <div id="req-sheet-header">
+          <p id="req-demo-label" class="req-kicker" data-var-text="reqDemoLabel">동작 예시</p>
+          <h3 id="req-demo-title" data-var-text="reqListTitle">할 일 목록</h3>
+        </div>
+        <div id="req-controls">
+          <span data-var-text="reqToggle">완료 항목 숨기기</span>
+          <span id="req-switch" data-layout-allow-overlap>
+            <span id="req-switch-on-color"></span>
+            <span id="req-switch-off" class="req-switch-word" data-var-text="reqOff">꺼짐</span>
+            <span id="req-switch-on" class="req-switch-word" data-var-text="reqOn">켜짐</span>
+            <span id="req-switch-dot"></span>
+          </span>
+        </div>
+        <div id="req-list">
+          <div id="req-pending" class="req-row"><span class="req-box"></span><span class="req-task" data-var-text="reqPending">회의 자료 읽기</span></div>
+          <div id="req-complete" class="req-row"><span class="req-box"></span><span class="req-task" data-var-text="reqDone">회의실 예약하기</span></div>
+        </div>
+        <div id="req-result" data-layout-allow-overlap>
+          <p id="req-result-label" class="req-kicker" data-var-text="reqResultLabel">표시 조건</p>
+          <p id="req-result-off" class="req-result-copy" data-var-text="reqWhenOff">끄면 완료 항목도 다시 표시</p>
+          <p id="req-result-on" class="req-result-copy" data-var-text="reqWhenOn">켜면 미완료 항목만 표시</p>
+        </div>
+      </article>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#req-rule", {scaleX: 0.18}, {scaleX: 1, duration: 0.58, ease: "power3.out"}, 0.05);
+    tl.fromTo("#req-sheet", {x: 26}, {x: 0, duration: 0.45, ease: "power3.out"}, 0);
+    tl.fromTo("#req-switch-dot", {x: 0}, {x: 103, duration: 0.32, ease: "power2.out"}, 2.96);
+    tl.fromTo("#req-switch-on-color, #req-switch-on", {opacity: 0}, {opacity: 1, duration: 0.24}, 2.99);
+    tl.fromTo("#req-switch-off, #req-result-off", {opacity: 1}, {opacity: 0, duration: 0.14}, 2.93);
+    tl.fromTo("#req-complete", {opacity: 1, x: 0}, {opacity: 0, x: 23, duration: 0.28, ease: "power2.out"}, 3.04);
+    tl.fromTo("#req-result-on", {opacity: 0}, {opacity: 1, duration: 0.2}, 3.08);
+    tl.to("#req-switch-dot", {x: 0, duration: 0.31, ease: "power2.out"}, 5.72);
+    tl.to("#req-switch-on-color, #req-switch-on, #req-result-on", {opacity: 0, duration: 0.16}, 5.72);
+    tl.to("#req-switch-off", {opacity: 1, duration: 0.19}, 5.83);
+    tl.to("#req-complete", {opacity: 1, x: 0, duration: 0.31, ease: "power2.out"}, 5.78);
+    tl.to("#req-result-off", {opacity: 1, duration: 0.2}, 5.9);
+    window.__timelines["requirements"] = tl;
+  </script>
+</template>

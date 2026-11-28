@@ -1,0 +1,415 @@
+{
+  "buildId": "--f0fEroMpSeXCpgp_L6h",
+  "unit": {
+    "command": "pnpm test",
+    "exitCode": 0,
+    "passed": 396,
+    "failed": 0,
+    "skipped": 0
+  },
+  "typecheck": {
+    "command": "pnpm typecheck",
+    "exitCode": 0
+  },
+  "productionBuild": {
+    "command": "next build --webpack",
+    "exitCode": 0,
+    "log": "build.txt"
+  },
+  "lint": {
+    "registered": false
+  },
+  "scripts": [
+    "browser-smoke.ts",
+    "run-recovery-browser.ts",
+    "agent-decisions-browser.ts",
+    "creation-sharing-browser.ts",
+    "home-lesson-browser.ts",
+    "workflow-guide-browser.ts",
+    "guide-visuals-browser.ts",
+    "beginner-reference-browser.ts",
+    "lesson-run-context-browser.ts",
+    "optional-practice-browser.ts",
+    "dynamic-policy-browser.ts",
+    "library-visit-browser.ts",
+    "editor-focus-proposal-browser.ts",
+    "editor-contracts-browser.ts",
+    "agent-scope-browser.ts",
+    "agent-export-browser.ts",
+    "editor-source-navigation-browser.ts",
+    "canvas-editing-browser.ts",
+    "canvas-keyboard-browser.ts",
+    "canvas-zoom-browser.ts",
+    "canvas-placement-names-browser.ts",
+    "canvas-copy-browser.ts",
+    "canvas-connection-edit-browser.ts",
+    "canvas-placement-path-browser.ts",
+    "canvas-gesture-browser.ts",
+    "canvas-wire-browser.ts",
+    "canvas-history-browser.ts",
+    "engine-run-browser.ts",
+    "run-case-conversation-browser.ts",
+    "decision-csv-browser.ts",
+    "editor-repair-browser.ts",
+    "resource-library-browser.ts",
+    "shared-resource-gallery-browser.ts",
+    "shared-mcp-copy-browser.ts",
+    "trigger-browser.ts"
+  ],
+  "suites": [
+    {
+      "theme": "light",
+      "command": "node scripts/test-browser.mjs",
+      "exitCode": 0,
+      "scriptCount": 35,
+      "log": "browser-light.txt"
+    },
+    {
+      "theme": "dark",
+      "command": "node scripts/test-browser.mjs",
+      "exitCode": 0,
+      "scriptCount": 35,
+      "log": "browser-dark.txt",
+      "documents": 342,
+      "scripts": [
+        {
+          "script": "browser-smoke.ts",
+          "pages": 87,
+          "nightPages": 87,
+          "controlClasses": 42,
+          "dialogFamilies": [
+            "studio-dialog confirm",
+            "studio-dialog settings",
+            "studio-dialog standard",
+            "studio-dialog wide workspace",
+            "ws-modal confirm",
+            "ws-modal form"
+          ]
+        },
+        {
+          "script": "run-recovery-browser.ts",
+          "pages": 3,
+          "nightPages": 3,
+          "controlClasses": 3,
+          "dialogFamilies": [
+            "studio-dialog standard",
+            "studio-run-panel "
+          ]
+        },
+        {
+          "script": "agent-decisions-browser.ts",
+          "pages": 2,
+          "nightPages": 2,
+          "controlClasses": 4,
+          "dialogFamilies": [
+            "studio-dialog form"
+          ]
+        },
+        {
+          "script": "creation-sharing-browser.ts",
+          "pages": 51,
+          "nightPages": 51,
+          "controlClasses": 21,
+          "dialogFamilies": [
+            "studio-dialog form",
+            "studio-dialog settings",
+            "studio-dialog standard",
+            "studio-dialog wide workspace",
+            "studio-run-panel "
+          ]
+        },
+        {
+          "script": "home-lesson-browser.ts",
+          "pages": 16,
+          "nightPages": 16,
+          "controlClasses": 10,
+          "dialogFamilies": [
+            "studio-dialog form",
+            "studio-dialog wide workspace"
+          ]
+        },
+        {
+          "script": "workflow-guide-browser.ts",
+          "pages": 13,
+          "nightPages": 13,
+          "controlClasses": 25,
+          "dialogFamilies": [
+            "studio-dialog settings",
+            "studio-dialog workspace",
+            "ws-modal form"
+          ]
+        },
+        {
+          "script": "guide-visuals-browser.ts",
+          "pages": 17,
+          "nightPages": 17,
+          "controlClasses": 7,
+          "dialogFamilies": [
+            "studio-dialog form",
+            "studio-dialog settings",
+            "studio-dialog standard"
+          ]
+        },
+        {
+          "script": "beginner-reference-browser.ts",
+          "pages": 4,
+          "nightPages": 4,
+          "controlClasses": 10,
+          "dialogFamilies": [
+            "studio-dialog wide workspace"
+          ]
+        },
+        {
+          "script": "lesson-run-context-browser.ts",
+          "pages": 2,
+          "nightPages": 2,
+          "controlClasses": 8,
+          "dialogFamilies": []
+        },
+        {
+          "script": "optional-practice-browser.ts",
+          "pages": 5,
+          "nightPages": 5,
+          "controlClasses": 12,
+          "dialogFamilies": [
+            "studio-dialog wide workspace"
+          ]
+        },
+        {
+          "script": "dynamic-policy-browser.ts",
+          "pages": 2,
+          "nightPages": 2,
+          "controlClasses": 11,
+          "dialogFamilies": [
+            "studio-dialog wide workspace",
+            "ws-modal standard"
+          ]
+        },
+        {
+          "script": "library-visit-browser.ts",
+          "pages": 2,
+          "nightPages": 2,
+          "controlClasses": 10,
+          "dialogFamilies": [
+            "studio-dialog settings",
+            "studio-dialog wide workspace"
+          ]
+        },
+        {
+          "script": "editor-focus-proposal-browser.ts",
+          "pages": 4,
+          "nightPages": 4,
+          "controlClasses": 9,
+          "dialogFamilies": [
+            "studio-dialog form",
+            "ws-modal form"
+          ]
+        },
+        {
+          "script": "editor-contracts-browser.ts",
+          "pages": 11,
+          "nightPages": 11,
+          "controlClasses": 16,
+          "dialogFamilies": [
+            "studio-dialog form",
+            "studio-dialog settings",
+            "studio-dialog standard",
+            "studio-run-panel ",
+            "ws-modal confirm",
+            "ws-modal form"
+          ]
+        },
+        {
+          "script": "agent-scope-browser.ts",
+          "pages": 2,
+          "nightPages": 2,
+          "controlClasses": 4,
+          "dialogFamilies": [
+            "ws-modal standard"
+          ]
+        },
+        {
+          "script": "agent-export-browser.ts",
+          "pages": 4,
+          "nightPages": 4,
+          "controlClasses": 8,
+          "dialogFamilies": [
+            "ws-modal form",
+            "ws-modal standard"
+          ]
+        },
+        {
+          "script": "editor-source-navigation-browser.ts",
+          "pages": 6,
+          "nightPages": 6,
+          "controlClasses": 14,
+          "dialogFamilies": [
+            "prompt-writing-dialog ",
+            "studio-dialog settings",
+            "ws-modal standard"
+          ]
+        },
+        {
+          "script": "canvas-editing-browser.ts",
+          "pages": 5,
+          "nightPages": 5,
+          "controlClasses": 6,
+          "dialogFamilies": []
+        },
+        {
+          "script": "canvas-keyboard-browser.ts",
+          "pages": 2,
+          "nightPages": 2,
+          "controlClasses": 5,
+          "dialogFamilies": []
+        },
+        {
+          "script": "canvas-zoom-browser.ts",
+          "pages": 2,
+          "nightPages": 2,
+          "controlClasses": 4,
+          "dialogFamilies": [
+            "ws-modal form"
+          ]
+        },
+        {
+          "script": "canvas-placement-names-browser.ts",
+          "pages": 1,
+          "nightPages": 1,
+          "controlClasses": 3,
+          "dialogFamilies": [
+            "ws-modal form"
+          ]
+        },
+        {
+          "script": "canvas-copy-browser.ts",
+          "pages": 2,
+          "nightPages": 2,
+          "controlClasses": 8,
+          "dialogFamilies": [
+            "ws-modal standard"
+          ]
+        },
+        {
+          "script": "canvas-connection-edit-browser.ts",
+          "pages": 4,
+          "nightPages": 4,
+          "controlClasses": 7,
+          "dialogFamilies": [
+            "ws-modal form",
+            "ws-modal standard"
+          ]
+        },
+        {
+          "script": "canvas-placement-path-browser.ts",
+          "pages": 1,
+          "nightPages": 1,
+          "controlClasses": 4,
+          "dialogFamilies": [
+            "ws-modal standard"
+          ]
+        },
+        {
+          "script": "canvas-gesture-browser.ts",
+          "pages": 5,
+          "nightPages": 5,
+          "controlClasses": 3,
+          "dialogFamilies": []
+        },
+        {
+          "script": "canvas-wire-browser.ts",
+          "pages": 11,
+          "nightPages": 11,
+          "controlClasses": 6,
+          "dialogFamilies": [
+            "ws-modal standard"
+          ]
+        },
+        {
+          "script": "canvas-history-browser.ts",
+          "pages": 3,
+          "nightPages": 3,
+          "controlClasses": 6,
+          "dialogFamilies": []
+        },
+        {
+          "script": "engine-run-browser.ts",
+          "pages": 10,
+          "nightPages": 10,
+          "controlClasses": 12,
+          "dialogFamilies": [
+            "studio-dialog standard",
+            "studio-run-panel "
+          ]
+        },
+        {
+          "script": "run-case-conversation-browser.ts",
+          "pages": 7,
+          "nightPages": 7,
+          "controlClasses": 12,
+          "dialogFamilies": [
+            "prompt-writing-dialog ",
+            "studio-dialog standard",
+            "studio-run-panel "
+          ]
+        },
+        {
+          "script": "decision-csv-browser.ts",
+          "pages": 6,
+          "nightPages": 6,
+          "controlClasses": 6,
+          "dialogFamilies": []
+        },
+        {
+          "script": "editor-repair-browser.ts",
+          "pages": 5,
+          "nightPages": 5,
+          "controlClasses": 10,
+          "dialogFamilies": [
+            "ws-modal confirm",
+            "ws-modal form"
+          ]
+        },
+        {
+          "script": "resource-library-browser.ts",
+          "pages": 30,
+          "nightPages": 30,
+          "controlClasses": 20,
+          "dialogFamilies": [
+            "studio-dialog confirm",
+            "studio-dialog form",
+            "studio-dialog settings",
+            "studio-dialog standard"
+          ]
+        },
+        {
+          "script": "shared-resource-gallery-browser.ts",
+          "pages": 9,
+          "nightPages": 9,
+          "controlClasses": 8,
+          "dialogFamilies": [
+            "studio-dialog standard",
+            "ws-modal standard"
+          ]
+        },
+        {
+          "script": "shared-mcp-copy-browser.ts",
+          "pages": 5,
+          "nightPages": 5,
+          "controlClasses": 7,
+          "dialogFamilies": [
+            "studio-dialog standard",
+            "ws-modal standard"
+          ]
+        },
+        {
+          "script": "trigger-browser.ts",
+          "pages": 3,
+          "nightPages": 3,
+          "controlClasses": 6,
+          "dialogFamilies": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+[
+  {
+    "theme": "light",
+    "viewport": {
+      "width": 390,
+      "height": 540
+    },
+    "errors": [],
+    "overlapping-wire": {
+      "width": 356,
+      "height": 197
+    },
+    "keyboard-wire": {
+      "width": 356,
+      "height": 197
+    },
+    "categoryInitialFocus": "닫기",
+    "category-delete": {
+      "width": 356,
+      "height": 252
+    },
+    "attach-block": {
+      "width": 356,
+      "height": 308
+    },
+    "empty-block": {
+      "keyboardAdded": true
+    }
+  },
+  {
+    "theme": "dark",
+    "viewport": {
+      "width": 390,
+      "height": 540
+    },
+    "errors": [],
+    "overlapping-wire": {
+      "width": 356,
+      "height": 197
+    },
+    "keyboard-wire": {
+      "width": 356,
+      "height": 197
+    },
+    "categoryInitialFocus": "닫기",
+    "category-delete": {
+      "width": 356,
+      "height": 252
+    },
+    "attach-block": {
+      "width": 356,
+      "height": 308
+    },
+    "empty-block": {
+      "keyboardAdded": true
+    }
+  }
+]

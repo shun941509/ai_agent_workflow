@@ -1,0 +1,258 @@
+<template>
+  <style>
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      background: var(--measurePaper, #f6f2e8);
+      color: var(--measureInk, #17274b);
+      font-family: "Studio Sans", sans-serif;
+      font-variant-numeric: tabular-nums;
+    }
+    #measure-layout { position: absolute; inset: 0; }
+    #measure-heading {
+      position: absolute;
+      top: 108px;
+      left: 202px;
+    }
+    #measure-category, #measure-range-caption, #measure-total-label, #measure-lot-label {
+      font-size: 30px;
+      line-height: 1.35;
+      font-weight: 640;
+    }
+    #measure-category { color: var(--measureBlue, #284cba); }
+    #measure-title {
+      margin: 9px 0 0;
+      font-family: "Studio Serif", serif;
+      font-size: 85px;
+      line-height: 1.25;
+      font-weight: 690;
+      letter-spacing: -.072em;
+    }
+    #measure-range {
+      position: absolute;
+      right: 202px;
+      top: 134px;
+      padding-left: 24px;
+      border-left: 7px solid var(--measureLime, #d9ec85);
+    }
+    #measure-range-caption { display: block; }
+    #measure-range-value {
+      display: block;
+      margin-top: 6px;
+      font-size: 45px;
+      line-height: 1.25;
+      font-weight: 720;
+      letter-spacing: -.035em;
+    }
+    #measure-chart {
+      position: absolute;
+      left: 240px;
+      top: 287px;
+      width: 1440px;
+      height: 480px;
+    }
+    #measure-band {
+      position: absolute;
+      left: 25%;
+      top: 201px;
+      width: 50%;
+      height: 111px;
+      box-sizing: border-box;
+      background: var(--measureLime, #d9ec85);
+      border-left: 2px solid var(--measureInk, #17274b);
+      border-right: 2px solid var(--measureInk, #17274b);
+      transform-origin: 50% 50%;
+    }
+    #measure-axis {
+      position: absolute;
+      inset: 255px 0 auto;
+      height: 2px;
+      background: var(--measureInk, #17274b);
+    }
+    #measure-ticks {
+      position: absolute;
+      top: 250px;
+      left: -1px;
+      width: 1442px;
+      height: 13px;
+      background: repeating-linear-gradient(to right, var(--measureInk, #17274b) 0 2px, transparent 2px 90px);
+    }
+    .measure-scale-value {
+      position: absolute;
+      top: 273px;
+      width: 90px;
+      margin-left: -45px;
+      text-align: center;
+      font-size: 29px;
+      font-weight: 540;
+      line-height: 1.2;
+    }
+    #measure-neg-eight { left: 0; }
+    #measure-zero { left: 50%; }
+    #measure-pos-eight { left: 100%; }
+    .measure-point {
+      position: absolute;
+      top: 0;
+      width: 0;
+      height: 100%;
+      color: var(--measureInk, #17274b);
+    }
+    #measure-l7-w01 { left: 25%; }
+    #measure-l7-w02 { left: 81.25%; }
+    #measure-l7-w03 { left: 6.25%; }
+    #measure-l8-w01 { left: 87.5%; }
+    #measure-l9-w01 { left: 37.5%; }
+    #measure-l9-w02 { left: 56.25%; }
+    .measure-dot {
+      position: absolute;
+      left: -13px;
+      top: 243px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 3px solid var(--measurePaper, #f6f2e8);
+      box-sizing: border-box;
+      background: currentColor;
+      z-index: 2;
+    }
+    .measure-stem {
+      position: absolute;
+      left: -1px;
+      width: 2px;
+      background: currentColor;
+    }
+    .measure-upper .measure-stem { top: 169px; height: 88px; }
+    .measure-lower .measure-stem { top: 256px; height: 81px; }
+    .measure-annotation {
+      position: absolute;
+      left: -103px;
+      width: 206px;
+      text-align: center;
+      white-space: nowrap;
+    }
+    .measure-upper .measure-annotation { top: 65px; }
+    .measure-lower .measure-annotation { top: 344px; }
+    .measure-reading {
+      display: block;
+      font-size: 46px;
+      line-height: 1.23;
+      font-weight: 740;
+      letter-spacing: -.055em;
+    }
+    .measure-wafer {
+      display: block;
+      margin-top: 4px;
+      font-size: 29px;
+      font-weight: 560;
+      line-height: 1.15;
+      letter-spacing: -.02em;
+      color: var(--measureInk, #17274b);
+    }
+    #measure-panel {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 783px;
+      bottom: 0;
+      background: var(--measureInk, #17274b);
+      color: var(--measurePaper, #f6f2e8);
+    }
+    #measure-summary, #measure-lots {
+      position: absolute;
+      top: 46px;
+    }
+    #measure-summary { left: 203px; }
+    #measure-lots {
+      left: 1095px;
+      padding-left: 45px;
+      border-left: 2px solid rgba(246,242,232,.5);
+    }
+    #measure-total, #measure-lot-value {
+      display: block;
+      margin-top: 3px;
+      font-size: 67px;
+      font-weight: 680;
+      line-height: 1.22;
+      letter-spacing: -.065em;
+    }
+    #measure-total-out { color: var(--measureLime, #d9ec85); }
+  </style>
+  <div id="root" data-composition-id="measure" data-width="1920" data-height="1080"
+    data-composition-variables='[
+      {"id":"measureCategory","type":"string","label":"업무 분야","default":"반도체·제조 보고 Agent"},
+      {"id":"measureTitle","type":"string","label":"측정 대상","default":"웨이퍼 정렬 오차"},
+      {"id":"measureRangeCaption","type":"string","label":"기준 설명","default":"허용 범위 · 양끝 포함"},
+      {"id":"measureTotalLabel","type":"string","label":"판정 제목","default":"허용 범위 이탈"},
+      {"id":"measureLotLabel","type":"string","label":"LOT 설명","default":"이탈이 발생한 두 LOT"},
+      {"id":"measureInk","type":"color","label":"잉크","default":"#17274b"},
+      {"id":"measurePaper","type":"color","label":"종이","default":"#f6f2e8"},
+      {"id":"measureBlue","type":"color","label":"분류 글자","default":"#284cba"},
+      {"id":"measureLime","type":"color","label":"허용 범위","default":"#d9ec85"}
+    ]'>
+    <div id="measure-layout" class="clip" data-start="0" data-duration="9" data-track-index="1" data-track-kind="graphics">
+      <header id="measure-heading">
+        <span id="measure-category" data-var-text="measureCategory">반도체·제조 보고 Agent</span>
+        <h2 id="measure-title" data-var-text="measureTitle">웨이퍼 정렬 오차</h2>
+      </header>
+      <div id="measure-range">
+        <span id="measure-range-caption" data-var-text="measureRangeCaption">허용 범위 · 양끝 포함</span>
+        <strong id="measure-range-value">−4 ~ +4 nm</strong>
+      </div>
+      <div id="measure-chart" role="img" aria-label="웨이퍼 정렬 오차 6건을 나노미터 눈금에 표시. L7 W02 +5, L7 W03 −7, L8 W01 +6이 허용 범위를 벗어남.">
+        <div id="measure-band" aria-hidden="true"></div>
+        <div id="measure-axis" aria-hidden="true"></div>
+        <div id="measure-ticks" aria-hidden="true"></div>
+        <span id="measure-neg-eight" class="measure-scale-value">−8</span>
+        <span id="measure-zero" class="measure-scale-value">0</span>
+        <span id="measure-pos-eight" class="measure-scale-value">+8</span>
+        <div id="measure-l7-w01" class="measure-point measure-lower">
+          <i class="measure-stem"></i><i class="measure-dot"></i>
+          <div class="measure-annotation"><strong class="measure-reading">−4 nm</strong><span class="measure-wafer">L7 · W01</span></div>
+        </div>
+        <div id="measure-l7-w02" class="measure-point measure-upper measure-outlier">
+          <i class="measure-stem"></i><i class="measure-dot"></i>
+          <div class="measure-annotation"><strong class="measure-reading">+5 nm</strong><span class="measure-wafer">L7 · W02</span></div>
+        </div>
+        <div id="measure-l7-w03" class="measure-point measure-upper measure-outlier">
+          <i class="measure-stem"></i><i class="measure-dot"></i>
+          <div class="measure-annotation"><strong class="measure-reading">−7 nm</strong><span class="measure-wafer">L7 · W03</span></div>
+        </div>
+        <div id="measure-l8-w01" class="measure-point measure-lower measure-outlier">
+          <i class="measure-stem"></i><i class="measure-dot"></i>
+          <div class="measure-annotation"><strong class="measure-reading">+6 nm</strong><span class="measure-wafer">L8 · W01</span></div>
+        </div>
+        <div id="measure-l9-w01" class="measure-point measure-upper">
+          <i class="measure-stem"></i><i class="measure-dot"></i>
+          <div class="measure-annotation"><strong class="measure-reading">−2 nm</strong><span class="measure-wafer">L9 · W01</span></div>
+        </div>
+        <div id="measure-l9-w02" class="measure-point measure-lower">
+          <i class="measure-stem"></i><i class="measure-dot"></i>
+          <div class="measure-annotation"><strong class="measure-reading">+1 nm</strong><span class="measure-wafer">L9 · W02</span></div>
+        </div>
+      </div>
+      <div id="measure-panel">
+        <div id="measure-summary">
+          <span id="measure-total-label" data-var-text="measureTotalLabel">허용 범위 이탈</span>
+          <strong id="measure-total">측정 6건 중 <span id="measure-total-out">3건</span></strong>
+        </div>
+        <div id="measure-lots">
+          <span id="measure-lot-label" data-var-text="measureLotLabel">이탈이 발생한 두 LOT</span>
+          <strong id="measure-lot-value">L7 · L8</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#measure-heading", { y: 16 }, { y: 0, duration: 0.4, ease: "power2.out" }, 0);
+    tl.fromTo(".measure-point", { opacity: 0, y: 9 }, { opacity: 1, y: 0, duration: 0.3, stagger: 0.12, ease: "power2.out" }, 0.18);
+    tl.fromTo("#measure-range", { x: 20, opacity: 0 }, { x: 0, opacity: 1, duration: 0.38, ease: "power2.out" }, 2.5);
+    tl.fromTo("#measure-band", { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 0.56, ease: "power2.out" }, 2.58);
+    tl.to(".measure-outlier", { color: "#aa3c22", duration: 0.27, stagger: 0.07, ease: "power1.out" }, 2.99);
+    tl.fromTo("#measure-panel", { clipPath: "inset(100% 0 0 0)" }, { clipPath: "inset(0% 0 0 0)", duration: 0.52, ease: "power3.out" }, 3.15);
+    tl.fromTo("#measure-lots", { opacity: 0, x: 24 }, { opacity: 1, x: 0, duration: 0.42, ease: "power2.out" }, 5.9);
+    window.__timelines = window.__timelines || {};
+    window.__timelines["measure"] = tl;
+  </script>
+</template>

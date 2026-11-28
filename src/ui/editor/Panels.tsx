@@ -26,6 +26,7 @@ import WorkflowRefPicker from './WorkflowRefPicker';
 import McpToolPicker from './McpToolPicker';
 import { InlineSourceEditor, type SaveReferenceDocument } from './InlineSourceEditor';
 import { dynamicLessonRangeNote } from '../../domain/dynamic-lesson-policy';
+import { projectWorkOptions } from '../../domain/web-project-work';
 import type { RecoveryDraft } from './source-drafts';
 import { ReplyFieldsEditor } from './ReplyFieldsEditor';
 import { CategoryEditor } from './CategoryEditor';
@@ -78,8 +79,7 @@ export function Palette({
   onShowCatalog,
   onPick,
   onFind,
-  onClose,
-  panelRef, modal, inert, practiceCoach,
+  panelRef,
 }: {
   level: string;
   tab: PaletteTab;
@@ -91,11 +91,7 @@ export function Palette({
   onShowCatalog: (show: boolean) => void;
   onPick: (id: string) => void;
   onFind: (id: string) => void;
-  onClose: () => void;
   panelRef: React.Ref<HTMLElement>;
-  modal: boolean;
-  inert: boolean;
-  practiceCoach?: React.ReactNode;
 }) {
   const [query, setQuery] = useState('');
   const [blockQuery, setBlockQuery] = useState('');
@@ -161,15 +157,10 @@ export function Palette({
     return [{entry, type, description, timedForm}];
   });
   return (
-    <aside ref={panelRef} className="ws-palette" aria-label="블록 팔레트" role={modal ? 'dialog' : undefined}
-      aria-modal={modal || undefined} inert={inert}>
+    <aside ref={panelRef} className="ws-palette" aria-label="블록 팔레트">
       <div className="ws-panel-heading">
         <h2><Icon name="layers" size={16} />블록 팔레트</h2>
-        <button className="ws-icon-button ws-panel-close" onClick={onClose} aria-label="블록 목록 닫기">
-          <Icon name="close" />
-        </button>
       </div>
-      {practiceCoach}
       <div className="ws-palette-mode">
         <button type="button" aria-pressed={!showCatalog} onClick={() => onShowCatalog(false)}>현재 블록</button>
         <button type="button" aria-pressed={showCatalog} onClick={() => onShowCatalog(true)}><Icon name="plus" size={13}/>블록 추가</button>
@@ -539,7 +530,14 @@ export function Inspector(props: InspectorProps) {
   const isTerminal = spec?.menuType === 'output.answer';
   const fields = replyForm
     ? specFor('input.form')!.fields.filter(field => field.key !== 'replyTimeoutMinutes')
-    : (spec?.fields ?? []).filter(field => !isTerminal || field.key !== 'status');
+    : (spec?.fields ?? []).filter(field => {
+      if (node?.type === 'data.transform') {
+        const section = node.config.operation === 'markdown-section';
+        if (['sectionHeading','sectionMarker'].includes(field.key)) return section;
+        if (section && ['path','target'].includes(field.key)) return false;
+      }
+      return !isTerminal || field.key !== 'status';
+    });
   const menu = spec ? palette.find((p) => p.type === spec.menuType) : undefined;
   const modes = menu?.modes?.filter(mode => mode.value !== 'error.compensate' || props.showExpertTools || node?.type === mode.value);
   const update = (partial: Partial<Block>) => {
@@ -610,6 +608,7 @@ export function Inspector(props: InspectorProps) {
     assetFilter === 'document' ? !['skill', 'mcp'].includes(a.kind) : a.kind === assetFilter,
   );
   const selectedAsset=filteredAssets.find(a=>a.id===node?.config.assetId);
+  const registeredSkill = node?.type === 'instruction.skill' && Boolean(node.config.assetId);
   const accessibleVersions=selectedAsset ? accessibleEditions(selectedAsset) : [];
   const nameField = node && (
     <label className="ws-field">
@@ -633,6 +632,7 @@ export function Inspector(props: InspectorProps) {
       assets={filteredAssets}
       value={String(node.config.assetId ?? '')}
       label="연결할 자료"
+      pinnedSkillVersion={registeredSkill ? Number(node.config.version) || selectedAsset?.version : undefined}
       lesson={props.materialLesson === 'beginner' && node.id === 'rules' ? 'beginner' :
         node.config.assetId && !selectedAsset && (
           (props.materialLesson === 'peer-review' && assetFilter === 'skill') ||
@@ -743,7 +743,7 @@ export function Inspector(props: InspectorProps) {
                 !f.advanced &&
                 !taskPrompts.includes(f) &&
                 !(isRef && ['assetId', 'version'].includes(f.key)) &&
-                !(node.type === 'resource.context' && f.key === 'content') &&
+                !((node.type === 'resource.context' || registeredSkill) && f.key === 'content') &&
                 !(['workflow.call','workflow.tool'].includes(node.type)&&['workflowId','version'].includes(f.key)) &&
                 !(
                   node.type === 'control.trigger' &&
@@ -790,6 +790,13 @@ export function Inspector(props: InspectorProps) {
           )}
           <details className="ws-detail ws-advanced-settings">
             <summary>고급 설정</summary>
+            {props.rootScope && !node.graph && ['ai.single_task', 'agent.delegate'].includes(node.type) && Object.hasOwn(node.config, 'projectWork') &&
+              <label className="ws-field"><span>내보낸 Agent의 프로젝트 작업</span>
+                <select value={node.config.projectWork} onChange={event => setField('projectWork', event.target.value)}>
+                  <option value="">없음</option>
+                  {projectWorkOptions.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
+                </select>
+              </label>}
             {fields.filter((f) => f.advanced).map(showField)}
             {props.materialLesson === 'dynamic' && node.id === 'spawn' && node.type === 'agent.create_dynamic' &&
               <small role="status">{dynamicLessonRangeNote(Number(node.config.maxCreatedAgents), Number(node.config.maxInFlightAgents))}</small>}
@@ -898,7 +905,13 @@ export function ConnectionModal({
       )
     : [];
   return (
-    <Modal title={transfersOnly ? '전달 항목 추가' : '연결 추가'} size="form" onClose={onClose}>
+    <Modal title={transfersOnly ? '전달 항목 추가' : '연결 추가'} size="form" onClose={onClose} footer={<>
+      <button type="button" className="ws-btn" onClick={onClose}>취소</button>
+      {!missingSource && <button type="button" className="ws-btn ws-primary"
+        disabled={!picked.length || (!!input && !picked.some((p) => p.input === input)) ||
+          (routeId !== undefined && !picked.some(p => p.kind === 'flow' && p.out === routeId))}
+        onClick={() => onCommit(connectBlocks(graph, origin, target, picked))}>연결 적용</button>}
+    </>}>
       {from ? (
         <p className="ws-hint">출발 블록 · {source && titleById(graph, source.id)}{routeLabel && <> · {routeLabel} 경로</>}</p>
       ) : !missingSource && (
@@ -1006,19 +1019,6 @@ export function ConnectionModal({
             .join(', ')}
         </p>
       )}
-      <div className="ws-modal-actions">
-        <button className="ws-btn" onClick={onClose}>
-          취소
-        </button>
-        {!missingSource && <button
-          className="ws-btn ws-primary"
-          disabled={!picked.length || (!!input && !picked.some((p) => p.input === input)) ||
-            (routeId !== undefined && !picked.some(p => p.kind === 'flow' && p.out === routeId))}
-          onClick={() => onCommit(connectBlocks(graph, origin, target, picked))}
-        >
-          연결 적용
-        </button>}
-      </div>
     </Modal>
   );
 }

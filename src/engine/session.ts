@@ -110,7 +110,7 @@ export class Session {
     this.state.counts[counter]++;
     this.state.memo[key]=true;
   }
-  async ask(node:Block,path:string,prompt:Omit<Prompt,'id'>,display:Pick<Prompt,'fields'|'reviewDraft'|'showApprovalNote'>={}) {
+  async ask(node:Block,path:string,prompt:Omit<Prompt,'id'>,display:Pick<Prompt,'fields'|'reviewDraft'|'showApprovalNote'|'questionFileName'>={}) {
     // Presentation can be upgraded without invalidating a previously issued reply ID.
     const {fields,reviewDraft}=display;
     const id=path+'#'+token(prompt).slice(0,24);

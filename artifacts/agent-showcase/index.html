@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ko" data-composition-variables='[{"id":"paper","type":"color","label":"종이","default":"#f6f2e8"},{"id":"ink","type":"color","label":"남색 잉크","default":"#17274b"},{"id":"blue","type":"color","label":"파란 잉크","default":"#284cba"},{"id":"lime","type":"color","label":"강조","default":"#d9ec85"},{"id":"signal","type":"color","label":"범위 밖","default":"#aa3c22"},{"id":"brandName","type":"string","label":"AI Agent Workflow Studio","default":"AI Agent Workflow Studio"},{"id":"coverFirst","type":"string","label":"어떤 Agent를","default":"어떤 Agent를"},{"id":"coverSecond","type":"string","label":"만들 수 있을까?","default":"만들 수 있을까?"},{"id":"coverDetail","type":"string","label":"메모 한 장, 요청 한 줄, 측정값 여섯 개.","default":"메모 한 장, 요청 한 줄, 측정값 여섯 개."},{"id":"tabMinutes","type":"string","label":"회의록","default":"회의록"},{"id":"tabRequirements","type":"string","label":"요구사항","default":"요구사항"},{"id":"tabMeasure","type":"string","label":"제조 보고서","default":"제조 보고서"},{"id":"guideFirst","type":"string","label":"마지막 장면 첫 줄","default":"Agent에게 맡길"},{"id":"guideSecond","type":"string","label":"업무를 고르세요.","default":"업무를 고르세요."},{"id":"guideNav","type":"string","label":"가이드  ›  목적별로 만들기","default":"가이드  ›  목적별로 만들기"},{"id":"guideSection","type":"string","label":"업무 문서 만들기","default":"업무 문서 만들기"},{"id":"guideImage","type":"string","label":"assets/guide.png","default":"assets/guide.png"},{"id":"musicCredit","type":"string","label":"음악  Galactic Rap  ·  Kevin MacLeod  ·  CC BY 4.0  ·  편집 사용","default":"음악  Galactic Rap  ·  Kevin MacLeod  ·  CC BY 4.0  ·  편집 사용"}]'>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1920, height=1080">
+  <title>AI Agent Workflow Studio · 만들 수 있는 Agent 세 가지</title>
+  <link rel="icon" href="assets/studio-icon.svg">
+  <script src="assets/gsap.min.js"></script>
+  <style>
+    @font-face {font-family:"Studio Sans";src:url("assets/fonts/studio-sans.woff2") format("woff2");font-weight:100 900;font-display:block;}
+    @font-face {font-family:"Studio Serif";src:url("assets/fonts/studio-serif.woff2") format("woff2");font-weight:200 900;font-display:block;}
+    :root {--paper:#f6f2e8;--ink:#17274b;--blue:#284cba;--lime:#d9ec85;--signal:#aa3c22;}
+    * {box-sizing:border-box;}
+    html,body {margin:0;width:1920px;height:1080px;overflow:hidden;background:var(--ink);}
+    body {font-family:"Studio Sans",sans-serif;color:var(--ink);}
+    #root {position:relative;width:1920px;height:1080px;overflow:hidden;}
+    [data-composition-src] {position:absolute;inset:0;}
+    h1,h2,h3,p,figure,blockquote {margin:0;}
+  </style>
+</head>
+<body>
+  <main id="root" data-composition-id="main" data-start="0" data-duration="35" data-fps="30" data-width="1920" data-height="1080">
+    <div id="cover" class="clip" data-composition-src="compositions/cover.html" data-composition-id="cover" data-width="1920" data-height="1080" data-start="0" data-duration="4" data-track-index="0" data-track-kind="graphics"></div>
+    <div id="minutes" class="clip" data-composition-src="compositions/minutes.html" data-composition-id="minutes" data-width="1920" data-height="1080" data-start="4" data-duration="8" data-track-index="0" data-track-kind="graphics"></div>
+    <div id="requirements" class="clip" data-composition-src="compositions/requirements.html" data-composition-id="requirements" data-width="1920" data-height="1080" data-start="12" data-duration="8" data-track-index="0" data-track-kind="graphics"></div>
+    <div id="measure" class="clip" data-composition-src="compositions/measure.html" data-composition-id="measure" data-width="1920" data-height="1080" data-start="20" data-duration="9" data-track-index="0" data-track-kind="graphics"></div>
+    <div id="guide" class="clip" data-composition-src="compositions/guide.html" data-composition-id="guide" data-width="1920" data-height="1080" data-start="29" data-duration="6" data-track-index="0" data-track-kind="graphics"></div>
+    <audio id="soundtrack" class="clip" src="assets/sound.wav" data-start="0" data-duration="35" data-track-index="1" data-volume="1"></audio>
+  </main>
+  <script>
+    window.__timelines = window.__timelines || {};
+    window.__timelines.main = gsap.timeline({paused:true});
+  </script>
+</body>
+</html>

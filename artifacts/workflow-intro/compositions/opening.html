@@ -1,0 +1,48 @@
+<template>
+  <style>
+    #root { position:absolute; inset:0; overflow:hidden; background:var(--paper,#f6f2e7); color:var(--ink,#123c36); font-family:"Studio Sans",sans-serif; }
+    .opening-brand { position:absolute; left:192px; top:111px; display:flex; align-items:center; gap:18px; font-size:32px; font-weight:750; letter-spacing:-1.2px; }
+    .opening-brand img { width:55px; height:55px; }
+    .opening-rule { position:absolute; left:192px; right:192px; top:207px; height:2px; background:#9eada2; transform-origin:left center; }
+    .opening-left { position:absolute; left:192px; top:300px; width:865px; }
+    .opening-kicker { display:flex; align-items:center; gap:17px; font-size:32px; line-height:1.25; font-weight:650; color:var(--forest,#10493f); }
+    .opening-kicker::before { content:""; width:57px; height:7px; background:var(--red,#a43939); }
+    .opening-heading { font:740 102px/1.29 "Studio Serif",serif; letter-spacing:-7.6px; padding:27px 0 37px; }
+    .opening-heading span { display:block; white-space:nowrap; }
+    .opening-sub,.opening-path,.opening-action { font-size:32px; line-height:1.6; font-weight:500; letter-spacing:-1.3px; }
+    .opening-action { font-weight:720; }
+    .opening-arrow { color:var(--red,#a43939); display:inline-block; margin-right:15px; }
+    .opening-library { position:absolute; left:1097px; top:255px; width:633px; height:645px; }
+    .opening-field { position:absolute; inset:0; background:#e8e7d5; border-radius:316px 316px 0 0; }
+    .opening-shelf { position:absolute; left:-11px; right:-11px; bottom:0; height:12px; background:var(--forest,#10493f); border-bottom:3px solid #062d27; }
+    .opening-book { position:absolute; bottom:9px; transform-origin:50% 100%; }
+    .opening-book img { width:100%; height:100%; display:block; }
+  </style>
+  <section id="root" data-composition-id="opening" data-width="1920" data-height="1080">
+    <div class="opening-brand"><img src="assets/studio-icon.svg" alt=""><span data-var-text="brand">AI Agent Workflow Studio</span></div>
+    <div id="opening-rule" class="opening-rule"></div>
+    <div class="opening-left">
+      <p class="opening-kicker" data-var-text="openKicker">도서관 안내 Agent</p>
+      <h1 id="opening-heading" class="opening-heading"><span data-var-text="openLineA">책을 몇 권까지</span><span data-var-text="openLineB">빌릴 수 있나요?</span></h1>
+      <div id="opening-detail"><p class="opening-sub" data-var-text="openSub">내 자료를 읽고 답하는 AI를 만들어 봅니다.</p></div>
+    </div>
+    <figure class="opening-library" aria-label="책 세 권이 놓인 책장" data-layout-allow-overlap>
+      <div class="opening-field"></div>
+      <div id="opening-book-one" class="opening-book" style="left:103px;width:126px;height:490px"><img src="assets/book-one.svg" alt=""></div>
+      <div id="opening-book-two" class="opening-book" style="left:254px;width:128px;height:542px"><img src="assets/book-two.svg" alt=""></div>
+      <div id="opening-book-three" class="opening-book" style="left:394px;width:145px;height:600px"><img src="assets/book-three.svg" alt=""></div>
+      <div class="opening-shelf"></div>
+    </figure>
+  </section>
+  <script>
+    const tl = gsap.timeline({paused:true});
+    tl.fromTo("#opening-rule", {scaleX:0.34}, {scaleX:1,duration:0.75,ease:"power2.out"}, 0);
+    tl.fromTo("#opening-heading", {y:12}, {y:0,duration:0.65,ease:"power2.out"}, 0);
+    tl.fromTo("#opening-book-one", {y:0,rotation:-9,opacity:1}, {y:0,rotation:-9,opacity:1,duration:0.68,ease:"power3.out"}, 0);
+    tl.fromTo("#opening-book-two", {y:-89,rotation:2,opacity:0}, {y:0,rotation:0,opacity:1,duration:0.68,ease:"power3.out"}, 0.23);
+    tl.fromTo("#opening-book-three", {y:-100,rotation:-3,opacity:0}, {y:0,rotation:0,opacity:1,duration:0.68,ease:"power3.out"}, 0.46);
+    tl.fromTo("#opening-detail", {y:22,opacity:0}, {y:0,opacity:1,duration:0.48,ease:"power2.out"}, 1.8);
+    window.__timelines = window.__timelines || {};
+    window.__timelines["opening"] = tl;
+  </script>
+</template>

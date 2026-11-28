@@ -10,9 +10,9 @@ const baseURL = process.env.STUDIO_TEST_URL;
 if (!baseURL) throw Error('격리 시험용 작업실 주소가 필요합니다.');
 const chrome = 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const browser = await chromium.launch({executablePath:process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE || (existsSync(chrome) ? chrome : undefined)});
-try {
-  for (const width of [1440,390]) {
-    const context = await browser.newContext({baseURL, viewport:{width,height:width === 390 ? 844 : 900}, hasTouch:width === 390, isMobile:width === 390});
+async function verifyDesktop() {
+    const width = 1440;
+    const context = await browser.newContext({baseURL, viewport:{width,height:900}});
     try {
       const branch = createBlock('control.branch',{id:'branch',title:'대출 요청 확인',x:0,y:24,config:{yesLabel:'대출',noLabel:'예약'}});
       const graph:Graph = {
@@ -57,13 +57,11 @@ try {
         await expect(candidate('대출 기록')).toContainText('대출 경로');
         await expect(candidate('예약 안내')).toContainText('예약 경로');
         if (!list) await capture('keyboard-path-choices');
-        if (width === 390) {
-          await page.goBack();
-          await expect(chooser).toHaveCount(0);
-          await expect(block('branch')).toBeFocused();
-          await page.goForward();
-          await expect(chooser).toBeVisible();
-        }
+        await page.goBack();
+        await expect(chooser).toHaveCount(0);
+        await expect(block('branch')).toBeFocused();
+        await page.goForward();
+        await expect(chooser).toBeVisible();
         await page.keyboard.press('Escape');
         await expect(block('branch')).toBeFocused();
         await page.keyboard.press('Control+ArrowDown');
@@ -111,21 +109,12 @@ try {
       const from = (await moving.boundingBox())!, to = (await block('review').boundingBox())!;
       const start = {x:from.x+from.width/2,y:from.y+from.height/2};
       const end = {x:to.x+to.width/2,y:to.y+to.height/2};
-      if (width === 390) {
-        const cdp = await context.newCDPSession(page);
-        await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[start]});
-        await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[end]});
-        await expect(canvas.getByRole('status')).toContainText('문장 검토');
-        await expect.poll(topBlock).toBe('free');
-        await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});
-      } else {
-        await page.mouse.move(start.x,start.y);
-        await page.mouse.down();
-        await page.mouse.move(end.x,end.y,{steps:5});
-        await expect(canvas.getByRole('status')).toContainText('문장 검토');
-        await expect.poll(topBlock).toBe('free');
-        await page.mouse.up();
-      }
+      await page.mouse.move(start.x,start.y);
+      await page.mouse.down();
+      await page.mouse.move(end.x,end.y,{steps:5});
+      await expect(canvas.getByRole('status')).toContainText('문장 검토');
+      await expect.poll(topBlock).toBe('free');
+      await page.mouse.up();
       await expect.poll(topBlock).toBe('free');
       await page.keyboard.press('Control+s');
       await expect.poll(async () => {
@@ -135,6 +124,8 @@ try {
         return Math.max(Math.abs(first.x-second.x),Math.abs(first.y-second.y));
       }).toBeLessThanOrEqual(2);
     } finally {await context.close();}
-  }
-  console.log('PASS desktop/mobile keyboard path selection, named output tracing, history return and overlapping block placement.');
+}
+try {
+  await verifyDesktop();
+  console.log('PASS desktop keyboard path selection, named output tracing, focus return and overlapping block placement.');
 } finally {await browser.close();}

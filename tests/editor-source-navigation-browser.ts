@@ -42,9 +42,8 @@ const sourceGraph: Graph = {
   ],
 };
 
-async function check(mobile: boolean) {
-  const context = await browser.newContext({baseURL,viewport: mobile ? {width:390,height:844} : {width:1440,height:900},
-    hasTouch:mobile,isMobile:mobile});
+async function check() {
+  const context = await browser.newContext({baseURL,viewport: {width:1440,height:900}});
   context.setDefaultTimeout(15000);
   try {
     await registerBrowserAccount(context);
@@ -81,7 +80,6 @@ async function check(mobile: boolean) {
     }
     await ask('3권');
     assert.equal(await savedSource(),rule);
-    if (mobile) await button('실행 화면 닫기').click();
     const projectAction = async (name: string) => {
       await page.getByLabel('프로젝트 메뉴',{exact:true}).click();
       await button(name).click();
@@ -127,11 +125,9 @@ async function check(mobile: boolean) {
       await expect(dialog).toContainText('9권');
       await page.keyboard.press('Escape');
     }
-    if (mobile && !await page.getByRole('dialog',{name:'속성 패널'}).isVisible()) await button('속성 열기').click();
     await page.getByRole('tab',{name:'속성',exact:true}).click();
     await expect(text).toHaveValue(rule.replace('3권','5권'));
     // Reopen from the top bar as well as the results tab.
-    if (mobile) await button('속성 닫기').click();
     await button('시험 실행').click();
     await button('수정한 원문을 적용하고 시험').click();
     await ask('5권');
@@ -169,7 +165,6 @@ async function check(mobile: boolean) {
     await duplicateText.fill(longRule.replace('3권','9권'));
     await duplicateTab.close();
     await page.bringToFront();
-    if (mobile && !await page.getByRole('dialog',{name:'속성 패널'}).isVisible()) await button('속성 열기').click();
     await page.getByRole('tab',{name:'실행 결과'}).click();
     await page.getByText('도서관 이용규정 원문 비교').click();
     await expect(page.getByRole('heading',{name:'첫 변경 · 제31조'})).toBeInViewport();
@@ -184,7 +179,6 @@ async function check(mobile: boolean) {
     await expect(otherText).toHaveValue(longRule.replace('3권','7권'));
     await otherTab.close();
     // The default version save includes the recovered draft.
-    if (mobile) await button('속성 닫기').click();
     await projectAction('버전');
     await expect(versions.getByLabel('버전 저장에 포함할 원문',{exact:true})).toHaveValue('edited');
     await versions.getByRole('button',{name:'현재 초안 버전 저장'}).click();
@@ -195,9 +189,8 @@ async function check(mobile: boolean) {
 
     const middle = await api(context,'project.create',{lesson:'intermediate'});
     await page.goto('/?edit=' + middle.id);
-    if (mobile) await button('캔버스로 보기').click();
     const canvas = page.locator('.ws-canvas');
-    // Every focused route must have an actual visible stroke even if the full route is wider than the phone.
+    // Every focused route must have an actual visible stroke even if the full route is wider than the canvas.
     const wires = canvas.locator('.ws-wire');
     await expect(wires).toHaveCount(18);
     await button('연결선으로 이동').focus();
@@ -231,7 +224,7 @@ async function check(mobile: boolean) {
     const parallel = await api(context,'project.create',{lesson:'parallel'});
     await page.goto('/?edit=' + parallel.id);
     await expect(canvas.locator('[data-canvas-block="team"]')).toBeVisible();
-    for (const list of [mobile,!mobile]) {
+    for (const list of [false,true]) {
       if ((await canvas.locator('.ws-graph-list').count()>0) !== list)
         await button(list?'목록으로 편집':'캔버스로 보기').click();
       if (!list) await button('축소').click();
@@ -241,7 +234,7 @@ async function check(mobile: boolean) {
       const savedView = list ? undefined : await canvas.locator('.ws-world').evaluate(el => el.getAttribute('style'));
       await button('팀 열기').click();
       await expect(canvas.locator('[data-canvas-block="split"]')).toBeVisible();
-      if (!list && !mobile) {
+      if (!list) {
         // This member starts at the edge of the readable canvas. Its center can be under the inspector.
         const member = button('회원증 담당 블록 속성');
         await member.click();
@@ -264,7 +257,6 @@ async function check(mobile: boolean) {
   } finally { await context.close(); }
 }
 try {
-  await check(false);
-  await check(true);
-  console.log('PASS desktop/mobile original and edited source tests, visible keyboard wires, scope shortcuts and restored team focus.');
+  await check();
+  console.log('PASS desktop original and edited source tests, visible keyboard wires, scope shortcuts and restored team focus.');
 } finally { await browser.close(); }

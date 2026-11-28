@@ -100,7 +100,7 @@ function releaseImpact(): Graph {
 }
 
 export const swImpactTemplate: Lesson = {
-  id:'sw-release-impact', title:'변경 영향 조사팀을 구성해 출시 판단하기', level:'전문가',
+  id:'sw-release-impact', title:'변경 영향 조사팀을 구성해 출시 판단하기', level:'전문가', topic:'소프트웨어 개발',
   description:'가상의 할 일 앱에서 완료 처리를 바꿨습니다. 네 모듈 중 이번에 조사할 모듈을 고르고, QA 원문을 보고 출시 여부를 결정합니다.',
   goal:'한정된 조사 인원으로 확인한 결과와 남은 위험을 구분하고, 출시 판단의 근거를 설명합니다.',
   task:'같은 세 모듈을 두 번 조사하세요. 빠진 QA 원문을 보완한 뒤 두 실행에 남긴 출시 판단과 근거를 비교하세요.',

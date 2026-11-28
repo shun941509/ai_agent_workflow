@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { authenticate } from '../src/server/auth';
 import { assetList, readAsset, readLibraryAsset, writeAsset } from '../src/server/assets';
-import { caseList, createProject, projectCopy, publish, snapshot } from '../src/server/projects';
+import { caseList, createProject, openProject, projectCopy, publish, snapshot } from '../src/server/projects';
 import { bindRunAssets } from '../src/server/run-assets';
 import { db } from '../src/server/db';
 import type { Graph } from '../src/domain';
@@ -32,7 +32,7 @@ test('새 방문 준비 실습은 수령 규정 두 판과 실제 자료 네 종
   const pickup = assets.find(a => a.kind === 'document')!;
   assert.equal(pickup.version, 2);
   assert.match(readAsset(user, pickup.id, 1).payload.content, /회원증이 필요합니다/);
-  assert.match(readAsset(user, pickup.id, 2).payload.content, /모바일 회원증도 가능합니다/);
+  assert.equal(readAsset(user, pickup.id, 2).payload.content, '등록된 학생증도 가능합니다.');
   const [scenario] = caseList(user, project.id);
   assert.deepEqual(scenario.fixture, {reservations: [{book:'어린 왕자',branch:'중앙도서관'}]});
   const connector = assets.find(a => a.kind === 'mcp')!;
@@ -69,5 +69,25 @@ test('새 방문 준비 실습은 수령 규정 두 판과 실제 자료 네 종
   const nextPickup = nextGraph.nodes.find(node => node.id === 'pickup')!.config;
   assert.notEqual(nextPickup.assetId,pickup.id);
   assert.equal(nextPickup.version,1);
-  assert.match(readAsset(user,nextPickup.assetId,2).payload.content,/모바일 회원증/);
+  assert.equal(readAsset(user,nextPickup.assetId,2).payload.content,'등록된 학생증도 가능합니다.');
+});
+
+test('기존 실습을 다시 열거나 새 실습을 만들어도 저장된 수령 규정 2판을 보존한다', () => {
+  const user = authenticate('signup', 'visit-returning', 'visit-test-password', '').user;
+  const request = {lesson:'library-visit', requestKey:'previous-visit'};
+  const existing = createProject(user,request);
+  const pickupId = existing.graph!.nodes.find(node => node.id === 'pickup')!.config.assetId;
+  // Reproduce an already-created edition with its own text in the isolated test database.
+  const previous = {content:'안내 데스크에 예약 확인서를 제시하세요.'};
+  db().prepare('UPDATE asset_versions SET payload=? WHERE asset=? AND number=2')
+    .run(JSON.stringify(previous),pickupId);
+  assert.equal(createProject(user,request).id,existing.id);
+  const fresh = createProject(user,{lesson:'library-visit'});
+  const freshId = fresh.graph!.nodes.find(node => node.id === 'pickup')!.config.assetId;
+  assert.notEqual(freshId,pickupId);
+  assert.equal(readAsset(user,freshId,2).payload.content,'등록된 학생증도 가능합니다.');
+  const reopened = openProject(user,existing.id);
+  const savedPickup = reopened.graph!.nodes.find(node => node.id === 'pickup')!.config.assetId;
+  assert.equal(savedPickup,pickupId);
+  assert.deepEqual(readAsset(user,savedPickup,2).payload,previous);
 });

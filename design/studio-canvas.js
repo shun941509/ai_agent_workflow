@@ -85,19 +85,14 @@
     if (b.y>=a.y+a.h+16) corridorY = (a.y+a.h+b.y)/2;
     return [right,point(right.x+gap,right.y),point(right.x+gap,corridorY),point(left.x-gap,corridorY),point(left.x-gap,left.y),left];
   }
-  function initialRects(nodes,variant,narrow) {
+  function initialRects(nodes,variant) {
     const a = variant==='a';
     const size = a ? {w:182,h:75} : {w:166,h:90};
-    let slots = a ? {
+    const slots = a ? {
       input: [0,0], agent:[246,0], output:[492,0], resource:[246,156]
     } : {
       input:[0,0], agent:[206,144], output:[402,310], resource:[5,285]
     };
-    if(narrow) {
-      slots=a
-        ? {input:[0,0],agent:[217,0],output:[217,145],resource:[0,145]}
-        : {input:[0,0],agent:[110,123],output:[214,264],resource:[-69,264]};
-    }
     const used = new Set();
     let extra=0;
     const rects = new Map();
@@ -261,7 +256,7 @@
       canvas.dataset.variant=state.variant;
       const positions=Object.entries(next.layout?.[state.variant]||{}).filter(([,p])=>p && Number.isFinite(p.x) && Number.isFinite(p.y));
       override[state.variant]=new Map(positions.map(([id,p])=>[id,point(p.x,p.y)]));
-      rects=initialRects(state.nodes,state.variant, canvas.clientWidth < 480 && window.innerWidth <= 640);
+      rects=initialRects(state.nodes,state.variant);
       for(const [id,p] of override[state.variant]){
         const r=rects.get(id);
         if(r)Object.assign(r,p);else override[state.variant].delete(id);
@@ -299,7 +294,6 @@
       suppressClick=false;
       if(e.button!==0 || inList || e.target.closest('.sc-zoom,.sc-line'))return;
       const node=e.target.closest('.sc-node');
-      if(!node && e.pointerType==='touch')return;
       const id=node?.dataset.nodeId;
       const r=rects.get(id);
       gesture={pointer:e.pointerId,id,x:e.clientX,y:e.clientY,origin:r?point(r.x,r.y):{...pan},moved:false};

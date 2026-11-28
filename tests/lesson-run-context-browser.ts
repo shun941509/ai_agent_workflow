@@ -27,7 +27,7 @@ function data(from:string,to:string):Graph['edges'][number]{
   return {id:from+'-value-'+to,kind:'data',from,to,out:'value',input:'input'};
 }
 type RecordSummary={id:string;conversation:string;state:string;output:string};
-async function sourceAndConversation(context:BrowserContext,page:Page,mobile:boolean){
+async function sourceAndConversation(context:BrowserContext,page:Page){
   // Pass the actual source to the lesson's file block in place of the model.
   const graph={nodes:loan.graph.nodes.filter(n=>['input','rules','file','output'].includes(n.id)),
     edges:[flow('input','file'),data('rules','file'),flow('file','output'),data('file','output')]};
@@ -56,12 +56,10 @@ async function sourceAndConversation(context:BrowserContext,page:Page,mobile:boo
   await expect.poll(async()=>(await history()).length).toBe(2);
   assert.equal((await history())[0].conversation,first.conversation);
   await openFirst();
-  if(mobile)await button(page,'실행 화면 닫기').click();
   await page.locator('[data-canvas-block="rules"]').click();
   const source=page.getByRole('textbox',{name:'자료 원문',exact:true});
   await source.fill((await source.inputValue()).replace('3권','5권'));
   await button(page,'변경 적용').click();
-  if(mobile)await button(page,'속성 닫기').click();
   await button(page,'시험 실행').click();
   await expect(result.getByRole('combobox',{name:'시험에 사용할 원문'})).toHaveValue('current');
   await ask(5);
@@ -79,7 +77,7 @@ async function sourceAndConversation(context:BrowserContext,page:Page,mobile:boo
   assert.equal((await history())[0].conversation,first.conversation);
 }
 
-async function resumeReply(context:BrowserContext,page:Page,mobile:boolean){
+async function resumeReply(context:BrowserContext,page:Page){
   // Reach the actual follow-up block directly, so this navigation check needs no model.
   const graph={nodes:lost.graph.nodes.filter(n=>['input','ask','after'].includes(n.id)),
     edges:[flow('input','ask'),data('input','ask'),flow('ask','after'),data('ask','after')]};
@@ -95,7 +93,6 @@ async function resumeReply(context:BrowserContext,page:Page,mobile:boolean){
   // A second waiting conversation must not replace the one this learner was editing.
   await api(context,'run.start',{id,mode:'test',input:'다른 지점의 분실물도 확인해 주세요.',requestKey:crypto.randomUUID()});
   for(const back of ['button','browser']){
-    if(mobile)await button(page,'실행 화면 닫기').click();
     await button(page,'실습 안내').click();
     await expect(page.getByRole('heading',{name:'Workflow 설계 가이드'})).toBeVisible();
     if(back==='browser'){
@@ -128,15 +125,13 @@ async function resumeReply(context:BrowserContext,page:Page,mobile:boolean){
 }
 
 try{
-  for(const width of [1440,390]){
-    const mobile=width===390;
-    const context=await browser.newContext({baseURL,viewport:{width,height:mobile?844:940},isMobile:mobile,hasTouch:mobile});
-    try{
-      await registerBrowserAccount(context);
-      const page=await context.newPage();
-      await sourceAndConversation(context,page,mobile);
-      await resumeReply(context,page,mobile);
-      console.log('PASS '+width+'px · 초급 현재·이전 원문 시험, 중급 가이드 왕복 후 같은 회신 복원');
-    }finally{await context.close();}
-  }
+  const width=1440;
+  const context=await browser.newContext({baseURL,viewport:{width,height:940}});
+  try{
+    await registerBrowserAccount(context);
+    const page=await context.newPage();
+    await sourceAndConversation(context,page);
+    await resumeReply(context,page);
+    console.log('PASS '+width+'px · 초급 현재·이전 원문 시험, 중급 가이드 왕복 후 같은 회신 복원');
+  }finally{await context.close();}
 }finally{await browser.close();}

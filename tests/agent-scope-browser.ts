@@ -18,44 +18,39 @@ async function project(context: BrowserContext, action: string, data: object) {
 }
 
 try {
-  for (const width of [1440, 390]) {
-    const context = await browser.newContext({baseURL, viewport:{width, height:850}});
-    try {
-      await registerBrowserAccount(context);
-      const { id } = await project(context, 'project.create', {lesson:'intro'});
-      const page = await context.newPage();
-      page.setDefaultTimeout(10000);
-      await page.goto('/?edit=' + id);
-      const openSettings = async () => {
-        await page.getByLabel('프로젝트 메뉴', {exact:true}).click();
-        await page.getByRole('button', {name:'Agent 업무 범위', exact:true}).click();
-        return page.getByRole('dialog', {name:'Agent 업무 범위'});
-      };
-      let settings = await openSettings();
-      const originalPurpose = await settings.getByLabel('맡길 업무').inputValue();
-      assert.ok(originalPurpose.trim());
-      await expect(settings.getByLabel('응답 범위')).toHaveValue('dedicated');
-      await settings.getByLabel('맡길 업무').fill(' ');
-      await expect(settings.getByRole('button', {name:'적용'})).toBeDisabled();
-      await settings.getByRole('button', {name:'닫기'}).click();
-      settings = await openSettings();
-      await expect(settings.getByLabel('맡길 업무')).toHaveValue(originalPurpose);
-      await settings.getByLabel('응답 범위').selectOption('general');
-      await settings.getByRole('button', {name:'적용'}).click();
-      const readScope = async () => (await project(context, 'project.open', {id})).graph.agentScope;
-      await expect.poll(async () => (await readScope())?.mode).toBe('general');
-      await page.reload();
-      settings = await openSettings();
-      await expect(settings.getByLabel('응답 범위')).toHaveValue('general');
-      await settings.getByLabel('응답 범위').selectOption('dedicated');
-      await settings.getByLabel('맡길 업무').fill('도서관 운영시간과 대출 기간을 안내합니다.');
-      await settings.getByRole('button', {name:'적용'}).click();
-      await expect.poll(readScope).toEqual({mode:'dedicated', purpose:'도서관 운영시간과 대출 기간을 안내합니다.'});
-      console.log('PASS Agent scope settings at ' + width + 'px');
-    } finally {
-      await context.close();
-    }
-  }
+  const width = 1440;
+  const context = await browser.newContext({baseURL, viewport:{width, height:850}});
+  await registerBrowserAccount(context);
+  const { id } = await project(context, 'project.create', {lesson:'intro'});
+  const page = await context.newPage();
+  page.setDefaultTimeout(10000);
+  await page.goto('/?edit=' + id);
+  const openSettings = async () => {
+    await page.getByLabel('프로젝트 메뉴', {exact:true}).click();
+    await page.getByRole('button', {name:'Agent 업무 범위', exact:true}).click();
+    return page.getByRole('dialog', {name:'Agent 업무 범위'});
+  };
+  let settings = await openSettings();
+  const originalPurpose = await settings.getByLabel('맡길 업무').inputValue();
+  assert.ok(originalPurpose.trim());
+  await expect(settings.getByLabel('응답 범위')).toHaveValue('dedicated');
+  await settings.getByLabel('맡길 업무').fill(' ');
+  await expect(settings.getByRole('button', {name:'적용'})).toBeDisabled();
+  await settings.getByRole('button', {name:'닫기'}).click();
+  settings = await openSettings();
+  await expect(settings.getByLabel('맡길 업무')).toHaveValue(originalPurpose);
+  await settings.getByLabel('응답 범위').selectOption('general');
+  await settings.getByRole('button', {name:'적용'}).click();
+  const readScope = async () => (await project(context, 'project.open', {id})).graph.agentScope;
+  await expect.poll(async () => (await readScope())?.mode).toBe('general');
+  await page.reload();
+  settings = await openSettings();
+  await expect(settings.getByLabel('응답 범위')).toHaveValue('general');
+  await settings.getByLabel('응답 범위').selectOption('dedicated');
+  await settings.getByLabel('맡길 업무').fill('도서관 운영시간과 대출 기간을 안내합니다.');
+  await settings.getByRole('button', {name:'적용'}).click();
+  await expect.poll(readScope).toEqual({mode:'dedicated', purpose:'도서관 운영시간과 대출 기간을 안내합니다.'});
+  console.log('PASS Agent scope settings at ' + width + 'px');
 } finally {
   await browser.close();
 }

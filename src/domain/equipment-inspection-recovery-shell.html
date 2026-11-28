@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>검수 알림 복구 실습</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:#f3f4ed;color:#213229;font:16px/1.6 "Malgun Gothic","맑은 고딕",sans-serif;word-break:keep-all;overflow-wrap:anywhere}
+  main{max-width:1320px;margin:auto;padding:clamp(20px,4vw,60px)}
+  header{padding:26px 0 22px;border-top:7px solid #234c3a;border-bottom:1px solid #9fa99f}
+  h1,h2,h3,p{margin:0}
+  h1{font-size:clamp(28px,3.3vw,48px);line-height:1.25;letter-spacing:-.055em}
+  h2{font-size:22px;letter-spacing:-.035em}h3{font-size:17px}
+  header p,.hint{margin-top:6px;color:#45564e}.hint{font-size:14px}
+  section{margin:26px 0 0}
+  .fields,.workbench{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:12px}
+  .workbench{grid-template-columns:minmax(280px,.8fr) minmax(0,1.65fr);gap:26px;align-items:start}
+  .fields>div,.workbench>div{min-width:0}
+  .panel{padding:20px;border:1px solid #bfccbf;background:white}
+  .controls{border-top:4px solid #234c3a}
+  label{display:block;font-weight:700}
+  textarea,select,input,button{font:inherit}
+  textarea,select{width:100%;border:1px solid #95a598;background:#fff;color:#192e21;padding:8px 10px;border-radius:3px}
+  textarea{font:14px/1.5 Consolas,"Malgun Gothic",monospace;resize:vertical;min-height:86px;margin:5px 0}
+  input[type=file]{max-width:100%;font-size:13px}
+  select{margin-bottom:10px}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  button{border:1px solid #45654e;padding:7px 13px;background:#fff;color:#21442b;border-radius:3px;font-weight:700;min-height:38px;cursor:pointer}
+  button.primary{background:#234c3a;color:white}button:hover:enabled{background:#e7efdf}button.primary:hover:enabled{background:#143d29}
+  button:disabled{border-color:#c3cabf;color:#646e62;background:#e9eae4;cursor:default}
+  :focus-visible{outline:3px solid #0c6496;outline-offset:3px}
+  .notice{border-left:4px solid #728a5e;background:#eef2e5;padding:8px 12px;margin:12px 0}
+  .scroll{overflow-x:auto;margin:8px 0 14px;background:white;border:1px solid #bfccbf}
+  table{width:100%;min-width:400px;border-collapse:collapse;text-align:left;font-size:14px}
+  caption{text-align:left;padding:6px 10px;font-weight:700}
+  th{background:#e8ece2;color:#425649}td,th{padding:6px 10px;white-space:nowrap;border-top:1px solid #d0d6cc}
+  details{margin:8px 0}summary{color:#254e37;cursor:pointer;font-weight:700}
+  .attempt{padding:9px 12px;border:1px solid #b8c5b8;background:white}.attempt p{margin-top:7px;font-size:14px}
+  .status{font-weight:700;margin-top:7px}
+  .result{border-top:2px solid #506d53;padding-top:14px}
+  @media(max-width:900px){.workbench{grid-template-columns:1fr}}
+  @media(max-width:720px){.fields{grid-template-columns:1fr}.panel{padding:14px}}
+</style>
+</head>
+<body>
+<main>
+  <header><h1>검수 알림 복구 실습</h1><p>같은 장비에서 세 상황을 각각 두 번 실행하고, 매 시도 직후에 무엇이 저장됐는지 대조하세요.</p></header>
+  <section aria-labelledby="source-title">
+    <h2 id="source-title">고급 실습에서 받은 문서</h2>
+    <p class="hint">두 문서의 본문을 붙여 넣거나 Markdown 파일을 선택하세요. 입력한 내용은 이 창에서만 사용합니다.</p>
+    <div class="fields">
+      <div><label for="prior-report">고급 개발 보고서</label><textarea id="prior-report" placeholder="검수-알림-개발-보고서.md 본문"></textarea>
+        <input type="file" id="report-file" accept=".md,.markdown,.txt,text/plain,text/markdown" aria-label="고급 개발 보고서 파일"></div>
+      <div><label for="prior-skill">고급 점검 Skill</label><textarea id="prior-skill" placeholder="SKILL.md 본문과 YAML 머리말"></textarea>
+        <input type="file" id="skill-file" accept=".md,.markdown,.txt,text/plain,text/markdown" aria-label="고급 점검 Skill 파일"></div>
+    </div><p id="upload-note" role="status"></p>
+  </section>
+  <section aria-labelledby="exercise-title">
+    <h2 id="exercise-title">수신 시도 재현</h2>
+    <div class="workbench">
+      <div class="controls panel">
+        <label for="target">대상 장비</label><select id="target"><option value="A-17">A-17 · 노트북</option><option value="B-08">B-08 · 태블릿</option></select>
+        <label for="scenario">시나리오</label><select id="scenario"></select>
+        <p class="hint">각 시나리오는 같은 초기 장비 목록에서 시작합니다.</p>
+        <p id="next-action" class="notice"></p>
+        <div class="actions"><button class="primary" id="send">다음 알림 보내기</button><button id="reset">현재 시나리오 초기화</button></div>
+        <p id="feedback" class="status" role="status"></p>
+      </div>
+      <div>
+        <h3>시도별 수신 기록</h3>
+        <p class="hint">적용 순번은 각 장비에 마지막으로 반영한 변경 번호입니다. 처리 이력에는 실제로 저장된 알림이 쌓입니다.</p>
+        <details><summary>초기 장비 상태 보기</summary><div id="initial"></div></details>
+        <div id="attempts"></div>
+      </div>
+    </div>
+  </section>
+  <section class="result" aria-labelledby="output-title">
+    <h2 id="output-title">검증 결과</h2><p id="progress" class="status" role="status"></p>
+    <p id="document-status" class="hint" role="status"></p>
+    <div class="actions"><button class="primary" id="download-report">시도별-검증-보고서.md 내려받기</button><button id="download-skill">SKILL.md 내려받기</button></div>
+    <details><summary>시도별 검증 기록 보기</summary><label for="record">시도별 검증 기록</label><textarea id="record" readonly rows="6"></textarea>
+      <button id="copy">검증 기록 복사</button> <span id="copy-note" role="status"></span></details>
+  </section>
+</main>
+<!-- shared-module -->
+<script type="module">
+/* recovery-module */
+const byId=id=>document.getElementById(id);
+const select=byId('scenario');
+for (const {id,title} of recoveryScenarios) select.add(new Option(title,id));
+const labs=new Map();
+const importedText=new Map();
+const target=()=>byId('target').value;
+const sourceText=id=>importedText.get(id) ?? byId(id).value;
+function lab() {
+  if (!labs.has(target())) labs.set(target(),Object.fromEntries(recoveryScenarios.map(({id})=>[id,createRecoverySession()])));
+  return labs.get(target());
+}
+const current=()=>lab()[select.value];
+const record=()=>makeRecoveryRecord(target(),lab());
+function element(tag,text) {
+  const node=document.createElement(tag);
+  if (text!==undefined) node.textContent=text;
+  return node;
+}
+function equipmentTable(rows,caption) {
+  const wrapper=element('div'); wrapper.className='scroll'; wrapper.tabIndex=0;wrapper.setAttribute('role','region');wrapper.setAttribute('aria-label',caption);
+  const table=element('table');wrapper.append(table);table.append(element('caption',caption));
+  const headings=table.createTHead().insertRow();
+  for (const title of ['장비','검수 상태','적용 순번','재대여 승인']) {const th=element('th',title);th.scope='col';headings.append(th);}
+  const body=table.createTBody();
+  for (const equipment of rows) {
+    const row=body.insertRow();
+    for (const value of [equipment.equipmentId+' '+equipment.name,equipment.inspectionStatus,equipment.lastSequence,equipment.rentalApproval]) row.insertCell().textContent=String(value);
+  }
+  return wrapper;
+}
+const eventName=event=>event.type==='inspection.completed'?'검수 완료':'검수 시작';
+const faultNames={'none':'정상 전달','before-save':'저장 직전 실패','after-save':'저장 후 응답 유실'};
+function downloads() {
+  const verified=record().verified;
+  const supplied=Boolean(byId('prior-report').value.trim() && byId('prior-skill').value.trim());
+  byId('download-report').disabled=byId('download-skill').disabled=!(verified && supplied);
+  byId('document-status').textContent=!supplied ? '두 고급 문서를 입력하고 세 시나리오를 완료하면 결과 파일을 받을 수 있습니다.' :
+    verified ? '보고서에는 입력한 고급 보고서와 여섯 시도의 장비 상태·이력이 담깁니다. Skill에는 세 가지 점검 절차가 추가됩니다.' : '세 시나리오를 완료하면 보고서와 갱신된 점검 Skill을 받을 수 있습니다.';
+}
+function render() {
+  const id=select.value, attempts=current().attempts, receipt=record(), deliveries=scenarioDeliveries(id,target());
+  const next=deliveries[attempts.length];
+  byId('next-action').textContent=next ? '다음 수신 · '+eventName(next.event)+' / 변경 순번 '+next.event.sequence+' / '+faultNames[next.fault] :
+    receipt.verified ? '세 시나리오를 완료했습니다. 아래에서 결과 파일을 받으세요.' : '두 시도를 완료했습니다. 다른 시나리오를 선택해 계속하세요.';
+  byId('send').disabled=!next;
+  byId('feedback').textContent=attempts.length ? attempts.length+'차 수신 · '+recoveryResultNames[attempts.at(-1).result] : '첫 알림을 기다립니다.';
+  byId('initial').replaceChildren(equipmentTable(receipt.initialEquipment,'초기 장비 목록'));
+  const panels=byId('attempts');panels.replaceChildren();
+  if (!attempts.length) panels.append(element('p','알림을 보내면 이곳에 수신 결과와 저장 직후의 목록이 나타납니다.'));
+  for (const [index,attempt] of attempts.entries()) {
+    const detail=element('details');detail.className='attempt';detail.open=index===attempts.length-1;
+    detail.append(element('summary',(index+1)+'차 수신 · '+recoveryResultNames[attempt.result]+' · 처리 이력 '+attempt.history.length+'건'));
+    detail.append(element('p',attempt.event.eventId+' / '+eventName(attempt.event)+' / 변경 순번 '+attempt.event.sequence));
+    detail.append(equipmentTable(attempt.equipment,(index+1)+'차 수신 직후 장비 목록'));
+    detail.append(element('p','저장된 처리 이력 '+attempt.history.length+'건'+(attempt.history.length?' · '+attempt.history.map(entry=>entry.eventId).join(', '):'')));
+    panels.append(detail);
+  }
+  const finished=receipt.scenarios.filter(scenario=>scenario.attempts.length===2).length;
+  byId('progress').textContent=(receipt.verified?'검증 통과 · ':'')+target()+' · 시나리오 '+finished+'/3 완료';
+  byId('record').value=JSON.stringify(receipt,null,2);byId('copy-note').textContent='';downloads();
+}
+byId('send').addEventListener('click',()=>{
+  const session=current(),next=scenarioDeliveries(select.value,target())[session.attempts.length];
+  if (next) applyRecoveryDelivery(session,next.event,next.fault);
+  render();
+});
+byId('reset').addEventListener('click',()=>{lab()[select.value]=createRecoverySession();render();});
+select.addEventListener('change',render);byId('target').addEventListener('change',render);
+for (const [inputId,fieldId] of [['report-file','prior-report'],['skill-file','prior-skill']]) {
+  const field=byId(fieldId);
+  let revision=0;
+  field.addEventListener('input',()=>{revision++;importedText.delete(fieldId);byId(inputId).value='';downloads();});
+  byId(inputId).addEventListener('change',async ev=>{
+    const file=ev.target.files[0],at=++revision;
+    if (!file) return;
+    try {
+      const text=await file.text();
+      if (at===revision) {field.value=text;importedText.set(fieldId,text);byId('upload-note').textContent=file.name+' 본문을 읽었습니다.';downloads();}
+    } catch {byId('upload-note').textContent='파일을 읽을 수 없습니다. 본문을 직접 붙여 넣으세요.';}
+  });
+}
+function save(key,filename) {
+  let files;
+  try {files=makeRecoveryDocuments(sourceText('prior-report'),sourceText('prior-skill'),record());}
+  catch (error) {byId('document-status').textContent=error.message;byId('prior-skill').focus();return;}
+  const url=URL.createObjectURL(new Blob([files[key]],{type:'text/markdown;charset=utf-8'}));
+  const a=document.createElement('a');a.href=url;a.download=filename;document.body.append(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+byId('download-report').addEventListener('click',()=>save('report','시도별-검증-보고서.md'));
+byId('download-skill').addEventListener('click',()=>save('skill','SKILL.md'));
+byId('copy').addEventListener('click',async()=>{
+  const box=byId('record');
+  try {await navigator.clipboard.writeText(box.value);byId('copy-note').textContent='검증 기록을 복사했습니다.';}
+  catch {box.focus();box.select();byId('copy-note').textContent='선택된 기록을 Ctrl+C로 복사하세요.';}
+});
+render();
+</script>
+</body>
+</html>

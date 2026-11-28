@@ -96,13 +96,69 @@ test('오류 처리의 새 선택지만 표시하고 기존 전략도 값을 바
   assert.ok(validateGraph(graph).some(issue=>issue.nodeId===handler.id && issue.message.includes('처리 방식')));
 });
 
-test('all thirteen templates use blocks appropriate to their level, including nested teams',()=>{
-  assert.deepEqual(levels.map(l=>templates.filter(t=>t.level===l).length),[2,2,3,3,3]);
+test('each level offers a web design lesson and all templates use level-appropriate blocks, including nested teams',()=>{
+  const webLessons=templates.filter(t=>t.topic==='웹 디자인 개선');
+  assert.deepEqual(levels.map(level=>webLessons.filter(t=>t.level===level).length), [1,1,2,3,2]);
+  assert.deepEqual(levels.map(l=>templates.filter(t=>t.level===l).length),[5,5,7,8,7]);
+  assert.deepEqual(templates.filter(t=>t.topic==='웹 개발').map(t=>t.level),levels);
+  const equipmentLessons=templates.filter(t=>t.topic==='업무 용어와 판단 기준 정리');
+  assert.deepEqual(levels.map(level=>equipmentLessons.filter(t=>t.level===level).length),[1,1,1,1,1]);
+  const fixedRoles:Record<string,Record<string,[string,string]>> = {
+    'web-design-questions':{interviewer:['요구사항 확인 담당','grilling'],modeler:['용어 정리 담당','domain-modeling']},
+    'equipment-return-terms':{writer:['질문지 작성 담당','to-questionnaire'],modeler:['용어 정리 담당','domain-modeling']},
+  };
+  const introSkillTargets:Record<string,Record<string,string>> = {
+    'web-design-diagnose':{'skill-diagnose':'diagnose','skill-frontend-design':'diagnose'},
+    'equipment-return-memo':{'skill-domain-modeling':'memo'},
+    'equipment-return-inventory':{'skill-frontend-design':'design'},
+  };
+  // 입문과 초급은 준비된 입력·검증·파일 연결로 독립 실습의 JSON을 그대로 다음 수준에 전달한다.
+  const starterHandoffs:Record<string,Record<string,string>> = {
+    'equipment-return-inventory':{form:'input.form',raw:'data.transform',validate:'data.validate',file:'file.create'},
+    'equipment-inspection-first':{raw:'data.transform',validate:'data.validate'},
+  };
   for(const lesson of templates) {
     assert.deepEqual(validateGraph(lesson.graph),[],lesson.id);
     function checkLevel(graph:Graph) {
       for(const node of graph.nodes) {
         const definition=catalog.find(item=>item.type===node.type)!;
+        const handoffType=starterHandoffs[lesson.id]?.[node.id];
+        if (graph===lesson.graph && handoffType) {
+          assert.equal(node.type,handoffType);
+          if(node.id==='raw')assert.equal(node.config.operation,'select');
+          if(node.id==='validate')assert.equal(node.config.inspectionRule,lesson.level==='입문'?'return-list':'first-receipt');
+          continue;
+        }
+        // 두 중급 문답 실습에서는 미리 배정한 담당자가 회신 전후의 작업을 맡는다.
+        const fixedRole = fixedRoles[lesson.id]?.[node.id];
+        if (graph===lesson.graph && fixedRole) {
+          assert.equal(node.type,'agent.delegate');
+          assert.equal(definition.level,'고급');
+          assert.equal(node.config.role,fixedRole[0]);
+          assert.ok(!node.graph);
+          const skills=graph.edges.filter(edge=>edge.to===node.id && edge.kind==='reference' && edge.input==='skill');
+          assert.deepEqual(skills.map(edge=>graph.nodes.find(source=>source.id===edge.from)?.config.bundledSkill),
+            [fixedRole[1]]);
+          continue;
+        }
+        const introTarget = introSkillTargets[lesson.id]?.[node.id];
+        // 입문 실습은 작업 단계에 미리 연결한 Skill을 그대로 사용한다.
+        if (introTarget && graph===lesson.graph) {
+          assert.equal(node.type,'instruction.skill');
+          assert.equal(definition.level, '초급');
+          const references=graph.edges.filter(edge=>edge.from===node.id && edge.kind==='reference' && edge.input==='skill');
+          assert.deepEqual(references.map(edge=>edge.to), [introTarget]);
+          continue;
+        }
+        if (lesson.id==='equipment-return-questions' && graph===lesson.graph && ['first-exchange','second-exchange'].includes(node.id)) {
+          // 미리 연결한 값 변환은 메모와 앞선 문답 원문을 모아서 다음 질문으로 전달한다.
+          assert.equal(node.type,'data.transform');
+          assert.equal(node.config.operation,'text');
+          assert.ok(!node.config.path);
+          const sources=graph.edges.filter(edge=>edge.kind==='data' && edge.to===node.id && edge.input==='input').map(edge=>edge.from).sort();
+          assert.deepEqual(sources,node.id==='first-exchange' ? ['interviewer','reply','source'] : ['confirm','confirmation']);
+          continue;
+        }
         assert.ok(levels.indexOf(definition.level)<=levels.indexOf(lesson.level),
           lesson.title+' 실습의 '+node.title+' 블록은 '+definition.level+'부터 추천됩니다.');
         if(node.graph) checkLevel(node.graph);

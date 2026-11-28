@@ -1,0 +1,18 @@
+{
+  "viewport": {
+    "width": 1280,
+    "height": 900
+  },
+  "phase": "after",
+  "runtimeErrors": [],
+  "consoleErrors": [],
+  "states": [
+    "결과 미확인",
+    "확인 요청 중 버튼 비활성",
+    "처리 확인"
+  ],
+  "requestCount": 1,
+  "reservationsBefore": 1,
+  "reservationsAfter": 1,
+  "samePersistedReceipt": true
+}

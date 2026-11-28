@@ -48,6 +48,7 @@ export interface EngineEvent {
 }
 export interface Prompt {
   id: string; kind: 'question' | 'approval' | 'selection' | 'review' | 'event' | 'file';
+  questionFileName?: string;
   filePurpose?: 'evidenceOriginal';
   fileAccept?: string[];
   fields?: ReplyField[]; fieldError?:string;

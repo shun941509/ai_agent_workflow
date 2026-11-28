@@ -7,23 +7,23 @@
   height: 29px;
   border-radius: 6px;
 }
-.le-color-input { background: #e0efec; color: #216b5f; }
-.le-color-agent { background: #e6eaff; color: #314ca7; }
-.le-color-file { background: #f7ead8; color: #87591e; }
-.le-color-output { background: #e3efdf; color: #4a7340; }
-.le-color-rules { background: #e7eafa; color: #384c9c; }
-.le-color-skill { background: #eee9f6; color: #6d5095; }
+.le-color-input { background: light-dark(#e0efec, var(--night-soft-green)); color: light-dark(#216b5f, var(--night-green)); }
+.le-color-agent { background: light-dark(#e6eaff, var(--night-soft-blue)); color: light-dark(#314ca7, var(--night-blue)); }
+.le-color-file { background: light-dark(#f7ead8, var(--night-soft-amber)); color: light-dark(#87591e, var(--night-amber)); }
+.le-color-output { background: light-dark(#e3efdf, var(--night-soft-green)); color: light-dark(#4a7340, var(--night-green)); }
+.le-color-rules { background: light-dark(#e7eafa, var(--night-soft-blue)); color: light-dark(#384c9c, var(--night-blue)); }
+.le-color-skill { background: light-dark(#eee9f6, var(--night-soft-blue)); color: light-dark(#6d5095, var(--night-violet)); }
 
 .le-graph-holder {
-  --le-flow: #485568;
-  --le-data: #367e80;
-  --le-ref: #7064ae;
-  --le-accent: #243fab;
+  --le-flow: light-dark(#485568, var(--night-blue));
+  --le-data: light-dark(#367e80, var(--night-green));
+  --le-ref: light-dark(#7064ae, var(--night-violet));
+  --le-accent: light-dark(#243fab, var(--night-blue));
   display: flex;
   justify-content: center;
   width: 100%;
   min-width: 0;
-  color: #19202b;
+  color: light-dark(#19202b, var(--ink));
   font-family: Inter, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
 }
 .le-graph-frame {
@@ -46,7 +46,7 @@
 .le-marker-flow { fill: var(--le-flow); }
 .le-marker-data { fill: var(--le-data); }
 .le-marker-reference { fill: var(--le-ref); }
-.le-port { fill: white; stroke-width: 1.4; }
+.le-port { fill: var(--surface); stroke-width: 1.4; }
 
 .le-graph-holder .le-graph-node {
   position: absolute;
@@ -55,23 +55,23 @@
   gap: 9px;
   box-sizing: border-box;
   padding: 10px 11px;
-  border: 1.25px solid #a6afb5;
+  border: 1.25px solid light-dark(#a6afb5, var(--night-line));
   border-radius: 6px;
   box-shadow: 0 2px 2px #1b283808;
-  background: white;
+  background: var(--surface);
   text-align: left;
   color: inherit;
 }
-.le-graph-holder button.le-graph-node:hover { border-color: #536378; }
-.le-graph-node[data-movable="true"] { cursor: grab; touch-action: none; user-select: none; }
+.le-graph-holder button.le-graph-node:hover { border-color: light-dark(#536378, var(--night-blue)); }
+.le-graph-node[data-movable="true"] { cursor: grab; user-select: none; }
 .le-graph-node[data-moving="true"] { cursor: grabbing; z-index: 1; }
-.le-graph-holder .le-graph-node[data-selected="true"] { border-color: var(--le-accent); outline: 2px solid var(--le-accent); outline-offset: 1.5px; background: #fbfbff; }
+.le-graph-holder .le-graph-node[data-selected="true"] { border-color: var(--le-accent); outline: 2px solid var(--le-accent); outline-offset: 1.5px; background: light-dark(#fbfbff, var(--surface)); }
 .le-graph-holder .le-graph-node:focus-visible { outline: 3px solid var(--le-accent); outline-offset: 4px; z-index: 1; }
 .le-graph-node .le-icon { width: 33px; height: 33px; border-radius: 8px; }
 .le-graph-node .le-icon svg { width: 19px; height: 19px; }
 .le-node-copy { display: grid; min-width: 0; gap: 3px; }
 .le-node-copy strong { font-size: 13px; font-weight: 720; letter-spacing: -.05em; line-height: 1.4; }
-.le-node-copy small { font-size: 11px; font-weight: 450; color: #626974; line-height: 1.3; }
+.le-node-copy small { font-size: 11px; font-weight: 450; color: light-dark(#626974, var(--muted)); line-height: 1.3; }
 .le-graph-help { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 @container (max-width: 420px) {

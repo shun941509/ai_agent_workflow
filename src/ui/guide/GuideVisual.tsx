@@ -8,9 +8,10 @@ type Props = {
   description: string;
   children: ReactNode;
   compact?: boolean;
+  dialogSize?: 'standard' | 'form' | 'settings';
 };
 
-export function GuideVisual({title, description, children, compact = false}: Props) {
+export function GuideVisual({title, description, children, compact = false, dialogSize = 'settings'}: Props) {
   const [open, setOpen] = useState(false);
   const [enlarged, setEnlarged] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -41,7 +42,7 @@ export function GuideVisual({title, description, children, compact = false}: Pro
         </button>
       </figcaption>
     </figure>
-    {open && <StudioDialog size="workspace" title={label} displayHeading={title} descriptionId={dialogDescriptionId} onClose={close}>
+    {open && <StudioDialog size={dialogSize} title={label} displayHeading={title} descriptionId={dialogDescriptionId} onClose={close}>
       <div className={styles.tools}>
         <p id={dialogDescriptionId}>{description}</p>
         <button type="button" className="btn" aria-pressed={enlarged} onClick={() => {

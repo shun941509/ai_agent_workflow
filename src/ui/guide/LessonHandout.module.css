@@ -1,3 +1,4 @@
+:global(.studio-dialog):has(.handout) { --dialog-max-height: 92dvh; }
 :global(.modal-content):has(> .handout) { padding: 0; display: flex; flex-direction: column; gap: 0; }
 :global(.modal-content):has(> .handout) > :is([role="status"], [role="alert"]) { padding: 12px 16px; }
 .handout { display: flex; flex-direction: column; min-height: 0; line-height: 1.65; color: var(--ink); overflow-wrap: anywhere; word-break: keep-all; }
@@ -11,13 +12,20 @@
   border-inline-start: 9px solid #1d3989;
 }
 .level { display: flex; align-items: center; gap: 9px; font-size: .88rem; font-weight: 650; }
-.cover h2 { margin: 29px 0 15px; color: white; font-size: clamp(29px, 3.2vw, 45px); letter-spacing: -.055em; line-height: 1.22; }
+.cover h2 { margin: 29px 0 15px; color: white; font-size: clamp(29px, 3.2vw, 45px); letter-spacing: -.045em; line-height: 1.22; }
 .cover > p { margin: 0; color: #edf1ff; }
 .imprint { margin-top: auto; padding-top: clamp(36px, 5vw, 80px); }
 .imprint small { display: block; padding-top: 12px; border-top: 1px solid #93a8dc; color: #edf1ff; }
 .imprint strong { display: block; margin-top: 3px; font-size: 1.22rem; letter-spacing: -.04em; }
-.guide { min-width: 0; padding: clamp(19px, 2.7vw, 36px); background: #fdfcf9; }
+.guide { min-width: 0; padding: clamp(19px, 2.7vw, 36px); background: light-dark(#fdfcf9, var(--surface)); }
 .handout .guide > h3 { margin: 0 0 12px; font-size: 1.4rem; letter-spacing: -.04em; }
+.skills { margin-block: 16px 24px; }
+.skills h3 { margin: 0 0 8px; font-size: 1.2rem; }
+.skills dl, .skills dd { margin: 0; }
+.skills dl > div { border-inline-start: 3px solid var(--border); padding-inline-start: 12px; }
+.skills dl > div + div { margin-block-start: 12px; }
+.skills dt { font-weight: 650; color: var(--ink); }
+.skills .targets { color: var(--muted); font-size: .85rem; }
 .guide .steps { list-style: none; margin: 0 0 12px; padding: 0; }
 .steps li { display: grid; grid-template-columns: 25px minmax(0, 1fr); gap: 8px; padding: 13px 0; border-top: 1px solid var(--border); }
 .steps li > span { color: var(--accent); font-variant-numeric: tabular-nums; font-weight: 700; }
@@ -43,16 +51,14 @@
 .action button { flex: none; min-height: 44px; max-width: 100%; white-space: normal; }
 @media (max-width: 650px) {
   .spread { grid-template-columns: minmax(0, 1fr); }
-  .cover { padding: 18px 22px; border-inline-start-width: 6px; }
-  .cover h2 { margin: 10px 0 7px; font-size: clamp(25px, 6vw, 34px); }
-  .cover p { font-size: .89rem; }
-  .imprint { display: flex; align-items: baseline; gap: 8px; padding-top: 9px; }
-  .imprint small { border: 0; padding: 0; }
-  .imprint strong { font-size: .91rem; }
-  .action { padding: 8px 13px; }
-}
-@media (max-width: 400px) {
-  .action { flex-wrap: wrap; gap: 4px; }
-  .action button { flex: 1 0 auto; }
-  .action span { font-size: .78rem; }
+  .cover { padding: 16px; border-inline-start-width: 5px; }
+  .cover h2 { margin: 6px 0; font-size: clamp(24px, 5vw, 29px); }
+  .level { gap: 6px; }
+  .level svg { width: 16px; height: 16px; }
+  .imprint { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 7px; padding-top: 10px; }
+  .imprint small { padding: 0; border: 0; }
+  .imprint strong { margin: 0; font-size: 1rem; }
+  .guide { padding: 16px; }
+  .action { flex-wrap: wrap; padding: 10px 16px; gap: 6px 12px; }
+  .action button { margin-inline-start: auto; }
 }

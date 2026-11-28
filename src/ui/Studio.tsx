@@ -5,6 +5,8 @@ import {
   Workflow,
   FolderOpen,
   UsersRound,
+  MessagesSquare,
+  ListChecks,
   BookOpen,
   LibraryBig,
   Plus,
@@ -32,6 +34,7 @@ import type { SourceOutput } from './editor/source-comparison';
 import {useSharedAgentAccess} from './use-shared-agent-access';
 import DynamicLessonSetup from './DynamicLessonSetup';
 import { dynamicLessonChecks } from '../domain/dynamic-lesson-policy';
+import { savedSkillLesson } from '../domain/lesson-skills';
 import HomeDesignProposal, { proposalIntent } from './HomeDesignProposal';
 import { newAgentPurpose, type DesignChangeContext, type DesignProposal } from '../domain/design-proposal';
 import { workDocuments, type WorkDocument, type WorkPurpose } from '../domain/work-documents';
@@ -53,7 +56,7 @@ import desk from './home/WorkspaceDesk.module.css';
 import LessonHandout from './guide/LessonHandout';
 import type { GuideLesson } from './WorkflowGuide';
 import { guideAddress, guideLocation, guideSections, type GuidePosition, type GuideSection } from './guide/navigation';
-import { WorkspaceMenuButton, WorkspaceNav, workspaceLabels as paths, type WorkspaceDestination, type WorkspaceMenuAction } from './WorkspaceNav';
+import { WorkspaceNav, workspaceLabels as paths, type WorkspaceDestination, type WorkspaceMenuAction } from './WorkspaceNav';
 import { subgraph } from './editor/graph';
 import { validEditorFocus, type EditorFocus } from '../domain/editor-focus';
 import { dateLabel, visibilityNames, type FullProject, type Project } from './studio-project';
@@ -62,6 +65,7 @@ import {
   type Issue,
   type Lesson,
   blankPracticeLessonId,
+  lessonTopics,
   levels,
 } from '../domain';
 import { api, finishWrite, intentHash, message, pendingWriteKey, StudioApiError } from './client';
@@ -104,6 +108,7 @@ function projectLesson(project: FullProject, lessons: LessonGuide[]): LessonGuid
   const lesson = lessons.find(item => item.id === project.lesson);
   if (!lesson) return undefined;
   // Older projects and ordinary project copies continue to use their own saved graph and editions.
+  if (lesson.skills) return savedSkillLesson(lesson, project.graph);
   if (lesson.id === 'beginner' && !project.graph.nodes.some(node => node.type === 'file.create')) {
     return { ...lesson, optionalPractice:undefined, optionalSteps:undefined,
       description:'도서관 규정을 고치고 화면에 표시된 답변과 인용을 비교합니다.',
@@ -111,7 +116,7 @@ function projectLesson(project: FullProject, lessons: LessonGuide[]): LessonGuid
       goal:'규정의 한 문장을 수정하면 답변과 인용이 어떻게 달라지는지 확인합니다.', steps: [
       '대출 질문을 실행하고 답변에 인용된 문장을 도서관 이용규정과 대조하세요.',
       '내 사본의 대출 한도를 3권에서 5권으로 바꾸고 같은 질문을 다시 보내세요.',
-      '수정 전후의 답변과 인용을 비교하세요. 파일 만들기는 ‘수준별 템플릿 → 초급 → 내 자료로 안내하기 → 내 사본으로 시작’에서 실습할 수 있습니다.',
+      '수정 전후의 답변과 인용을 비교하세요. 파일 만들기를 실습하려면 ‘예제 템플릿’의 ‘실습 수준’에서 ‘초급’을 고르고 ‘내 자료로 안내하기 → 내 사본으로 시작’을 누르세요.',
     ], checks: ['수정 전에는 3권, 수정 후에는 5권이라고 답하고 각 실행에 사용한 원문을 인용합니다.'] };
   }
   if (lesson.id === 'peer-review') {
@@ -120,7 +125,7 @@ function projectLesson(project: FullProject, lessons: LessonGuide[]): LessonGuid
       return { ...lesson, optionalPractice:undefined, optionalSteps:undefined, steps: [
         '팀 내부에서 사실 검토 담당과 안내문 편집 담당이 만든 초안을 찾아보세요.',
         '예시 질문을 실행하고 실행 경로에서 두 동료 검토의 ‘입출력 보기’를 열어 각자 어느 초안을 받았는지 확인하세요.',
-        '최종 안내에서 토요일 폐관 시각과 근거를 원문과 대조하세요. 두 검토 기록이 최종 답변에 표시되는 설계는 수준별 템플릿에서 새로 열 수 있습니다.',
+        '최종 안내에서 토요일 폐관 시각과 근거를 원문과 대조하세요. 두 검토 기록이 최종 답변에 표시되는 설계는 예제 템플릿에서 새로 열 수 있습니다.',
       ], checks: ['두 담당자가 서로의 초안을 받습니다.', '최종 안내의 토요일 폐관 시각이 도서관 원문과 일치합니다.'],
         example: '도서관 원문에는 토요일에 오전 10시부터 오후 4시까지 연다고 적혀 있습니다.' };
     }
@@ -151,7 +156,7 @@ function projectLesson(project: FullProject, lessons: LessonGuide[]): LessonGuid
     return { ...lesson, optionalPractice:undefined, optionalSteps:undefined, title: project.title, question: '중앙도서관, 호수도서관', steps: [
       '지점을 한 곳, 두 곳 입력해 담당자가 몇 명 생성되는지 확인하세요.',
       '생성 상한보다 많은 지점을 입력하고, 이번 실행에서 조사할 지점을 선택하세요.',
-      '실행 기록에서 선택한 지점과 제외한 지점을 확인하세요. 근거 부족 시 처리 정책을 비교하는 실습은 수준별 템플릿에서 새로 시작할 수 있습니다.',
+      '실행 기록에서 선택한 지점과 제외한 지점을 확인하세요. 근거 부족 시 처리 정책을 비교하는 실습은 예제 템플릿에서 새로 시작할 수 있습니다.',
     ], checks: ['선택한 지점만 조사하고 설정한 인원 한도를 지킵니다.'],
       example: '생성 한도가 3명이면 네 곳 중 세 곳을 고릅니다.' };
   }
@@ -171,6 +176,25 @@ const lessonIcons: Record<string, typeof BookOpen> = {
   'sw-bug-triage': ScanSearch,
   'sw-code-review': GitFork,
   'sw-release-impact': Orbit,
+  'equipment-return-memo': ScanSearch,
+  'equipment-return-questions': MessagesSquare,
+  'equipment-return-terms': MessagesSquare,
+  'equipment-return-cases': ListChecks,
+  'equipment-relending-agreement': History,
+  'equipment-return-inventory': PanelsTopLeft,
+  'equipment-inspection-first': Waypoints,
+  'equipment-inspection-compare': ListChecks,
+  'equipment-inspection-web': PanelsTopLeft,
+  'equipment-inspection-recovery': History,
+  'web-design-diagnose': ScanSearch,
+  'web-design-component': PanelsTopLeft,
+  'web-design-flow': Waypoints,
+  'web-design-questions': MessagesSquare,
+  'web-design-single-screen': UsersRound,
+  'web-design-shared-ui': GitFork,
+  'web-design-tdd-review': ListChecks,
+  'web-design-rollout': UsersRound,
+  'web-design-review-followup': History,
 };
 const DialogFeedback = React.createContext({ error: '', status: '' });
 function Modal(props: React.ComponentProps<typeof StudioDialog>) {
@@ -184,7 +208,6 @@ function Modal(props: React.ComponentProps<typeof StudioDialog>) {
 export default function Studio({accountId}: {accountId: string}) {
   const [data, setData] = useState<Bootstrap | null>(null),
     [view, setView] = useState<WorkspaceDestination>('home'),
-    [drawer, setDrawer] = useState(false),
     [resolvingEditor, setResolvingEditor] = useState(false),
     [selected, setSelected] = useState<FullProject | null>(null);
   const projectRef = useRef<FullProject | null>(null),
@@ -230,13 +253,16 @@ export default function Studio({accountId}: {accountId: string}) {
     listFocus = useRef<'trigger' | 'search' | null>(null),
     deleting = useRef(false);
   const [lessonId, setLessonId] = useState('intro'),
-    [filter, setFilter] = useState('전체'),
+    [levelFilter, setLevelFilter] = useState('전체'),
+    [topicFilter, setTopicFilter] = useState('전체'),
     [search, setSearch] = useState('');
   const [homeDesign, setHomeDesign] = useState<{owner:string; title:string; prompt:string; answer?:string}>(),
     [newTitle, setNewTitle] = useState(''),
     [importFile, setImportFile] = useState<File | null>(null),
     [missingImport,setMissingImport]=useState<{file:File;missing:string[]}>(),
+    [hasPreviousDesign, setHasPreviousDesign] = useState(false),
     [templateTitle, setTemplateTitle] = useState('');
+  const newAgentName = useRef<HTMLInputElement>(null);
   const creating = useRef(false);
   const [workDesign, setWorkDesign] = useState<{doc:WorkDocument; prompt:string; answer?:string; material?:string}>();
   const proposalRequests = useRef<Partial<Record<ProposalSurface, ProposalTicket>>>({});
@@ -337,8 +363,9 @@ export default function Studio({accountId}: {accountId: string}) {
   useLayoutEffect(() => {
     if (!focusGuideMenu.current || view === 'guide' || selected || !data) return;
     focusGuideMenu.current = false;
-    const triggers = document.querySelectorAll<HTMLButtonElement>('[data-guide-menu], .workspace-top .workspace-menu-button');
-    Array.from(triggers).find(button => button.getClientRects().length)?.focus({preventScroll:true});
+    const menuItem = document.querySelector<HTMLButtonElement>('[data-guide-menu]');
+    const collapsedMenu = document.querySelector<HTMLButtonElement>('.workspace-rail-toggle');
+    (menuItem?.getClientRects().length ? menuItem : collapsedMenu)?.focus({preventScroll:true});
   }, [data, selected, view]);
   const hasWorkspaceList = !!data && !selected && !inTrash && ['home','templates','projects','shared'].includes(view);
   useLayoutEffect(() => {
@@ -387,7 +414,6 @@ export default function Studio({accountId}: {accountId: string}) {
     }
     setTemplateTitle(folderView === 'templates' ? window.history.state?.templateCreateTitle || '' : '');
     setInTrash(!q.has('asset') && (folderView === 'projects' || folderView === 'assets') && q.get('folder') === 'trash');
-    setDrawer(false);
     setDialog('');
     setError('');
     setLoadFailure('');
@@ -396,7 +422,8 @@ export default function Studio({accountId}: {accountId: string}) {
     const lessonDetail = (!folderView || folderView === 'templates' || folderView === 'home') && q.get('lesson');
     const saved = (workspaceListAt(q) || lessonDetail) ? rememberedPosition() : undefined;
     setSearch(saved?.search ?? '');
-    setFilter(saved?.level ?? '전체');
+    setLevelFilter(saved?.level ?? '전체');
+    setTopicFilter(saved?.topic ?? '전체');
     setPagePosition(lessonDetail ? null : saved ?? null);
     const projectId = q.get('agent') || q.get('edit');
     if (projectId) {
@@ -578,11 +605,6 @@ export default function Studio({accountId}: {accountId: string}) {
     routeGeneration.current++;
     const address = q ? '/?' + q : '/';
     if (window.location.pathname + window.location.search !== address) {
-      if (guideOrigin && window.history.state?.studioEditor?.drawer) {
-        // The underlying entry already remembers the editor before its mobile menu opened.
-        window.history.replaceState({guideOrigin}, '', address);
-        return true;
-      }
       if (q.startsWith('edit=') && window.history.state?.fromLessonList && new URLSearchParams(window.location.search).has('lesson')) {
         window.history.replaceState(null, '', address);
         return true;
@@ -615,9 +637,7 @@ export default function Studio({accountId}: {accountId: string}) {
       }} : {}),
     };
     const section: GuideSection = origin.lesson ? 'goals' : 'start';
-    const state = window.history.state;
-    if (!state?.studioEditor?.drawer)
-      window.history.replaceState({...state, returnFromGuide:accountId}, '');
+    window.history.replaceState({...window.history.state, returnFromGuide:accountId}, '');
     changeView('guide', false, {query:guideAddress(section, guideStep).slice(2), origin});
     setGuideOrigin(origin);
     setGuidePosition({section, step:guideStep});
@@ -639,11 +659,11 @@ export default function Studio({accountId}: {accountId: string}) {
       return;
     }
     setDialog('');
-    setDrawer(false);
     setError('');
     setLoadFailure('');
     setSearch('');
-    setFilter('전체');
+    setLevelFilter('전체');
+    setTopicFilter('전체');
     setPagePosition(s === 'assets' || s === 'shared-assets' ? null : {y:0});
     choose(null);
     setView(s);
@@ -982,7 +1002,10 @@ export default function Studio({accountId}: {accountId: string}) {
   }
   useEffect(() => { document.title = pageLabel + ' · Workflow Studio'; }, [pageLabel]);
   const lessonsByLevel = [...(data?.lessons ?? [])].sort((a, b) => levels.indexOf(a.level) - levels.indexOf(b.level));
-  const visibleLessons = lessonsByLevel.filter(l => filter === '전체' || l.level === filter);
+  const visibleLessons = lessonsByLevel.filter(lesson =>
+    (levelFilter === '전체' || lesson.level === levelFilter) &&
+    (topicFilter === '전체' || lesson.topic === topicFilter)
+  );
   const mine = (data?.projects ?? []).filter((p) => p.mine),
     shared = (data?.projects ?? []).filter(
       (p) => p.publicVersion && p.visibility !== 'private'
@@ -998,7 +1021,9 @@ export default function Studio({accountId}: {accountId: string}) {
       >
         <strong><Icon size={19} aria-hidden="true"/>{l.title}</strong>
         <span className={desk.level}>{l.level}</span>
-        <span className={desk.description}>{l.description}</span>
+        <span className={desk.description}>{l.description}
+          {Boolean(l.skills?.length) && <span className={desk.lessonSkills}>{l.skills?.map(skill => skill.title).join(' · ')}</span>}
+        </span>
         <ChevronRight size={16} aria-hidden="true"/>
       </button>
     );
@@ -1103,6 +1128,10 @@ export default function Studio({accountId}: {accountId: string}) {
   function newAgent() {
     setNewTitle('');
     setImportFile(null);
+    setHasPreviousDesign(false);
+    try {
+      setHasPreviousDesign(Boolean(localStorage.getItem('library-agent-studio.design.v2')));
+    } catch { /* Local storage may be unavailable. */ }
     modal('create');
   }
   function openLesson(id: string, trigger: string) {
@@ -1234,11 +1263,10 @@ export default function Studio({accountId}: {accountId: string}) {
         />
       ) : (
         <div className="studio-shell">
-          <WorkspaceNav active={view} user={data.user} open={drawer} onClose={() => setDrawer(false)}
+          <WorkspaceNav active={view} user={data.user}
             onNavigate={navigate} onMenuAction={handleMenuAction} onAccount={handleAccount} busy={busy} />
           <div className="workspace-main">
             <header className="workspace-top">
-              <WorkspaceMenuButton open={drawer} onOpen={() => setDrawer(true)} />
               <span className="workspace-parent">내 워크스페이스</span>
               <ChevronRight size={14} />
               <strong>{paths[view]}</strong>
@@ -1294,7 +1322,7 @@ export default function Studio({accountId}: {accountId: string}) {
                   <section>
                     <div className="section-heading">
                       <div>
-                        <h2>수준별 템플릿</h2>
+                        <h2>{paths.templates}</h2>
                       </div>
                       <button
                         className="plain"
@@ -1338,25 +1366,40 @@ export default function Studio({accountId}: {accountId: string}) {
                 <>
                   <div className="section-heading first">
                     <div>
-                      <h1>수준별 템플릿</h1>
+                      <h1>{paths.templates}</h1>
                       <p>
                         내가 만들 결과를 보고 실습을 고르세요. 내 사본에서 자료와 작업 지시를 바꿀 수 있습니다.
                       </p>
                     </div>
                   </div>
-                  <div className={'filter-chips ' + desk.filters} role="group" aria-label="실습 수준">
-                    {['전체', ...levels].map((v) => (
-                      <button
-                        key={v}
-                        aria-pressed={filter === v}
-                        onClick={() => { setFilter(v); rememberWorkspacePosition({level:v}); }}
-                      >
-                        {v}
-                      </button>
-                    ))}
+                  <div className={desk.filters}>
+                    <div>
+                      <label htmlFor="lesson-level-filter">실습 수준</label>
+                      <select id="lesson-level-filter" value={levelFilter} onChange={event => {
+                        const level = event.target.value;
+                        setLevelFilter(level);
+                        rememberWorkspacePosition({level});
+                      }}>
+                        <option>전체</option>
+                        {levels.map(level => <option key={level}>{level}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="lesson-topic-filter">실습 주제</label>
+                      <select id="lesson-topic-filter" value={topicFilter} onChange={event => {
+                        const topic = event.target.value;
+                        setTopicFilter(topic);
+                        rememberWorkspacePosition({topic});
+                      }}>
+                        <option>전체</option>
+                        {lessonTopics.map(topic => <option key={topic}>{topic}</option>)}
+                      </select>
+                    </div>
                   </div>
                   <p className={desk.count} role="status">{visibleLessons.length}개 실습</p>
-                  {lessonList(visibleLessons)}
+                  {visibleLessons.length ? lessonList(visibleLessons) : (
+                    <div className="empty-state"><p>선택한 조건에 맞는 실습이 없습니다.</p></div>
+                  )}
                 </>
               )}
               {(view === 'projects' || view === 'shared') && (
@@ -1459,11 +1502,12 @@ export default function Studio({accountId}: {accountId: string}) {
         </Modal>
       )}
       {dialog === 'create' && (
-        <Modal title="새 Agent 만들기" onClose={close} size="form" dismissDisabled={busy}>
+        <Modal title="새 Agent 만들기" onClose={close} size="form" dismissDisabled={busy} initialFocus={newAgentName}>
           {busy && <p role="status" className="creation-status">설계를 준비하고 있습니다…</p>}
           <label className="field">
             Agent 이름
             <input
+              ref={newAgentName}
               disabled={busy}
               maxLength={140}
               value={newTitle}
@@ -1502,7 +1546,8 @@ export default function Studio({accountId}: {accountId: string}) {
           <button className="choice" disabled={busy} onClick={chooseCreationTemplate}>
             <BookOpen />
             <span>
-              <b>수준별 템플릿에서 시작</b>
+              <b>{paths.templates}에서 시작</b>
+              <small>실습을 골라 내 사본에서 편집합니다.</small>
             </span>
             <ChevronRight />
           </button>
@@ -1538,7 +1583,7 @@ export default function Studio({accountId}: {accountId: string}) {
             }
             await create(design);
           })}>{missingImport?.file===importFile?'자료 없이 설계 가져오기':namedCreation(typedTitle, '이 설계 가져오기')}</button>}
-          <button
+          {hasPreviousDesign && <button
             className="plain"
             disabled={busy}
             onClick={() =>
@@ -1548,15 +1593,21 @@ export default function Studio({accountId}: {accountId: string}) {
                 );
                 if (!old)
                   throw new Error('이 브라우저에 가져올 이전 시안이 없습니다.');
+                let design: unknown;
+                try {
+                  design = JSON.parse(old);
+                } catch {
+                  throw new Error('이 브라우저에 저장된 이전 시안을 읽을 수 없습니다.');
+                }
                 await create({
-                  legacy: JSON.parse(old),
+                  legacy: design,
                   title: typedTitle || '이전 도서관 설계',
                 });
               })
             }
           >
-            이 브라우저의 이전 시안{typedTitle ? '으로 ' + namedCreation(typedTitle, '') : ' 가져오기'}
-          </button>
+            이 브라우저의 이전 시안 가져오기
+          </button>}
         </Modal>
       )}
       {(dialog === 'ai' || guideDesign) && (
@@ -1595,11 +1646,13 @@ export default function Studio({accountId}: {accountId: string}) {
         </Modal>
       )}
       {dialog === 'lesson' && lesson && (
-        <Modal title={lesson.title} displayHeading="실습 상세" onClose={close} size="settings" wide>
-          <LessonHandout lesson={lesson} busy={busy} actionLabel={namedCreation(templateTitle, '내 사본으로 시작')}
-            onStart={() => void creationAction(() => create({ lesson: lesson.id, title:templateTitle || undefined }))}
-            setup={lesson.id === 'dynamic' && <DynamicLessonSetup busy={busy} label={namedCreation(templateTitle, '내 사본으로 시작')}
-              onStart={dynamicPolicy => void creationAction(() => create({ lesson: lesson.id, title:templateTitle || undefined, dynamicPolicy }))} />}/>
+        <Modal title={lesson.title} displayHeading="실습 상세" onClose={close} size="workspace" wide>
+          {lesson.id === 'dynamic' ? <DynamicLessonSetup lesson={lesson} busy={busy} label={namedCreation(templateTitle, '내 사본으로 시작')}
+            onStart={dynamicPolicy => void creationAction(() => create({ lesson: lesson.id, title:templateTitle || undefined, dynamicPolicy }))} />
+            : <LessonHandout lesson={lesson} action={<button type="button" className="btn primary" disabled={busy}
+              onClick={() => void creationAction(() => create({ lesson: lesson.id, title:templateTitle || undefined }))}>
+              <ClipboardCopy size={16} aria-hidden="true" />{namedCreation(templateTitle, '내 사본으로 시작')}
+            </button>} />}
         </Modal>
       )}
       {dialog === 'public' && selected && (

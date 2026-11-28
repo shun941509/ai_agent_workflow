@@ -1,0 +1,118 @@
+{
+  "nodes": [
+    {
+      "id": "input",
+      "name": "질문 입력",
+      "sourceDialog": true,
+      "mapped": [
+        {
+          "to": "agent",
+          "kind": "flow",
+          "out": "next",
+          "input": "in"
+        },
+        {
+          "to": "agent",
+          "kind": "data",
+          "out": "value",
+          "input": "input"
+        }
+      ]
+    },
+    {
+      "id": "agent",
+      "name": "도서관 안내 Agent",
+      "sourceDialog": true,
+      "mapped": [
+        {
+          "to": "file",
+          "kind": "flow",
+          "out": "next",
+          "input": "in"
+        },
+        {
+          "to": "file",
+          "kind": "data",
+          "out": "value",
+          "input": "input"
+        }
+      ]
+    },
+    {
+      "id": "file",
+      "name": "대출 안내 파일 만들기",
+      "sourceDialog": true,
+      "mapped": [
+        {
+          "to": "output",
+          "kind": "flow",
+          "out": "next",
+          "input": "in"
+        },
+        {
+          "to": "output",
+          "kind": "data",
+          "out": "value",
+          "input": "input"
+        }
+      ]
+    },
+    {
+      "id": "output",
+      "name": "답변 전달",
+      "sourceDialog": false,
+      "mapped": []
+    },
+    {
+      "id": "rules",
+      "name": "도서관 이용규정",
+      "sourceDialog": true,
+      "mapped": [
+        {
+          "to": "agent",
+          "kind": "reference",
+          "out": "ref",
+          "input": "context"
+        }
+      ]
+    },
+    {
+      "id": "skill",
+      "name": "근거 인용 Skill",
+      "sourceDialog": true,
+      "mapped": [
+        {
+          "to": "agent",
+          "kind": "reference",
+          "out": "ref",
+          "input": "skill"
+        }
+      ]
+    }
+  ],
+  "links": [
+    {
+      "from": "input",
+      "to": "agent"
+    },
+    {
+      "from": "agent",
+      "to": "file"
+    },
+    {
+      "from": "file",
+      "to": "output"
+    },
+    {
+      "from": "rules",
+      "to": "agent"
+    },
+    {
+      "from": "skill",
+      "to": "agent"
+    }
+  ],
+  "pageErrors": [],
+  "consoleErrors": [],
+  "a11y": []
+}

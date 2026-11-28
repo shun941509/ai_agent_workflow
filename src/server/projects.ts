@@ -13,6 +13,7 @@ import {runInputLimit} from '../domain/run-input';
 import {normalizeKnowledgeReferences} from '../domain/knowledge-reference';
 import {isDynamicLessonPolicy} from '../domain/dynamic-lesson-policy';
 import {installVisitMaterials} from './library-visit';
+import {installLessonOriginalSkills} from './lesson-original-skills';
 import {purgeProjectsInTransaction} from './project-purge';
 import {isEditorFocus,validEditorFocus} from '../domain/editor-focus';
 import {workDocumentBindings,workDocuments,type WorkDocument} from '../domain/work-documents';
@@ -241,6 +242,7 @@ function insertProject(user:User,b:any){
   const id=key(),title=stringArg(b.title||lesson?.title||'이름 없는 Agent','Agent 이름',140);
   const newVisitLesson=lesson?.id==='library-visit'&&!b.graph&&!b.legacy;
   if(newVisitLesson)installVisitMaterials(user,graph);
+  if(lesson&&!b.graph&&!b.legacy)installLessonOriginalSkills(user,graph);
   set('INSERT INTO projects VALUES(?,?,?,?,1,?,?,NULL,?,?)',id,user.id,title,JSON.stringify(graph),'private',key(),b.lesson||null,now());
   if(lesson?.sampleCase && !requirementsCopy && !b.graph && !b.legacy){
     caseSave(user,{id,...lesson.sampleCase,input:lesson.question});
@@ -297,6 +299,8 @@ export function projectCopy(user:User,b:any){return tx(()=>{
   for(const n of dependencies){
     const {assetId,version,assetGrant}=n.config,copy=copyResource(assetId,version,assetGrant);
     if(n.type==='connection.mcp')connectors.set(assetId,copy.id);
+    // A copied user revision can become edition 1 of a new asset without becoming the bundled original.
+    if(n.type==='instruction.skill' && Number(version)!==1)delete n.config.bundledSkill;
     n.config.assetId=copy.id;n.config.version=copy.version;delete n.config.assetGrant;
   }
   const installCollections=prepareKnowledgeCopy(graph,p.id,user,ref=>copyResource(ref.assetId,ref.version,ref.assetGrant));

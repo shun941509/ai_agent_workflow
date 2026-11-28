@@ -1,5 +1,6 @@
 import { useId, useLayoutEffect, useRef, useState, type MouseEvent, type ReactNode, type Ref } from 'react';
 import { ArrowRight } from 'lucide-react';
+import { InspectionExerciseLink } from './guide/InspectionExerciseLink';
 import { byType, palette } from '../domain/catalog';
 import { levels, type Level, type Lesson } from '../domain/types';
 import { BlockIcon } from './editor/Icons';
@@ -133,6 +134,7 @@ export function LessonReference({lesson, onOpenTemplate, busy}: {lesson: GuideLe
   return <section className={styles.currentLesson}>
     <h3>{lesson.title} 실습 안내</h3>
     <p>{lesson.task}</p>
+    <InspectionExerciseLink lessonId={lesson.id} />
     <ol>{lesson.steps.map(step => <li key={step}>{step}</li>)}</ol>
     <h4>시험 질문</h4>
     <p>{lesson.question}</p>

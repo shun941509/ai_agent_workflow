@@ -1,5 +1,7 @@
 export const levels = ['입문', '초급', '중급', '고급', '전문가'] as const;
 export type Level = typeof levels[number];
+export const lessonTopics = ['도서관', '소프트웨어 개발', '웹 디자인 개선', '업무 용어와 판단 기준 정리', '웹 개발'] as const;
+export type LessonTopic = typeof lessonTopics[number];
 export const groups = {
   input: '시작·입력·종료', agent: 'AI·Agent·협업', resource: '도구·자료·기억',
   file: '파일·문서·RAG', flow: '흐름 제어·재사용', quality: '검토·승인·품질', error: '오류·보상',
@@ -27,10 +29,17 @@ export type Edge = {id: string; from: string; to: string; kind: EdgeKind; out: s
 export type AgentScope = {mode: 'dedicated' | 'general'; purpose: string};
 export type Graph = {nodes: Block[]; edges: Edge[]; agentScope?: AgentScope};
 export type Issue = {message: string; nodeId?: string; edgeId?: string; path?: string[]; routeId?: string; fieldKey?: string};
+export type LessonSkill = {
+  id: string; title: string; example: string;
+  bundled?: true;
+  targets: {id: string; title: string}[];
+};
 export type Lesson = {
-  id: string; title: string; level: Level; description: string; task: string; question: string;
+  id: string; title: string; level: Level; topic: LessonTopic; description: string; task: string; question: string;
   graph: Graph; goal: string; steps: string[]; checks: string[]; example: string; examples: string[];
   sampleCase?: {title: string; expected: string};
+  skills?: LessonSkill[];
+  skillSteps?: string[];
   optionalPractice?: string;
   optionalSteps?: string[];
 };
